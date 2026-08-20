@@ -178,7 +178,7 @@
 
 @media (max-width: 639px) {
   .pill-header {
-    min-height: 9.25rem;
+    min-height: 7rem;
     padding: 4.25rem 0.75rem 0.75rem;
   }
 
@@ -203,13 +203,39 @@
   }
 
   .pill-nav {
-    height: auto;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    padding: 4px;
+    display: flex;
+    height: 36px;
+    max-width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    grid-template-columns: none;
+    padding: 3px;
+    border-radius: 9999px;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+
+  .pill-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .pill-nav .nav-item.pill {
-    min-height: 32px;
-    font-size: 0.76rem;
+    flex: 0 0 auto;
+    width: auto;
+    min-width: max-content;
+    min-height: 30px;
+    padding: 0 12px;
+    font-size: 0.72rem;
+    scroll-snap-align: center;
+  }
+
+  .pill-nav .pill .label-stack,
+  .pill-nav .pill .pill-label {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
   }
 }

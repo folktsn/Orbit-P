@@ -38,6 +38,7 @@ export function PillNav() {
   const { user, logout } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,6 +54,20 @@ export function PillNav() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    const activeItem = nav?.querySelector<HTMLElement>(".is-active");
+
+    if (!nav || !activeItem) return;
+
+    const frame = requestAnimationFrame(() => {
+      const targetLeft = activeItem.offsetLeft - (nav.clientWidth - activeItem.offsetWidth) / 2;
+      nav.scrollTo({ left: Math.max(0, targetLeft), behavior: "auto" });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
 
   return (
     <header className="pill-header">
@@ -93,7 +108,7 @@ export function PillNav() {
         </div>
       </div>
 
-      <nav className="pill-nav" aria-label="Primary navigation">
+      <nav ref={navRef} className="pill-nav" aria-label="Primary navigation">
         {NAV_ITEMS.map((item) => (
           <PillItem key={item.name} item={item} isActive={pathname === item.href} />
         ))}
