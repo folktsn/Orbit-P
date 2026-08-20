@@ -11,7 +11,7 @@ export function MainLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       {!isLoginPage && <PillNav />}
-      <main className="flex-1 w-full overflow-y-auto">
+      <main className="flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto">
         {children}
       </main>
     </>

@@ -55,10 +55,10 @@ export function PillNav() {
   }, []);
 
   return (
-    <header className="w-full flex justify-center pt-8 pb-4 relative z-50">
+    <header className="pill-header">
       {/* Absolute Left Branding Logo & Name */}
-      <div className="absolute left-8 top-5 flex items-center gap-[1px] select-none">
-        <div className="w-20 h-20 flex items-center justify-center overflow-visible hover:scale-108 hover:rotate-[3deg] transition-all duration-500 cursor-pointer filter drop-shadow-[0_10px_15px_rgba(59,130,246,0.3)]">
+      <div className="pill-brand">
+        <div className="pill-brand-mark">
           <MetallicPaint
             imageSrc="/logo.png"
             seed={42}
@@ -93,17 +93,17 @@ export function PillNav() {
         </div>
       </div>
 
-      <nav className="pill-nav">
+      <nav className="pill-nav" aria-label="Primary navigation">
         {NAV_ITEMS.map((item) => (
           <PillItem key={item.name} item={item} isActive={pathname === item.href} />
         ))}
       </nav>
 
-      <div className="absolute right-8 top-8 flex items-center gap-3">
+      <div className="pill-actions">
         {mounted && (
           <button 
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 duration-200 transition-all cursor-pointer"
+            className="pill-action-button w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 duration-200 transition-all cursor-pointer"
             title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {theme === "dark" ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" />}
@@ -115,7 +115,7 @@ export function PillNav() {
             {/* Clickable Profile Avatar (Shows ONLY the photo) */}
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300 shadow-sm relative overflow-visible focus:outline-none cursor-pointer flex items-center justify-center bg-white dark:bg-slate-800 hover:scale-105 active:scale-95 duration-200"
+              className="pill-action-button w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300 shadow-sm relative overflow-visible focus:outline-none cursor-pointer flex items-center justify-center bg-white dark:bg-slate-800 hover:scale-105 active:scale-95 duration-200"
               title={`${user.displayName} (${user.role})`}
             >
               {user.lineAvatarUrl ? (

@@ -18,14 +18,14 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="w-full min-w-0 space-y-5 p-4 sm:space-y-6 sm:p-6 lg:space-y-8 lg:p-8">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Control Tower</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Control Tower</h1>
           <p className="text-slate-400 mt-1">
             ภาพรวมการสรรหาและกำลังคนแบบเรียลไทม์
           </p>

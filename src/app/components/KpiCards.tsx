@@ -6,7 +6,7 @@ import { Users, Briefcase, Clock, AlertTriangle } from "lucide-react";
 
 export function KpiCards() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card className="flex items-center gap-4 border-none shadow-sm">
           <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl">

@@ -36,11 +36,11 @@ export function MainChart() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.5 }}
-      className="lg:col-span-2"
+      className="min-w-0 lg:col-span-2"
     >
-      <Card className="h-[400px] flex flex-col">
+      <Card className="flex h-[340px] min-w-0 flex-col p-4 sm:h-[400px] sm:p-6">
         <h3 className="text-lg font-semibold mb-4">แนวโน้มการสรรหา</h3>
-        <div className="flex-1 w-full h-full">
+        <div className="h-full w-full min-w-0 flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data}>
               <defs>
