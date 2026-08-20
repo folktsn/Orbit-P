@@ -38,7 +38,19 @@ pm2 restart "$APP_NAME" --update-env
 pm2 save
 
 echo "==> Health check"
-curl -fsS --max-time 15 http://127.0.0.1:3000/ >/dev/null
+for attempt in {1..30}; do
+  if curl -fsS --max-time 5 http://127.0.0.1:3000/ >/dev/null; then
+    break
+  fi
+
+  if [ "$attempt" -eq 30 ]; then
+    echo "Health check failed: app did not respond on port 3000" >&2
+    exit 1
+  fi
+
+  sleep 1
+done
+
 curl -fsS --max-time 30 http://127.0.0.1:3000/api/employees >/dev/null
 
 echo "==> Deployment complete"
