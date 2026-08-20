@@ -1,0 +1,285 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-size: 14px;
+  }
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@utility glass {
+  background: white;
+  border: 1px solid #E2E8F0;
+}
+
+@utility text-glow {
+  text-shadow: none;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Organizational Chart Tree Lines */
+.org-tree {
+  --line-color: #10b981;
+  --line-style: solid;
+  --line-width: 2px;
+  --line-radius: 0px;
+}
+
+.org-tree ul {
+  padding-top: 32px; 
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.org-tree li {
+  text-align: center;
+  list-style-type: none;
+  position: relative;
+  padding: 32px 8px 0 8px;
+}
+
+.org-tree li::before, .org-tree li::after {
+  content: '';
+  position: absolute; 
+  top: 0; 
+  right: 50%;
+  border-top: var(--line-width) var(--line-style) var(--line-color);
+  width: 50%; 
+  height: 32px;
+}
+
+.dark .org-tree li::before, .dark .org-tree li::after {
+  border-top: var(--line-width) var(--line-style) var(--line-color);
+}
+
+.org-tree li::after {
+  right: auto; 
+  left: 50%;
+  border-left: var(--line-width) var(--line-style) var(--line-color);
+}
+
+.dark .org-tree li::after {
+  border-left: var(--line-width) var(--line-style) var(--line-color);
+}
+
+.org-tree li:only-child::after, .org-tree li:only-child::before {
+  display: none;
+}
+
+.org-tree li:only-child { 
+  padding-top: 0;
+}
+
+.org-tree li:first-child::before, .org-tree li:last-child::after {
+  border: 0 none;
+}
+
+.org-tree li:last-child::before {
+  border-right: var(--line-width) var(--line-style) var(--line-color);
+  border-radius: 0 var(--line-radius) 0 0;
+}
+
+.dark .org-tree li:last-child::before {
+  border-right: var(--line-width) var(--line-style) var(--line-color);
+}
+
+.org-tree li:first-child::after {
+  border-radius: var(--line-radius) 0 0 0;
+}
+
+.org-tree ul::before {
+  content: '';
+  position: absolute; 
+  top: 0; 
+  left: calc(50% - var(--line-width) / 2);
+  border-left: var(--line-width) var(--line-style) var(--line-color);
+  width: 0; 
+  height: 32px;
+}
+
+.dark .org-tree ul::before {
+  border-left: var(--line-width) var(--line-style) var(--line-color);
+}
+
+/* Remove upward line for root ul */
+.org-tree > ul::before {
+  display: none;
+}
+.org-tree > ul {
+  padding-top: 0;
+}
+
+/* Spacing modifiers (Vertical) */
+.org-tree.spacing-compact ul {
+  padding-top: 16px;
+}
+.org-tree.spacing-compact li {
+  padding: 16px 4px 0 4px;
+}
+.org-tree.spacing-compact li::before, .org-tree.spacing-compact li::after {
+  height: 16px;
+}
+.org-tree.spacing-compact ul::before {
+  height: 16px;
+}
+
+.org-tree.spacing-spacious ul {
+  padding-top: 48px;
+}
+.org-tree.spacing-spacious li {
+  padding: 48px 16px 0 16px;
+}
+.org-tree.spacing-spacious li::before, .org-tree.spacing-spacious li::after {
+  height: 48px;
+}
+.org-tree.spacing-spacious ul::before {
+  height: 48px;
+}
+
+/* --- HORIZONTAL LAYOUT STYLES --- */
+.org-tree.horizontal ul {
+  display: flex;
+  flex-direction: column;
+  padding-left: 32px;
+  padding-top: 0;
+}
+
+.org-tree.horizontal li {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 0 8px 32px;
+  text-align: left;
+}
+
+.org-tree.horizontal li::before, .org-tree.horizontal li::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  border-left: var(--line-width) var(--line-style) var(--line-color);
+  border-top: none;
+  width: 32px;
+  height: 50%;
+}
+
+.org-tree.horizontal li::before {
+  bottom: 50%;
+  top: auto;
+}
+
+.org-tree.horizontal li::after {
+  top: 50%;
+}
+
+.org-tree.horizontal li:only-child::after, .org-tree.horizontal li:only-child::before {
+  display: none;
+}
+
+.org-tree.horizontal li:only-child {
+  padding-left: 0;
+}
+
+.org-tree.horizontal li:first-child::before, .org-tree.horizontal li:last-child::after {
+  border: 0 none;
+}
+
+.org-tree.horizontal li:last-child::before {
+  border-bottom: var(--line-width) var(--line-style) var(--line-color);
+  border-left: var(--line-width) var(--line-style) var(--line-color);
+  border-radius: 0 0 0 var(--line-radius);
+  height: 50%;
+}
+
+.org-tree.horizontal li:first-child::after {
+  border-top: var(--line-width) var(--line-style) var(--line-color);
+  border-left: var(--line-width) var(--line-style) var(--line-color);
+  border-radius: var(--line-radius) 0 0 0;
+}
+
+.org-tree.horizontal ul::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: calc(50% - var(--line-width) / 2);
+  border-top: var(--line-width) var(--line-style) var(--line-color);
+  border-left: none;
+  width: 32px;
+  height: 0;
+}
+
+.org-tree.horizontal > ul::before {
+  display: none;
+}
+
+.org-tree.horizontal > ul {
+  padding-left: 0;
+}
+
+/* Horizontal Spacing Modifiers */
+.org-tree.horizontal.spacing-compact ul {
+  padding-left: 16px;
+  padding-top: 0;
+}
+.org-tree.horizontal.spacing-compact li {
+  padding: 4px 0 4px 16px;
+}
+.org-tree.horizontal.spacing-compact li::before, .org-tree.horizontal.spacing-compact li::after {
+  width: 16px;
+}
+.org-tree.horizontal.spacing-compact ul::before {
+  width: 16px;
+}
+
+.org-tree.horizontal.spacing-spacious ul {
+  padding-left: 48px;
+  padding-top: 0;
+}
+.org-tree.horizontal.spacing-spacious li {
+  padding: 12px 0 12px 48px;
+}
+.org-tree.horizontal.spacing-spacious li::before, .org-tree.horizontal.spacing-spacious li::after {
+  width: 48px;
+}
+.org-tree.horizontal.spacing-spacious ul::before {
+  width: 48px;
+}
+
+/* BACKGROUND STYLES */
+.bg-dotted {
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.dark .bg-dotted {
+  background-image: radial-gradient(#334155 1px, transparent 1px);
+}
+
+.bg-grid {
+  background-image: 
+    linear-gradient(to right, #e2e8f0 1px, transparent 1px),
+    linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.dark .bg-grid {
+  background-image: 
+    linear-gradient(to right, #1e293b 1px, transparent 1px),
+    linear-gradient(to bottom, #1e293b 1px, transparent 1px);
+}
+
+.bg-solid {
+  background-image: none;
+}

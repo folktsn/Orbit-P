@@ -1,0 +1,19 @@
+{
+  "sourceFile": "Manpower Headcount Report03.7.2026.xlsx",
+  "lastUpdated": "2026-07-03",
+  "recordCount": 256,
+  "sheets": [
+    {
+      "sheet": "HDQ",
+      "records": 70,
+      "approved": 126,
+      "current": 97
+    },
+    {
+      "sheet": "BG-BKK-OS",
+      "records": 186,
+      "approved": 2929,
+      "current": 2236
+    }
+  ]
+}

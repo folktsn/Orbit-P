@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbit-P Recruitment Dashboard</title>
+    <!-- Modern Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- AWS SDK v2 -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1400.0.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="light-theme">
+    <div class="app-container top-nav-layout">
+        <!-- Top Navigation Bar -->
+        <header class="top-header">
+            <div class="header-left">
+                <div class="logo-box">
+                    <i class="fa-solid fa-satellite"></i>
+                </div>
+                <h2>Orbit-P</h2>
+            </div>
+
+            <div class="header-center">
+                <nav class="pill-nav">
+                    <a href="#" class="nav-item pill is-active">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack">
+                            <span class="pill-label">Dashboard</span>
+                            <span class="pill-label-hover" aria-hidden="true">Dashboard</span>
+                        </span>
+                    </a>
+                    <a href="#" class="nav-item pill">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack">
+                            <span class="pill-label">Organization</span>
+                            <span class="pill-label-hover" aria-hidden="true">Organization</span>
+                        </span>
+                    </a>
+                    <a href="#" class="nav-item pill">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack">
+                            <span class="pill-label">Manpower</span>
+                            <span class="pill-label-hover" aria-hidden="true">Manpower</span>
+                        </span>
+                    </a>
+                    <a href="#" class="nav-item pill">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack">
+                            <span class="pill-label">Employees</span>
+                            <span class="pill-label-hover" aria-hidden="true">Employees</span>
+                        </span>
+                    </a>
+                    <a href="#" class="nav-item pill">
+                        <span class="hover-circle" aria-hidden="true"></span>
+                        <span class="label-stack">
+                            <span class="pill-label">Request</span>
+                            <span class="pill-label-hover" aria-hidden="true">Request</span>
+                        </span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="header-right">
+                <div class="header-search">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+                <button class="btn btn-icon" id="themeToggleBtn" title="Toggle Dark/Light Mode">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button class="btn btn-icon"><i class="fa-solid fa-bell"></i></button>
+                <div class="user-profile">
+                    <div class="avatar"><i class="fa-solid fa-user-astronaut"></i></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content full-width">
+
+            <div class="dashboard-content">
+                <!-- KPI Widgets -->
+                <section class="kpi-section">
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-icon blue"><i class="fa-solid fa-users"></i></div>
+                        <div class="kpi-data">
+                            <h3>Total Candidates</h3>
+                            <p class="kpi-value">124</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-icon purple"><i class="fa-solid fa-briefcase"></i></div>
+                        <div class="kpi-data">
+                            <h3>Open Positions</h3>
+                            <p class="kpi-value">12</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-icon green"><i class="fa-solid fa-check-circle"></i></div>
+                        <div class="kpi-data">
+                            <h3>Hired this Month</h3>
+                            <p class="kpi-value">8</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass-panel">
+                        <div class="kpi-icon orange"><i class="fa-solid fa-calendar-alt"></i></div>
+                        <div class="kpi-data">
+                            <h3>Interviews Today</h3>
+                            <p class="kpi-value">5</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Kanban Board for Candidates -->
+                <section class="kanban-section">
+                    <div class="kanban-header">
+                        <h2>Candidate Pipeline</h2>
+                        <div class="kanban-filters">
+                            <select class="glass-select">
+                                <option>All Jobs</option>
+                                <option>Software Engineer</option>
+                                <option>Marketing Manager</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="kanban-board">
+                        <!-- Column: Applied -->
+                        <div class="kanban-column glass-panel">
+                            <div class="column-header">
+                                <h3>Applied <span class="count">3</span></h3>
+                            </div>
+                            <div class="column-body" id="col-applied" data-status="applied">
+                                <!-- Cards injected by JS -->
+                            </div>
+                        </div>
+                        
+                        <!-- Column: Screening -->
+                        <div class="kanban-column glass-panel">
+                            <div class="column-header">
+                                <h3>Screening <span class="count">2</span></h3>
+                            </div>
+                            <div class="column-body" id="col-screening" data-status="screening">
+                                <!-- Cards injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Column: Interviewing -->
+                        <div class="kanban-column glass-panel">
+                            <div class="column-header">
+                                <h3>Interviewing <span class="count">1</span></h3>
+                            </div>
+                            <div class="column-body" id="col-interviewing" data-status="interviewing">
+                                <!-- Cards injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Column: Offer -->
+                        <div class="kanban-column glass-panel">
+                            <div class="column-header">
+                                <h3>Offer <span class="count">1</span></h3>
+                            </div>
+                            <div class="column-body" id="col-offer" data-status="offer">
+                                <!-- Cards injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/aws-service.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

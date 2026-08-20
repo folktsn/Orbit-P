@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html class="dark">
+<head>
+<style>
+  .dark\:bg-black {
+    &:where(.dark, .dark *) {
+      background-color: black;
+      color: white;
+    }
+  }
+  body {
+    background-color: red;
+    color: black;
+  }
+</style>
+</head>
+<body class="dark:bg-black">
+  <h1>Test</h1>
+</body>
+</html>

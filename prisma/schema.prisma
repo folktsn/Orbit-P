@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  role         String   // MANAGER, HR_OFFICER, EXECUTIVE, ADMIN
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model Department {
+  id    String @id @default(cuid())
+  name  String
+  users User[]
+  plans ManpowerPlan[]
+}
+
+model ManpowerPlan {
+  id                String   @id @default(cuid())
+  fiscal_year       Int
+  department_id     String
+  department        Department @relation(fields: [department_id], references: [id])
+  station_id        String
+  planned_headcount Int
+  budget_limit      Float
+  requests          ManpowerRequest[]
+  createdAt         DateTime @default(now())
+}
+
+model ManpowerRequest {
+  id                 String   @id @default(cuid())
+  plan_id            String
+  plan               ManpowerPlan @relation(fields: [plan_id], references: [id])
+  requestType        String   // Planned, Replacement, Expansion, Out-of-plan
+  resignedEmployeeId String?
+  jdAttachment       String?
+  status             String   @default("Draft") // Draft, Pending_HR, Pending_Director, Approved, Rejected
+  auditTrails        AuditTrail[]
+  createdAt          DateTime @default(now())
+}
+
+model AuditTrail {
+  id        String   @id @default(cuid())
+  requestId String
+  request   ManpowerRequest @relation(fields: [requestId], references: [id])
+  field     String
+  oldValue  String?
+  newValue  String?
+  changedBy String
+  createdAt DateTime @default(now())
+}
+
+model JobOpening {
+  id          String   @id @default(cuid())
+  title       String
+  candidates  CandidateProfile[]
+}
+
+model CandidateProfile {
+  id           String   @id @default(cuid())
+  jobId        String
+  job          JobOpening @relation(fields: [jobId], references: [id])
+  name         String
+  email        String
+  skills       String   // Comma separated tags
+  aiScore      Int
+  status       String   @default("Applied") // Applied, Screening, Interview, Hired
+}
+
+model ProbationTracker {
+  id              String   @id @default(cuid())
+  employeeName    String
+  hiringDate      DateTime
+  milestone30     DateTime
+  milestone60     DateTime
+  milestone90     DateTime
+  status          String   @default("Active") // Active, Passed, Failed
+}
+
+model LineWebhook {
+  id           String   @id @default(cuid())
+  lineUserId   String   @unique
+  staffId      String   // Links to fullstaff staff_id in DynamoDB
+  lineNickname String
+  lineAvatar   String?
+  status       String   @default("Linked") // Linked, Unlinked
+  createdAt    DateTime @default(now())
+}
