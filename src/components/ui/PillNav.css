@@ -8,6 +8,7 @@
   padding: 3px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   transition: background-color 0.3s ease;
+  transform: translateZ(0);
 }
 
 :is(.dark .pill-nav) {
@@ -30,27 +31,23 @@
   overflow: hidden;
   background: transparent;
   border: none;
-  transition: color 0.3s ease;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  will-change: background-color, color, transform;
 }
 
 :is(.dark .pill-nav .nav-item.pill) {
   color: #94a3b8; /* slate-400 */
 }
 
-.pill-nav .pill .hover-circle {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  border-radius: 50%;
-  background: #0f172a;
-  z-index: 1;
-  display: block;
-  pointer-events: none;
-  will-change: transform;
+.pill-nav .nav-item.pill:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  transform: translateY(-1px);
 }
 
-:is(.dark .pill-nav .pill .hover-circle) {
-  background: #3b82f6; /* blue-500 */
+:is(.dark .pill-nav .nav-item.pill:hover) {
+  background: rgba(59, 130, 246, 0.18);
+  color: #ffffff;
 }
 
 .pill-nav .pill .label-stack {
@@ -66,25 +63,12 @@
   display: inline-block;
   line-height: 1;
   white-space: nowrap;
-  will-change: transform;
-  transition: color 0.2s ease;
-}
-
-.pill-nav .pill .pill-label-hover {
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: #ffffff;
-  z-index: 3;
-  display: inline-block;
-  line-height: 1;
-  white-space: nowrap;
-  will-change: transform, opacity;
 }
 
 .pill-nav .pill.is-active {
   background: #0f172a;
   color: #ffffff;
+  transform: none;
 }
 
 :is(.dark .pill-nav .pill.is-active) {

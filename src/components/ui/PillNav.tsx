@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { Moon, Sun, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/components/AuthProvider";
-import gsap from "gsap";
 import { motion, AnimatePresence } from "framer-motion";
 import "./PillNav.css";
 import MetallicPaint from "@/components/ui/MetallicPaint";
@@ -21,94 +20,13 @@ const NAV_ITEMS = [
 ];
 
 function PillItem({ item, isActive }: { item: { name: string; href: string }; isActive: boolean }) {
-  const pillRef = useRef<HTMLAnchorElement>(null);
-  const circleRef = useRef<HTMLSpanElement>(null);
-  const labelRef = useRef<HTMLSpanElement>(null);
-  const whiteRef = useRef<HTMLSpanElement>(null);
-  const timelineRef = useRef<gsap.core.Timeline | null>(null);
-
-  useEffect(() => {
-    const pill = pillRef.current;
-    const circle = circleRef.current;
-    const label = labelRef.current;
-    const white = whiteRef.current;
-
-    if (!pill || !circle || !label || !white) return;
-
-    const ease = "power3.easeOut";
-
-    const timeout = setTimeout(() => {
-      const rect = pill.getBoundingClientRect();
-      const w = rect.width;
-      const h = rect.height || 32;
-      const R = (w * w) / 4 + (h * h) / (2 * h);
-      const D = Math.ceil(2 * R) + 2;
-      const delta = Math.ceil(R - Math.sqrt(Math.max(0, R * R - (w * w) / 4))) + 1;
-      const originY = D - delta;
-
-      circle.style.width = `${D}px`;
-      circle.style.height = `${D}px`;
-      circle.style.bottom = `-${delta}px`;
-
-      gsap.set(circle, {
-        xPercent: -50,
-        scale: 0,
-        transformOrigin: `50% ${originY}px`,
-      });
-
-      gsap.set(label, { y: 0 });
-      gsap.set(white, { y: h + 12, opacity: 0 });
-
-      const tl = gsap.timeline({ paused: true });
-
-      tl.to(circle, { scale: 1.2, xPercent: -50, duration: 2, ease, overwrite: "auto" }, 0);
-      tl.to(label, { y: -(h + 8), duration: 2, ease, overwrite: "auto" }, 0);
-
-      gsap.set(white, { y: Math.ceil(h + 100), opacity: 0 });
-      tl.to(white, { y: 0, opacity: 1, duration: 2, ease, overwrite: "auto" }, 0);
-
-      timelineRef.current = tl;
-    }, 100);
-
-    return () => clearTimeout(timeout);
-  }, []);
-
-  const handleMouseEnter = () => {
-    if (isActive) return;
-    if (timelineRef.current) {
-      gsap.killTweensOf(timelineRef.current);
-      timelineRef.current.tweenTo(timelineRef.current.duration(), {
-        duration: 0.3,
-        ease: "power3.easeOut",
-        overwrite: "auto",
-      });
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (isActive) return;
-    if (timelineRef.current) {
-      gsap.killTweensOf(timelineRef.current);
-      timelineRef.current.tweenTo(0, {
-        duration: 0.2,
-        ease: "power3.easeOut",
-        overwrite: "auto",
-      });
-    }
-  };
-
   return (
     <Link
-      ref={pillRef}
       href={item.href}
       className={`nav-item pill ${isActive ? "is-active" : ""}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
-      <span ref={circleRef} className="hover-circle" aria-hidden="true"></span>
       <span className="label-stack">
-        <span ref={labelRef} className="pill-label">{item.name}</span>
-        <span ref={whiteRef} className="pill-label-hover" aria-hidden="true">{item.name}</span>
+        <span className="pill-label">{item.name}</span>
       </span>
     </Link>
   );
