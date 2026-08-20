@@ -19,6 +19,8 @@
 
 # production
 /build
+/.deploy-package-lock.sha256
+/public/uploads/
 
 # misc
 .DS_Store
