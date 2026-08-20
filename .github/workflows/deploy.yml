@@ -1,4 +1,4 @@
-name: OrbitHire ERP - Automated CI/CD Deployment
+name: S Recruit - Production Deployment
 
 on:
   push:
@@ -21,24 +21,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            # Navigate to the project directory
-            cd ~/Project/Orbit-P || cd /var/www/Orbit-P || cd ~/Orbit-P || cd /home/pattaya-aviation/Orbit-P || cd "C:/New folder/Project"
-            
-            echo "==== STARTING AUTO DEPLOY ===="
-            
-            # Pull the latest changes from GitHub
-            git pull origin main
-            
-            # Install packages
-            npm install --legacy-peer-deps
-            
-            # Run prisma migrations/checks if applicable
-            npx prisma db push --accept-data-loss || true
-            
-            # Build the production optimized application
-            npm run build
-            
-            # Restart PM2 process to apply updates with zero downtime
-            pm2 restart all || pm2 restart orbit-p-app || pm2 start npm --name "orbit-p-app" -- run start || npm run start
-            
-            echo "==== AUTO DEPLOY COMPLETED SUCCESSFULLY ===="
+            cd /home/ubuntu/orbit-p-folktsn
+            ./scripts/deploy-production.sh
