@@ -100,7 +100,7 @@ export function PillNav() {
         </div>
         <div className="hidden md:flex flex-col leading-none">
           <span className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
-            S Recruit
+            HO-Recruitment
           </span>
           <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide mt-0.5">
             Pattaya Aviation

@@ -96,28 +96,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.setItem("orbithire_session", JSON.stringify(resolvedSession));
         setUser(resolvedSession);
       } else {
-        // Fallback to initial mock if lookup API returns error
-        const fallbackSession: UserProfile = {
-          username: lineNickname.toLowerCase().replace(/\s+/g, "_"),
-          role,
-          displayName: lineNickname,
-          provider: "line",
-          lineAvatarUrl: lineAvatar,
-        };
-        sessionStorage.setItem("orbithire_session", JSON.stringify(fallbackSession));
-        setUser(fallbackSession);
+        // LINE sessions must be backed by a verified employee profile.
+        setLoading(false);
+        return false;
       }
     } catch (e) {
-      console.error("LINE database lookup failed, logging in with fallback session:", e);
-      const fallbackSession: UserProfile = {
-        username: lineNickname.toLowerCase().replace(/\s+/g, "_"),
-        role,
-        displayName: lineNickname,
-        provider: "line",
-        lineAvatarUrl: lineAvatar,
-      };
-      sessionStorage.setItem("orbithire_session", JSON.stringify(fallbackSession));
-      setUser(fallbackSession);
+      console.error("LINE database lookup failed:", e);
+      setLoading(false);
+      return false;
     }
     
     setLoading(false);
@@ -176,7 +162,7 @@ function LoadingScreen() {
         <div className="absolute w-10 h-10 border-4 border-sky-500/20 border-b-sky-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
       </div>
       <p className="mt-6 text-sm font-medium text-slate-500 dark:text-slate-400 tracking-wider uppercase animate-pulse">
-        S Recruit
+        HO-Recruitment
       </p>
     </div>
   );

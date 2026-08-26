@@ -1,10 +1,17 @@
-# S Recruit
+# HO-Recruitment
 
-S Recruit is the HR, employee document, organization chart, manpower, recruitment, and probation management system for Pattaya Aviation.
+HO-Recruitment is the HR, employee document, organization chart, manpower, recruitment, and probation management system for Pattaya Aviation.
 
 Production URL: https://orbithire.pattayaaviation.com/
 
 GitHub repository: https://github.com/folktsn/Orbit-P
+
+## Source Of Truth
+
+- The only production source repository is `https://github.com/folktsn/Orbit-P`.
+- Production deploys only from the `main` branch of this repository.
+- `PattayaAviation/Orbit-P` is a legacy reference and must not deploy to production.
+- Runtime credentials, uploaded files, build output, PM2 state, and local SQLite changes must never be committed.
 
 ## Current Production Setup
 
@@ -183,6 +190,17 @@ AWS_SECRET_ACCESS_KEY=...
 S3_ATTACHMENTS_BUCKET=pa-hr-attachments
 ```
 
+Production should prefer an EC2 instance role. When an instance role is not
+available, static keys may be supplied through the server environment only.
+The application automatically uses the AWS SDK default credential chain when
+`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are absent.
+
+The production IAM identity requires these permissions:
+
+- DynamoDB read/write for `fullstaff` and `PA_OrgStructure`
+- S3 list/read/write/delete for the application-owned prefixes in `pa-hr-attachments`
+- S3 object access for `Employees/*`, `attachments/*`, and `evaluation/*`
+
 Other environment values may be needed depending on the module being tested locally.
 
 Security rules:
@@ -220,7 +238,7 @@ npm run build -- --webpack
 
 ## Production Deployment
 
-The production server is now deployed from the `folktsn/Orbit-P` repository.
+The production server is deployed only from the `folktsn/Orbit-P` repository.
 
 Recommended deploy command on the server:
 
@@ -270,7 +288,8 @@ The workflow expects SSH secrets to be configured in GitHub:
 - `SSH_PRIVATE_KEY`
 - `SSH_PORT` optional
 
-The workflow should deploy by running the production deploy script on the server.
+The workflow deploys by running the production deploy script on the server. Do
+not enable a production workflow in the legacy repository.
 
 ## Server Disk Notes
 

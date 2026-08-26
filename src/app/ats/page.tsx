@@ -78,24 +78,24 @@ export default function ATSPipeline() {
   );
 
   return (
-    <div className="p-8 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Recruitment Pipeline</h1>
+    <div className="p-4 sm:p-6 lg:p-8 h-full flex flex-col">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6 lg:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Recruitment Pipeline</h1>
           <p className="text-slate-400 mt-1">ระบบติดตามกระบวนการสรรหาบุคลากร (OrbitHire)</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="relative border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 flex items-center gap-2 bg-white dark:bg-slate-800 shadow-sm">
+        <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto md:gap-4">
+          <div className="relative w-full md:w-auto border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 flex items-center gap-2 bg-white dark:bg-slate-800 shadow-sm">
             <Search className="w-4 h-4 text-slate-400" />
             <input 
               type="text" 
               placeholder="ค้นหา..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none outline-none text-slate-900 dark:text-slate-100 text-sm w-48 placeholder:text-slate-400"
+              className="bg-transparent border-none outline-none text-slate-900 dark:text-slate-100 text-sm w-full md:w-48 placeholder:text-slate-400"
             />
           </div>
-          <button className="border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 shadow-sm text-slate-700 dark:text-slate-300">
+          <button className="border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 shadow-sm text-slate-700 dark:text-slate-300">
             <Filter className="w-4 h-4" />
             <span className="text-sm font-medium">ตัวกรองอัจฉริยะ</span>
           </button>

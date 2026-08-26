@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "S Recruit",
+  title: "HO-Recruitment",
   description: "Aviation-inspired Enterprise Resource Planning Interface",
 };
 

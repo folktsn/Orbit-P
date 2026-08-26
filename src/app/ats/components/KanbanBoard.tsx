@@ -22,11 +22,11 @@ export function KanbanBoard({
   onSelectCandidate,
 }: KanbanBoardProps) {
   return (
-    <div className="flex-1 flex gap-6 overflow-x-auto pb-4">
+    <div className="grid flex-1 grid-cols-1 content-start gap-4 pb-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
       {columns.map((col) => (
         <div 
           key={col} 
-          className="w-80 flex-shrink-0 flex flex-col"
+          className="w-full min-w-0 flex flex-col"
           onDrop={(e) => onDrop(e, col)}
           onDragOver={onDragOver}
         >

@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+type CandidateWithJob = {
+  id: string;
+  name: string;
+  email: string;
+  skills: string | null;
+  aiScore: number;
+  status: string;
+  job: { title: string };
+};
+
 export async function GET() {
   try {
     const candidates = await prisma.candidateProfile.findMany({
@@ -10,7 +20,7 @@ export async function GET() {
     });
 
     // Translate database status to UI columns
-    const mapped = candidates.map((c) => {
+    const mapped = (candidates as CandidateWithJob[]).map((c) => {
       let uiStatus = "สมัครแล้ว";
       if (c.status === "Screening") uiStatus = "คัดกรอง";
       else if (c.status === "Interview") uiStatus = "สัมภาษณ์";

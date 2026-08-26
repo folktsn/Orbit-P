@@ -6,6 +6,11 @@ type LineMappingsCache = {
   expiresAt: number;
 };
 
+type LineConnection = {
+  staffId: string;
+  lineAvatar: string | null;
+};
+
 const CACHE_TTL_MS = 60_000;
 const GLOBAL_CACHE_KEY = "__s_recruit_line_mappings_cache__";
 const globalWithCache = globalThis as typeof globalThis & {
@@ -41,7 +46,7 @@ export async function GET() {
     });
 
     // Reduce into a fast lookup key-value map: { [staffId]: lineAvatarUrl }
-    const mappingMap = connections.reduce((acc, curr) => {
+    const mappingMap = (connections as LineConnection[]).reduce((acc, curr) => {
       if (curr.staffId && curr.lineAvatar) {
         acc[curr.staffId] = curr.lineAvatar;
       }

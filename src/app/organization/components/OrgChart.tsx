@@ -803,9 +803,11 @@ export function OrgChart() {
       const res = await fetch("/api/organization", { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch organization data");
       const data = await res.json();
+      if (!Array.isArray(data)) throw new Error("Invalid organization data");
       setOrgData(data);
     } catch (err: any) {
-      setErrorMsg(err.message);
+      setOrgData([]);
+      setErrorMsg("ไม่สามารถเชื่อมต่อข้อมูลโครงสร้างองค์กรได้ในขณะนี้ กรุณาลองใหม่ หรือตรวจสอบการตั้งค่า AWS");
     } finally {
       setLoading(false);
       if (isManualRefresh) setIsRefreshing(false);
@@ -1421,12 +1423,21 @@ export function OrgChart() {
     );
   }
 
-  if (errorMsg) {
-    return <div className="text-red-500 p-4 bg-red-50 m-8 rounded-xl">{errorMsg}</div>;
-  }
-
   return (
     <div className="flex flex-col w-full h-full bg-white dark:bg-[#0A0A0A]">
+      {errorMsg && (
+        <div className="mx-4 mt-4 flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+          <span>{errorMsg}</span>
+          <button
+            type="button"
+            onClick={() => fetchOrg(true)}
+            disabled={isRefreshing}
+            className="shrink-0 rounded-lg border border-amber-300 px-3 py-1.5 font-medium hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-amber-400/40 dark:hover:bg-amber-500/10"
+          >
+            {isRefreshing ? "กำลังลองใหม่..." : "ลองใหม่"}
+          </button>
+        </div>
+      )}
       
       {/* --- HEADER & TOOLBAR --- */}
       <div className="flex flex-col border-b border-slate-200 dark:border-white/10 shrink-0 z-40 bg-white dark:bg-[#0A0A0A]">

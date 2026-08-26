@@ -40,6 +40,7 @@ export default function LoginPage() {
   // LIFF initialization tracking
   const [liffInitialized, setLiffInitialized] = useState(false);
   const [liffError, setLiffError] = useState<string | null>(null);
+  const [isLocalDevelopment, setIsLocalDevelopment] = useState(false);
 
   const demoRoles = [
     {
@@ -80,6 +81,13 @@ export default function LoginPage() {
   // Dynamic LIFF script loading and initialization
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // LINE only accepts redirect URIs registered in the channel settings.
+    // Keep local development usable without attempting an invalid LIFF redirect.
+    if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+      setIsLocalDevelopment(true);
+      return;
+    }
 
     const scriptId = "line-liff-sdk";
     let script = document.getElementById(scriptId) as HTMLScriptElement;
@@ -166,6 +174,13 @@ export default function LoginPage() {
   // Official LINE Login Auth Redirect Trigger
   const handleGetStartedWithLine = () => {
     setCustomLineError("");
+
+    if (isLocalDevelopment) {
+      setShowCredentialsForm(true);
+      setError("LINE Login ใช้ได้เฉพาะโดเมนที่ลงทะเบียนกับ LINE เท่านั้น — localhost ให้ใช้ Staff Login");
+      return;
+    }
+
     setShowLineModal(true);
     setLineView("detecting");
 
@@ -267,6 +282,12 @@ export default function LoginPage() {
   // traditional form authentication
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isLocalDevelopment) {
+      setError("Staff Login ใช้ได้เฉพาะ localhost เท่านั้น");
+      return;
+    }
+
     if (!username.trim() || !password.trim()) {
       setError("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
       return;
@@ -436,14 +457,16 @@ export default function LoginPage() {
                   Get started with LINE
                 </button>
 
-                {/* Staff Credentials Option */}
-                <button
-                  type="button"
-                  onClick={() => setShowCredentialsForm(true)}
-                  className="w-full sm:w-auto min-w-[200px] bg-white/[0.03] hover:bg-white/[0.08] text-white border border-white/10 px-8 py-3.5 rounded-full flex items-center justify-center gap-2 cursor-pointer transition-all duration-300 text-sm hover:border-white/20 hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md"
-                >
-                  Staff Login
-                </button>
+                {/* Credentials are available only for local development. */}
+                {isLocalDevelopment && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCredentialsForm(true)}
+                    className="w-full sm:w-auto min-w-[200px] bg-white/[0.03] hover:bg-white/[0.08] text-white border border-white/10 px-8 py-3.5 rounded-full flex items-center justify-center gap-2 cursor-pointer transition-all duration-300 text-sm hover:border-white/20 hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md"
+                  >
+                    Staff Login
+                  </button>
+                )}
               </motion.div>
             ) : (
               <motion.div

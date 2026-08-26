@@ -1,4 +1,4 @@
-name: S Recruit - Production Deployment
+name: HO-Recruitment - Production Deployment
 
 on:
   push:

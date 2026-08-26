@@ -29,12 +29,19 @@ export function isAllowedAttachmentKey(key: string): boolean {
   return ALLOWED_ATTACHMENT_PREFIXES.some((p) => key.startsWith(p));
 }
 
+// Use static env credentials only when both are provided; otherwise fall back to
+// the AWS SDK default provider chain (EC2 instance role) — no long-lived keys.
+const staticCreds =
+  process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+    ? {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      }
+    : undefined;
+
 const s3Client = new S3Client({
   region: REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
+  ...(staticCreds ? { credentials: staticCreds } : {}),
 });
 
 /**

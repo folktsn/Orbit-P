@@ -3,12 +3,20 @@ import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
 const REGION = process.env.AWS_REGION || "ap-southeast-7"; // Adjust to your actual region, e.g., ap-southeast-1
 
+// Use static env credentials only when both are provided; otherwise leave
+// `credentials` unset so the AWS SDK's default provider chain (EC2 instance role)
+// supplies them. This lets the app run with NO long-lived keys on the box.
+const staticCreds =
+  process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+    ? {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      }
+    : undefined;
+
 const ddbClient = new DynamoDBClient({
   region: REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
+  ...(staticCreds ? { credentials: staticCreds } : {}),
 });
 
 const marshallOptions = {

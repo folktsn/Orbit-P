@@ -3,6 +3,30 @@ import { prisma } from "@/lib/prisma";
 import { docClient } from "@/lib/dynamodb";
 import { GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 
+function isMeaningfulValue(value: unknown) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return normalized !== "" && normalized !== "-" && normalized !== "null" && normalized !== "undefined";
+}
+
+function getAccessRestriction(employee: Record<string, unknown>) {
+  const statuses = [employee.status, employee.resign_status]
+    .map((value) => String(value ?? "").trim().toLowerCase());
+
+  if (statuses.includes("pending")) {
+    return "Pending";
+  }
+
+  const hasResignationStatus = statuses.some((status) => status.includes("resign"));
+  const hasResignationDate = [
+    employee.resign_date,
+    employee.last_working_date,
+    employee.last_work_date,
+    employee.separation_date,
+  ].some(isMeaningfulValue);
+
+  return hasResignationStatus || hasResignationDate ? "Resigning" : null;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -95,6 +119,19 @@ export async function GET(request: Request) {
     // 3. Construct the resolved session user profile
     if (employeeProfile) {
       staffId = employeeProfile.staff_id;
+      const accessRestriction = getAccessRestriction(employeeProfile);
+
+      if (accessRestriction) {
+        return NextResponse.json(
+          {
+            success: false,
+            accessDenied: true,
+            error: `ไม่อนุญาตให้เข้าใช้งานระบบสำหรับพนักงานสถานะ ${accessRestriction}`,
+          },
+          { status: 403 }
+        );
+      }
+
       const position = (employeeProfile.position || "").toLowerCase();
       const resolvedDisplayName = employeeProfile.name_en || 
                                   (employeeProfile.first_name_en ? `${employeeProfile.first_name_en} ${employeeProfile.last_name_en || ''}`.trim() : null) || 

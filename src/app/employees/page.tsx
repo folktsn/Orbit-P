@@ -46,9 +46,13 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     fetch('/api/organization')
-      .then(res => res.json())
-      .then(data => setOrgData(data))
-      .catch(console.error);
+      .then(async (res) => {
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      })
+      .then(setOrgData)
+      .catch(() => setOrgData([]));
   }, []);
 
   const formatWithCode = (name: string, code: string) => {
