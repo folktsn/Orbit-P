@@ -4,6 +4,8 @@
   display: flex;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
   justify-content: center;
   padding: 2rem 1rem 1rem;
 }
@@ -178,8 +180,8 @@
 
 @media (max-width: 639px) {
   .pill-header {
-    min-height: 7rem;
-    padding: 4.25rem 0.75rem 0.75rem;
+    min-height: 6.75rem;
+    padding: 4rem 0.75rem 0.75rem;
   }
 
   .pill-brand {
@@ -188,8 +190,8 @@
   }
 
   .pill-brand-mark {
-    width: 3rem;
-    height: 3rem;
+    width: 2.75rem;
+    height: 2.75rem;
   }
 
   .pill-actions {
@@ -203,19 +205,17 @@
   }
 
   .pill-nav {
-    display: flex;
+    display: grid;
+    width: 100%;
+    min-width: 0;
     height: 36px;
     max-width: 100%;
-    justify-content: flex-start;
-    overflow-x: auto;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    overflow-x: hidden;
     overflow-y: hidden;
-    grid-template-columns: none;
     padding: 3px;
-    border-radius: 9999px;
+    border-radius: 12px;
     scrollbar-width: none;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
   }
 
   .pill-nav::-webkit-scrollbar {
@@ -223,19 +223,18 @@
   }
 
   .pill-nav .nav-item.pill {
-    flex: 0 0 auto;
-    width: auto;
-    min-width: max-content;
+    width: 100%;
+    min-width: 0;
     min-height: 30px;
-    padding: 0 12px;
-    font-size: 0.72rem;
-    scroll-snap-align: center;
+    padding: 0 2px;
+    font-size: 0.62rem;
   }
 
   .pill-nav .pill .label-stack,
   .pill-nav .pill .pill-label {
-    max-width: none;
-    overflow: visible;
-    text-overflow: clip;
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

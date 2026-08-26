@@ -632,22 +632,22 @@ export function EmployeeList({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full min-w-0">
       {errorMsg && (
         <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl flex items-center justify-between">
           <p className="text-sm text-amber-700 dark:text-amber-400">{errorMsg}</p>
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-3 sm:space-y-4">
         {!selectedEmployee && filteredEmployees.slice(0, visibleCount).map((emp, idx) => (
           <div
             key={emp.id}
             onClick={() => openEmployee(emp)}
-            className="group flex items-center justify-between p-4 bg-white dark:bg-[#121212] border border-slate-100 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-300"
+            className="group flex min-w-0 items-center justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white p-3 shadow-sm transition-all duration-300 hover:shadow-md dark:border-white/5 dark:bg-[#121212] sm:p-4"
           >
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0 overflow-hidden relative bg-slate-100 dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 shadow-sm", emp.colorClass)}>
+            <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+              <div className={cn("relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-100 bg-slate-100 text-base font-bold text-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900 sm:h-12 sm:w-12 sm:text-lg", emp.colorClass)}>
                 {emp.initials}
               </div>
               <div className="flex-1 min-w-0">
@@ -780,7 +780,7 @@ export function EmployeeList({
                 </span>
               </div>
             </div>
-            <div className="text-slate-300 dark:text-slate-600 group-hover:text-slate-900 dark:group-hover:text-slate-300 transition-colors">
+            <div className="shrink-0 text-slate-300 transition-colors group-hover:text-slate-900 dark:text-slate-600 dark:group-hover:text-slate-300">
               <ChevronRight className="w-5 h-5" />
             </div>
           </div>
