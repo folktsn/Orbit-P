@@ -747,14 +747,14 @@ function KpiCard({
   tone: string;
 }) {
   return (
-    <div className="flex min-h-24 items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[#121212]">
-      <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg", tone)}>
-        <Icon className="size-5" />
+    <div className="flex min-h-12 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1.5 shadow-sm dark:border-white/10 dark:bg-[#121212]">
+      <div className={cn("flex size-6 shrink-0 items-center justify-center rounded-md", tone)}>
+        <Icon className="size-3.5" />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{label}</p>
-        <p className="text-2xl font-bold text-slate-950 dark:text-white">{value.toLocaleString()}</p>
-        <p className="truncate text-xs text-slate-500 dark:text-slate-400">{helper}</p>
+        <p className="truncate text-[10px] font-semibold uppercase leading-3 text-slate-500 dark:text-slate-400">{label}</p>
+        <p className="text-xl font-bold leading-5 text-slate-950 dark:text-white">{value.toLocaleString()}</p>
+        <p className="truncate text-[10px] leading-3 text-slate-500 dark:text-slate-400">{helper}</p>
       </div>
     </div>
   );
@@ -913,7 +913,7 @@ export default function ProbationPage() {
       </section>
 
       {!isLoading && !error && (
-        <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <section className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-5">
           <KpiCard label="พนักงานทดลองงาน" value={counts.total} helper="Active & Probation" icon={Users} tone="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" />
           <KpiCard label="เลยกำหนด" value={counts.overdue} helper="ต้องติดตามทันที" icon={AlertTriangle} tone="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" />
           <KpiCard label="ภายใน 30 วัน" value={counts.due30} helper="ใกล้ครบกำหนด" icon={Clock3} tone="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" />
