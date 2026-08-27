@@ -578,11 +578,11 @@ function FollowUpDialog({
                 <span className="text-[10px] font-bold uppercase text-sky-600 dark:text-sky-400">ผู้ถูกติดตาม</span>
                 <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">ID {record.employee.id}</span>
               </div>
-              <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
+              <p className="text-sm font-bold leading-snug text-slate-950 dark:text-white">
                 {record.employee.nameEn}
                 {record.employee.name !== "-" && <span className="font-medium text-slate-600 dark:text-slate-300"> · {record.employee.name}</span>}
               </p>
-              <p className="mt-0.5 truncate text-xs text-slate-600 dark:text-slate-400">{record.employee.title}</p>
+              <p className="mt-0.5 text-xs leading-snug text-slate-600 dark:text-slate-400">{record.employee.title}</p>
             </div>
             <span className={cn("hidden shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold sm:inline-flex", urgencyStyle(record.urgency))}>
               {urgencyLabel(record)}
