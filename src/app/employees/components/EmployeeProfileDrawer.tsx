@@ -124,7 +124,7 @@ interface DrawerProps {
   onClose: () => void;
   employee: EmployeeData | null;
   onUpdate?: (data: EmployeeData) => void;
-  concealBackground?: boolean;
+  blurBackground?: boolean;
 }
 
 type EmployeeDocumentItem = {
@@ -254,7 +254,7 @@ const composeAddressFromDatabaseFields = (record: ServerEmployeeRecord) => {
 
   return parts.join(" ");
 };
-export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, concealBackground = false }: DrawerProps) {
+export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blurBackground = false }: DrawerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<EmployeeData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -1319,8 +1319,8 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, con
             onClick={onClose}
             className={cn(
               "fixed inset-0 z-50",
-              concealBackground
-                ? "bg-white dark:bg-[#050505]"
+              blurBackground
+                ? "bg-black/30 backdrop-blur-[2px] dark:bg-black/60"
                 : "bg-black/30 dark:bg-black/60",
             )}
           />

@@ -1105,7 +1105,7 @@ export default function ProbationPage() {
       <EmployeeProfileDrawer
         isOpen={Boolean(selectedEmployee)}
         employee={selectedEmployee}
-        concealBackground
+        blurBackground
         onClose={() => setSelectedEmployee(null)}
         onUpdate={handleEmployeeUpdate}
       />
