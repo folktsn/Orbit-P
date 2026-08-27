@@ -12,9 +12,12 @@ import {
   CircleAlert,
   Clock3,
   Database,
+  Eye,
+  ImagePlus,
   MapPin,
   RefreshCw,
   Search,
+  UserRoundSearch,
   Users,
   X,
 } from "lucide-react";
@@ -27,7 +30,22 @@ import {
 type RawEmployee = Record<string, unknown>;
 type Urgency = "all" | "overdue" | "due30" | "due60" | "later" | "missing";
 type FollowUpSlot = 1 | 2 | 3;
-type FollowUpDates = [string, string, string];
+type Evaluator = {
+  employeeId: string;
+  name: string;
+  nameEn: string;
+  position: string;
+};
+type FollowUpEntry = {
+  date: string;
+  evaluatorId: string;
+  evaluatorName: string;
+  evaluatorNameEn: string;
+  evaluatorPosition: string;
+  attachmentName: string;
+  attachmentData: string;
+};
+type FollowUpEntries = [FollowUpEntry, FollowUpEntry, FollowUpEntry];
 
 type ProbationRecord = {
   raw: RawEmployee;
@@ -38,7 +56,7 @@ type ProbationRecord = {
   probationDays: number;
   inferredEndDate: boolean;
   urgency: Exclude<Urgency, "all">;
-  followUpDates: FollowUpDates;
+  followUps: FollowUpEntries;
 };
 
 type ProbationResponse = {
@@ -130,12 +148,16 @@ function todayDateOnly() {
   ].join("-");
 }
 
-function followUpDatesFromRecord(item: RawEmployee): FollowUpDates {
-  return [
-    valueOf(item, ["probation_follow_up_1_date"], ""),
-    valueOf(item, ["probation_follow_up_2_date"], ""),
-    valueOf(item, ["probation_follow_up_3_date"], ""),
-  ];
+function followUpsFromRecord(item: RawEmployee): FollowUpEntries {
+  return ([1, 2, 3] as FollowUpSlot[]).map((slot) => ({
+    date: valueOf(item, [`probation_follow_up_${slot}_date`], ""),
+    evaluatorId: valueOf(item, [`probation_follow_up_${slot}_evaluator_id`], ""),
+    evaluatorName: valueOf(item, [`probation_follow_up_${slot}_evaluator_name`], ""),
+    evaluatorNameEn: valueOf(item, [`probation_follow_up_${slot}_evaluator_name_en`], ""),
+    evaluatorPosition: valueOf(item, [`probation_follow_up_${slot}_evaluator_position`], ""),
+    attachmentName: valueOf(item, [`probation_follow_up_${slot}_attachment_name`], ""),
+    attachmentData: valueOf(item, [`probation_follow_up_${slot}_attachment_data`], ""),
+  })) as FollowUpEntries;
 }
 
 function cleanName(value: string, language: "th" | "en") {
@@ -269,7 +291,7 @@ function buildProbationRecord(item: RawEmployee): ProbationRecord {
     probationDays,
     inferredEndDate,
     urgency,
-    followUpDates: followUpDatesFromRecord(item),
+    followUps: followUpsFromRecord(item),
   };
 }
 
@@ -295,31 +317,136 @@ function FollowUpDialog({
 }: {
   record: ProbationRecord;
   onClose: () => void;
-  onSaved: (employeeId: string, slot: FollowUpSlot, date: string) => void;
+  onSaved: (employeeId: string, slot: FollowUpSlot, entry: FollowUpEntry) => void;
 }) {
-  const [dates, setDates] = useState<FollowUpDates>(record.followUpDates);
+  const [entries, setEntries] = useState<FollowUpEntries>(record.followUps);
+  const [evaluators, setEvaluators] = useState<Array<Evaluator | null>>(
+    record.followUps.map((entry) => entry.evaluatorId && (entry.evaluatorName || entry.evaluatorNameEn)
+      ? {
+          employeeId: entry.evaluatorId,
+          name: entry.evaluatorName,
+          nameEn: entry.evaluatorNameEn,
+          position: entry.evaluatorPosition,
+        }
+      : null),
+  );
+  const [imageFiles, setImageFiles] = useState<Array<File | null>>([null, null, null]);
   const [savingSlot, setSavingSlot] = useState<FollowUpSlot | null>(null);
+  const [lookingUpSlot, setLookingUpSlot] = useState<FollowUpSlot | null>(null);
   const [savedSlot, setSavedSlot] = useState<FollowUpSlot | null>(null);
-  const [saveError, setSaveError] = useState("");
+  const [slotErrors, setSlotErrors] = useState<Partial<Record<FollowUpSlot, string>>>({});
   const latestAllowedDate = todayDateOnly();
 
-  const setDate = (slot: FollowUpSlot, value: string) => {
-    setDates((current) => {
-      const next: FollowUpDates = [...current];
-      next[slot - 1] = value;
+  const updateEntry = (slot: FollowUpSlot, changes: Partial<FollowUpEntry>) => {
+    setEntries((current) => {
+      const next = [...current] as FollowUpEntries;
+      next[slot - 1] = { ...next[slot - 1], ...changes };
       return next;
     });
     setSavedSlot(null);
-    setSaveError("");
+    setSlotErrors((current) => ({ ...current, [slot]: "" }));
+  };
+
+  const setEvaluator = (slot: FollowUpSlot, evaluator: Evaluator | null) => {
+    setEvaluators((current) => {
+      const next = [...current];
+      next[slot - 1] = evaluator;
+      return next;
+    });
+  };
+
+  const lookupEvaluator = async (slot: FollowUpSlot) => {
+    const evaluatorId = entries[slot - 1].evaluatorId.trim();
+    if (!evaluatorId) throw new Error("กรุณากรอกรหัสพนักงานผู้ติดตาม");
+
+    setLookingUpSlot(slot);
+    setSlotErrors((current) => ({ ...current, [slot]: "" }));
+    try {
+      const response = await fetch(`/api/probation/follow-up?employeeId=${encodeURIComponent(evaluatorId)}`, {
+        cache: "no-store",
+      });
+      const payload = await response.json() as { evaluator?: Evaluator; error?: string };
+      if (!response.ok || !payload.evaluator) {
+        throw new Error(payload.error || "ไม่พบข้อมูลผู้ติดตาม");
+      }
+
+      setEvaluator(slot, payload.evaluator);
+      updateEntry(slot, {
+        evaluatorId: payload.evaluator.employeeId,
+        evaluatorName: payload.evaluator.name,
+        evaluatorNameEn: payload.evaluator.nameEn,
+        evaluatorPosition: payload.evaluator.position,
+      });
+      return payload.evaluator;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "ไม่สามารถตรวจสอบผู้ติดตามได้";
+      setEvaluator(slot, null);
+      setSlotErrors((current) => ({ ...current, [slot]: message }));
+      throw error;
+    } finally {
+      setLookingUpSlot(null);
+    }
+  };
+
+  const selectImage = (slot: FollowUpSlot, file: File | null) => {
+    if (file && !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setSlotErrors((current) => ({ ...current, [slot]: "รองรับรูป JPG, PNG และ WebP เท่านั้น" }));
+      return;
+    }
+    if (file && file.size > 20 * 1024 * 1024) {
+      setSlotErrors((current) => ({ ...current, [slot]: "รูปต้องมีขนาดไม่เกิน 20 MB" }));
+      return;
+    }
+
+    setImageFiles((current) => {
+      const next = [...current];
+      next[slot - 1] = file;
+      return next;
+    });
+    setSlotErrors((current) => ({ ...current, [slot]: "" }));
+  };
+
+  const fileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("ไม่สามารถอ่านไฟล์รูปภาพได้"));
+    reader.readAsDataURL(file);
+  });
+
+  const viewImage = async (slot: FollowUpSlot) => {
+    const entry = entries[slot - 1];
+    const previewWindow = window.open("", "_blank");
+    try {
+      const response = await fetch(
+        `/api/attachments?key=${encodeURIComponent(entry.attachmentData)}&disposition=inline&name=${encodeURIComponent(entry.attachmentName || "follow-up-image")}`,
+      );
+      const payload = await response.json() as { url?: string; error?: string };
+      if (!response.ok || !payload.url) throw new Error(payload.error || "ไม่สามารถเปิดรูปได้");
+      if (previewWindow) previewWindow.location.href = payload.url;
+      else window.location.href = payload.url;
+    } catch (error) {
+      previewWindow?.close();
+      setSlotErrors((current) => ({
+        ...current,
+        [slot]: error instanceof Error ? error.message : "ไม่สามารถเปิดรูปได้",
+      }));
+    }
   };
 
   const saveFollowUp = async (slot: FollowUpSlot) => {
-    const date = dates[slot - 1] || latestAllowedDate;
-    setDate(slot, date);
-    setSavingSlot(slot);
-    setSaveError("");
+    const currentEntry = entries[slot - 1];
+    const date = currentEntry.date || latestAllowedDate;
+    const file = imageFiles[slot - 1];
+    setSlotErrors((current) => ({ ...current, [slot]: "" }));
 
     try {
+      let evaluator = evaluators[slot - 1];
+      if (!evaluator || evaluator.employeeId !== currentEntry.evaluatorId.trim()) {
+        evaluator = await lookupEvaluator(slot);
+      }
+
+      setSavingSlot(slot);
+      const attachmentData = file ? await fileAsDataUrl(file) : "";
       const response = await fetch("/api/probation/follow-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -327,15 +454,43 @@ function FollowUpDialog({
           employeeId: record.employee.id,
           followUpNumber: slot,
           followUpDate: date,
+          evaluatorId: evaluator.employeeId,
+          attachmentName: file?.name,
+          attachmentData,
         }),
       });
-      const payload = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "ไม่สามารถบันทึกวันที่ติดตามได้");
+      const payload = await response.json() as {
+        error?: string;
+        evaluator?: Evaluator;
+        attachmentName?: string;
+        attachmentData?: string;
+      };
+      if (!response.ok || !payload.evaluator) throw new Error(payload.error || "ไม่สามารถบันทึกการติดตามได้");
 
-      onSaved(record.employee.id, slot, date);
+      const savedEntry: FollowUpEntry = {
+        date,
+        evaluatorId: payload.evaluator.employeeId,
+        evaluatorName: payload.evaluator.name,
+        evaluatorNameEn: payload.evaluator.nameEn,
+        evaluatorPosition: payload.evaluator.position,
+        attachmentName: payload.attachmentName || currentEntry.attachmentName,
+        attachmentData: payload.attachmentData || currentEntry.attachmentData,
+      };
+
+      updateEntry(slot, savedEntry);
+      setEvaluator(slot, payload.evaluator);
+      setImageFiles((current) => {
+        const next = [...current];
+        next[slot - 1] = null;
+        return next;
+      });
+      onSaved(record.employee.id, slot, savedEntry);
       setSavedSlot(slot);
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "ไม่สามารถบันทึกวันที่ติดตามได้");
+      setSlotErrors((current) => ({
+        ...current,
+        [slot]: error instanceof Error ? error.message : "ไม่สามารถบันทึกการติดตามได้",
+      }));
     } finally {
       setSavingSlot(null);
     }
@@ -352,7 +507,7 @@ function FollowUpDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="follow-up-title"
-        className="w-full max-w-2xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#121212]"
+        className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#121212]"
       >
         <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-white/10">
           <div className="min-w-0">
@@ -378,52 +533,123 @@ function FollowUpDialog({
           </button>
         </header>
 
-        <div className="space-y-3 px-5 py-5">
+        <div className="space-y-3 overflow-y-auto px-5 py-5">
           {([1, 2, 3] as FollowUpSlot[]).map((slot) => {
-            const date = dates[slot - 1];
+            const entry = entries[slot - 1];
+            const evaluator = evaluators[slot - 1];
+            const selectedImage = imageFiles[slot - 1];
             const isSaving = savingSlot === slot;
+            const isLookingUp = lookingUpSlot === slot;
             return (
               <div key={slot} className="rounded-lg border border-slate-200 p-4 dark:border-white/10 dark:bg-white/[0.02]">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <h3 className="font-semibold text-slate-950 dark:text-white">การติดตามครั้งที่ {slot}</h3>
-                  {date ? (
+                  {entry.date ? (
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                      <Check className="size-4" /> ติดตามเมื่อ {formatDate(parseDateOnly(date))}
+                      <Check className="size-4" /> ติดตามเมื่อ {formatDate(parseDateOnly(entry.date))}
                     </span>
                   ) : (
                     <span className="text-xs text-slate-500 dark:text-slate-400">ยังไม่ได้ติดตาม</span>
                   )}
                 </div>
-                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-                  <input
-                    type="date"
-                    value={date}
-                    max={latestAllowedDate}
-                    onChange={(event) => setDate(slot, event.target.value)}
-                    disabled={savingSlot !== null}
-                    aria-label={`วันที่ติดตามครั้งที่ ${slot}`}
-                    className="h-11 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
-                  />
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block min-w-0">
+                    <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">วันที่ติดตาม</span>
+                    <input
+                      type="date"
+                      value={entry.date}
+                      max={latestAllowedDate}
+                      onChange={(event) => updateEntry(slot, { date: event.target.value })}
+                      disabled={savingSlot !== null}
+                      aria-label={`วันที่ติดตามครั้งที่ ${slot}`}
+                      className="h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                    />
+                  </label>
+
+                  <label className="block min-w-0">
+                    <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">รหัสพนักงานผู้ติดตาม</span>
+                    <span className="flex gap-2">
+                      <input
+                        value={entry.evaluatorId}
+                        onChange={(event) => {
+                          updateEntry(slot, { evaluatorId: event.target.value });
+                          setEvaluator(slot, null);
+                        }}
+                        disabled={savingSlot !== null}
+                        placeholder="เช่น 05283"
+                        aria-label={`รหัสพนักงานผู้ติดตามครั้งที่ ${slot}`}
+                        className="h-11 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void lookupEvaluator(slot).catch(() => undefined)}
+                        disabled={savingSlot !== null || isLookingUp}
+                        title="ตรวจสอบรหัสพนักงาน"
+                        className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-sky-200 text-sky-700 hover:bg-sky-50 disabled:opacity-50 dark:border-sky-900 dark:text-sky-300 dark:hover:bg-sky-950/30"
+                      >
+                        {isLookingUp ? <RefreshCw className="size-4 animate-spin" /> : <UserRoundSearch className="size-4" />}
+                      </button>
+                    </span>
+                  </label>
+                </div>
+
+                {evaluator && (
+                  <div className="mt-3 border-l-2 border-sky-500 pl-3 text-sm">
+                    <p className="font-semibold text-slate-950 dark:text-white">
+                      {evaluator.name}{evaluator.nameEn ? ` / ${evaluator.nameEn}` : ""}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{evaluator.position}</p>
+                  </div>
+                )}
+
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/15 dark:text-slate-200 dark:hover:bg-white/5">
+                      <ImagePlus className="size-4" />
+                      แนบรูป (ไม่บังคับ)
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        disabled={savingSlot !== null}
+                        onChange={(event) => selectImage(slot, event.target.files?.[0] || null)}
+                      />
+                    </label>
+                    <span className="max-w-64 truncate text-xs text-slate-500 dark:text-slate-400">
+                      {selectedImage?.name || entry.attachmentName || "ยังไม่ได้แนบรูป"}
+                    </span>
+                    {entry.attachmentData && (
+                      <button
+                        type="button"
+                        onClick={() => void viewImage(slot)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-sky-700 hover:bg-sky-50 dark:text-sky-300 dark:hover:bg-sky-950/30"
+                      >
+                        <Eye className="size-4" /> ดูรูป
+                      </button>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => void saveFollowUp(slot)}
-                    disabled={savingSlot !== null}
+                    disabled={savingSlot !== null || lookingUpSlot !== null}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
                   >
                     {isSaving ? <RefreshCw className="size-4 animate-spin" /> : <Check className="size-4" />}
-                    {date ? "บันทึกวันที่ติดตาม" : "ติดตามแล้ววันนี้"}
+                    {entry.date ? "บันทึกการติดตาม" : "ติดตามแล้ววันนี้"}
                   </button>
                 </div>
+
+                {slotErrors[slot] && (
+                  <p role="alert" className="mt-3 text-sm font-medium text-rose-600 dark:text-rose-300">
+                    {slotErrors[slot]}
+                  </p>
+                )}
               </div>
             );
           })}
 
-          {saveError && (
-            <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/30 dark:text-rose-300">
-              {saveError}
-            </p>
-          )}
-          {savedSlot && !saveError && (
+          {savedSlot && !slotErrors[savedSlot] && (
             <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300">
               บันทึกการติดตามครั้งที่ {savedSlot} เรียบร้อยแล้ว
             </p>
@@ -560,11 +786,22 @@ export default function ProbationPage() {
     void fetchProbation(true);
   };
 
-  const handleFollowUpSaved = (employeeId: string, slot: FollowUpSlot, date: string) => {
-    const field = `probation_follow_up_${slot}_date`;
+  const handleFollowUpSaved = (employeeId: string, slot: FollowUpSlot, entry: FollowUpEntry) => {
+    const prefix = `probation_follow_up_${slot}`;
     setRawEmployees((current) => current.map((item) => {
       const itemId = valueOf(item, ["emp_code", "staff_id", "employeeId", "id"], "");
-      return itemId === employeeId ? { ...item, [field]: date } : item;
+      return itemId === employeeId
+        ? {
+            ...item,
+            [`${prefix}_date`]: entry.date,
+            [`${prefix}_evaluator_id`]: entry.evaluatorId,
+            [`${prefix}_evaluator_name`]: entry.evaluatorName,
+            [`${prefix}_evaluator_name_en`]: entry.evaluatorNameEn,
+            [`${prefix}_evaluator_position`]: entry.evaluatorPosition,
+            [`${prefix}_attachment_name`]: entry.attachmentName,
+            [`${prefix}_attachment_data`]: entry.attachmentData,
+          }
+        : item;
     }));
     setFetchedAt(new Date().toISOString());
   };
@@ -721,7 +958,7 @@ export default function ProbationPage() {
                   ? Math.min(100, Math.max(0, (elapsedDays / record.probationDays) * 100))
                   : 0;
 
-                const completedFollowUps = record.followUpDates.filter(hasValue).length;
+                const completedFollowUps = record.followUps.filter((entry) => hasValue(entry.date)).length;
 
                 return (
                   <article
@@ -769,17 +1006,20 @@ export default function ProbationPage() {
                     <div className="flex flex-col gap-2 border-t border-slate-200 px-4 py-3 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px]">
                         <span className="mr-1 font-semibold text-slate-600 dark:text-slate-300">ติดตามแล้ว {completedFollowUps}/3 ครั้ง</span>
-                        {record.followUpDates.map((date, index) => (
+                        {record.followUps.map((followUp, index) => (
                           <span
                             key={index}
+                            title={hasValue(followUp.evaluatorName) || hasValue(followUp.evaluatorNameEn)
+                              ? `ผู้ติดตาม: ${followUp.evaluatorName || followUp.evaluatorNameEn}`
+                              : undefined}
                             className={cn(
                               "rounded-md border px-2 py-1 font-medium",
-                              hasValue(date)
+                              hasValue(followUp.date)
                                 ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300"
                                 : "border-slate-200 text-slate-400 dark:border-white/10 dark:text-slate-500",
                             )}
                           >
-                            ครั้งที่ {index + 1}{hasValue(date) ? ` · ${formatDate(parseDateOnly(date))}` : " · -"}
+                            ครั้งที่ {index + 1}{hasValue(followUp.date) ? ` · ${formatDate(parseDateOnly(followUp.date))}` : " · -"}
                           </span>
                         ))}
                       </div>
