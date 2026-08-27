@@ -28,6 +28,8 @@ import {
 
 type RawEmployee = Record<string, unknown>;
 type Urgency = "all" | "overdue" | "due30" | "due60" | "later" | "missing";
+type FollowUpFilter = "followUp1" | "followUp2" | "followUp3";
+type ListFilter = Urgency | FollowUpFilter;
 type FollowUpSlot = 1 | 2 | 3;
 type Evaluator = {
   employeeId: string;
@@ -74,14 +76,24 @@ const COLOR_CLASSES = [
   "bg-indigo-500",
 ];
 
-const URGENCY_OPTIONS: Array<{ value: Urgency; label: string }> = [
+const FILTER_OPTIONS: Array<{ value: ListFilter; label: string }> = [
   { value: "all", label: "ทั้งหมด" },
   { value: "overdue", label: "เลยกำหนด" },
   { value: "due30", label: "30 วัน" },
   { value: "due60", label: "60 วัน" },
   { value: "later", label: "90 วัน" },
   { value: "missing", label: "ข้อมูลไม่ครบ" },
+  { value: "followUp1", label: "ติดตาม ครั้งที่ 1" },
+  { value: "followUp2", label: "ติดตาม ครั้งที่ 2" },
+  { value: "followUp3", label: "ติดตาม ครั้งที่ 3" },
 ];
+
+function pendingFollowUp(record: ProbationRecord): FollowUpFilter | null {
+  if (!hasValue(record.followUps[0].date)) return "followUp1";
+  if (!hasValue(record.followUps[1].date)) return "followUp2";
+  if (!hasValue(record.followUps[2].date)) return "followUp3";
+  return null;
+}
 
 function hasValue(value: unknown) {
   const normalized = String(value ?? "").trim().toLowerCase();
@@ -757,7 +769,7 @@ export default function ProbationPage() {
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("all");
   const [station, setStation] = useState("all");
-  const [urgency, setUrgency] = useState<Urgency>("all");
+  const [listFilter, setListFilter] = useState<ListFilter>("all");
   const [visibleCount, setVisibleCount] = useState(30);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
   const [followUpRecord, setFollowUpRecord] = useState<ProbationRecord | null>(null);
@@ -811,7 +823,10 @@ export default function ProbationPage() {
         return (!normalizedSearch || searchable.includes(normalizedSearch))
           && (department === "all" || record.employee.department === department)
           && (station === "all" || record.employee.station === station)
-          && (urgency === "all" || record.urgency === urgency);
+          && (listFilter === "all"
+            || (listFilter.startsWith("followUp")
+              ? pendingFollowUp(record) === listFilter
+              : record.urgency === listFilter));
       })
       .sort((left, right) => {
         const rankDifference = urgencyRank[left.urgency] - urgencyRank[right.urgency];
@@ -820,7 +835,7 @@ export default function ProbationPage() {
         if (right.daysRemaining === null) return -1;
         return left.daysRemaining - right.daysRemaining;
       });
-  }, [department, records, search, station, urgency]);
+  }, [department, listFilter, records, search, station]);
 
   const counts = useMemo(() => ({
     total: records.length,
@@ -945,17 +960,17 @@ export default function ProbationPage() {
           </select>
         </div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-          {URGENCY_OPTIONS.map((option) => (
+          {FILTER_OPTIONS.map((option) => (
             <button
               key={option.value}
               type="button"
               onClick={() => {
-                setUrgency(option.value);
+                setListFilter(option.value);
                 setVisibleCount(30);
               }}
               className={cn(
                 "h-9 shrink-0 rounded-lg border px-3 text-xs font-semibold transition-colors",
-                urgency === option.value
+                listFilter === option.value
                   ? "border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950"
                   : "border-slate-200 bg-white text-slate-600 hover:border-slate-400 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300 dark:hover:border-white/30",
               )}
