@@ -77,9 +77,9 @@ const COLOR_CLASSES = [
 const URGENCY_OPTIONS: Array<{ value: Urgency; label: string }> = [
   { value: "all", label: "ทั้งหมด" },
   { value: "overdue", label: "เลยกำหนด" },
-  { value: "due30", label: "ภายใน 30 วัน" },
-  { value: "due60", label: "31-60 วัน" },
-  { value: "later", label: "มากกว่า 60 วัน" },
+  { value: "due30", label: "30 วัน" },
+  { value: "due60", label: "60 วัน" },
+  { value: "later", label: "90 วัน" },
   { value: "missing", label: "ข้อมูลไม่ครบ" },
 ];
 
