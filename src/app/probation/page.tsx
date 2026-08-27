@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   BriefcaseBusiness,
@@ -17,7 +17,6 @@ import {
   MapPin,
   RefreshCw,
   Search,
-  UserRoundSearch,
   Users,
   X,
 } from "lucide-react";
@@ -335,7 +334,15 @@ function FollowUpDialog({
   const [lookingUpSlot, setLookingUpSlot] = useState<FollowUpSlot | null>(null);
   const [savedSlot, setSavedSlot] = useState<FollowUpSlot | null>(null);
   const [slotErrors, setSlotErrors] = useState<Partial<Record<FollowUpSlot, string>>>({});
+  const lookupTimersRef = useRef<Array<number | null>>([null, null, null]);
+  const lookupVersionsRef = useRef([0, 0, 0]);
   const latestAllowedDate = todayDateOnly();
+
+  useEffect(() => () => {
+    lookupTimersRef.current.forEach((timer) => {
+      if (timer) window.clearTimeout(timer);
+    });
+  }, []);
 
   const updateEntry = (slot: FollowUpSlot, changes: Partial<FollowUpEntry>) => {
     setEntries((current) => {
@@ -355,10 +362,16 @@ function FollowUpDialog({
     });
   };
 
-  const lookupEvaluator = async (slot: FollowUpSlot) => {
-    const evaluatorId = entries[slot - 1].evaluatorId.trim();
+  const lookupEvaluator = async (slot: FollowUpSlot, requestedId?: string) => {
+    const evaluatorId = (requestedId ?? entries[slot - 1].evaluatorId).trim();
     if (!evaluatorId) throw new Error("กรุณากรอกรหัสพนักงานผู้ติดตาม");
 
+    const lookupIndex = slot - 1;
+    const pendingTimer = lookupTimersRef.current[lookupIndex];
+    if (pendingTimer) window.clearTimeout(pendingTimer);
+    lookupTimersRef.current[lookupIndex] = null;
+
+    const lookupVersion = ++lookupVersionsRef.current[lookupIndex];
     setLookingUpSlot(slot);
     setSlotErrors((current) => ({ ...current, [slot]: "" }));
     try {
@@ -369,6 +382,7 @@ function FollowUpDialog({
       if (!response.ok || !payload.evaluator) {
         throw new Error(payload.error || "ไม่พบข้อมูลผู้ติดตาม");
       }
+      if (lookupVersion !== lookupVersionsRef.current[lookupIndex]) return null;
 
       setEvaluator(slot, payload.evaluator);
       updateEntry(slot, {
@@ -379,13 +393,36 @@ function FollowUpDialog({
       });
       return payload.evaluator;
     } catch (error) {
+      if (lookupVersion !== lookupVersionsRef.current[lookupIndex]) return null;
       const message = error instanceof Error ? error.message : "ไม่สามารถตรวจสอบผู้ติดตามได้";
       setEvaluator(slot, null);
       setSlotErrors((current) => ({ ...current, [slot]: message }));
       throw error;
     } finally {
-      setLookingUpSlot(null);
+      if (lookupVersion === lookupVersionsRef.current[lookupIndex]) {
+        setLookingUpSlot((current) => current === slot ? null : current);
+      }
     }
+  };
+
+  const scheduleEvaluatorLookup = (slot: FollowUpSlot, value: string) => {
+    const index = slot - 1;
+    lookupVersionsRef.current[index] += 1;
+    const currentTimer = lookupTimersRef.current[index];
+    if (currentTimer) window.clearTimeout(currentTimer);
+
+    updateEntry(slot, { evaluatorId: value });
+    setEvaluator(slot, null);
+
+    const evaluatorId = value.trim();
+    if (evaluatorId.length < 5) {
+      setLookingUpSlot((current) => current === slot ? null : current);
+      return;
+    }
+
+    lookupTimersRef.current[index] = window.setTimeout(() => {
+      void lookupEvaluator(slot, evaluatorId).catch(() => undefined);
+    }, 450);
   };
 
   const selectImage = (slot: FollowUpSlot, file: File | null) => {
@@ -444,6 +481,7 @@ function FollowUpDialog({
       if (!evaluator || evaluator.employeeId !== currentEntry.evaluatorId.trim()) {
         evaluator = await lookupEvaluator(slot);
       }
+      if (!evaluator) throw new Error("กรุณารอการตรวจสอบรหัสพนักงานผู้ติดตาม");
 
       setSavingSlot(slot);
       const attachmentData = file ? await fileAsDataUrl(file) : "";
@@ -568,28 +606,21 @@ function FollowUpDialog({
                   </label>
 
                   <label className="block min-w-0">
-                    <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">รหัสพนักงานผู้ติดตาม</span>
-                    <span className="flex gap-2">
+                    <span className="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      รหัสพนักงานผู้ติดตาม <span className="font-normal text-slate-400">(แสดงข้อมูลอัตโนมัติ)</span>
+                    </span>
+                    <span className="relative block">
                       <input
                         value={entry.evaluatorId}
-                        onChange={(event) => {
-                          updateEntry(slot, { evaluatorId: event.target.value });
-                          setEvaluator(slot, null);
-                        }}
+                        onChange={(event) => scheduleEvaluatorLookup(slot, event.target.value)}
                         disabled={savingSlot !== null}
                         placeholder="เช่น 05283"
                         aria-label={`รหัสพนักงานผู้ติดตามครั้งที่ ${slot}`}
-                        className="h-11 min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                        className="h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
                       />
-                      <button
-                        type="button"
-                        onClick={() => void lookupEvaluator(slot).catch(() => undefined)}
-                        disabled={savingSlot !== null || isLookingUp}
-                        title="ตรวจสอบรหัสพนักงาน"
-                        className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-sky-200 text-sky-700 hover:bg-sky-50 disabled:opacity-50 dark:border-sky-900 dark:text-sky-300 dark:hover:bg-sky-950/30"
-                      >
-                        {isLookingUp ? <RefreshCw className="size-4 animate-spin" /> : <UserRoundSearch className="size-4" />}
-                      </button>
+                      {isLookingUp && (
+                        <RefreshCw className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-sky-500" />
+                      )}
                     </span>
                   </label>
                 </div>
