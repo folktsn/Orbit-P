@@ -124,6 +124,7 @@ interface DrawerProps {
   onClose: () => void;
   employee: EmployeeData | null;
   onUpdate?: (data: EmployeeData) => void;
+  concealBackground?: boolean;
 }
 
 type EmployeeDocumentItem = {
@@ -253,7 +254,7 @@ const composeAddressFromDatabaseFields = (record: ServerEmployeeRecord) => {
 
   return parts.join(" ");
 };
-export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate }: DrawerProps) {
+export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, concealBackground = false }: DrawerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<EmployeeData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -547,15 +548,39 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate }: D
     }
   }, [isOpen, employee, hydratedEmployee]);
 
-  // Lock body scroll when drawer is open
+  // Keep the underlying page fixed while the drawer owns the viewport.
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    if (!isOpen) return;
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const root = document.documentElement;
+    const previousBodyStyles = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+    };
+    const previousRootStyles = {
+      overflow: root.style.overflow,
+      overscrollBehavior: root.style.overscrollBehavior,
+    };
+
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    root.style.overflow = "hidden";
+    root.style.overscrollBehavior = "none";
+
     return () => {
-      document.body.style.overflow = "";
+      body.style.overflow = previousBodyStyles.overflow;
+      body.style.position = previousBodyStyles.position;
+      body.style.top = previousBodyStyles.top;
+      body.style.width = previousBodyStyles.width;
+      root.style.overflow = previousRootStyles.overflow;
+      root.style.overscrollBehavior = previousRootStyles.overscrollBehavior;
+      window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
 
@@ -1292,7 +1317,12 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate }: D
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/30 dark:bg-black/60 z-50"
+            className={cn(
+              "fixed inset-0 z-50",
+              concealBackground
+                ? "bg-white dark:bg-[#050505]"
+                : "bg-black/30 dark:bg-black/60",
+            )}
           />
           <motion.div
             initial={{ x: "100%" }}
