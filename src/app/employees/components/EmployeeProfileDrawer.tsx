@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Edit2, MapPin, Briefcase, Calendar, User, ArrowRightLeft, Save, Loader2, UserMinus, Check, Award, Copy, FileText, Upload, Trash2, Clock, Link, Eye, Download, AlertTriangle, RefreshCw } from "lucide-react";
+import { X, Edit2, MapPin, Briefcase, Calendar, User, Save, Loader2, Check, Award, Copy, FileText, Upload, Trash2, Clock, Link, Eye, Download, AlertTriangle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PositionAdjustmentModal } from "./PositionAdjustmentModal";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { PassProbationModal } from "./PassProbationModal";
 
@@ -258,7 +257,6 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate }: D
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<EmployeeData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [modalConfig, setModalConfig] = useState({ isOpen: false, title: "Position Adjustment" });
   const [isPassProbationOpen, setIsPassProbationOpen] = useState(false);
   const [isDocumentsSheetOpen, setIsDocumentsSheetOpen] = useState(false);
   const [activeProfileTab, setActiveProfileTab] = useState<EmployeeProfileTab>("personal");
@@ -426,13 +424,13 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate }: D
   // Fetch org data only when an org-editing flow needs it. Loading this on
   // every profile open makes the read-only drawer feel slower than it should.
   useEffect(() => {
-    if (isOpen && orgData.length === 0 && (isEditing || modalConfig.isOpen)) {
+    if (isOpen && orgData.length === 0 && isEditing) {
       fetch("/api/organization")
         .then(res => res.json())
         .then(data => setOrgData(data))
         .catch(err => console.error("Error fetching org data", err));
     }
-  }, [isOpen, isEditing, modalConfig.isOpen, orgData.length]);
+  }, [isOpen, isEditing, orgData.length]);
 
   // Profile photos are intentionally not displayed or auto-synced here;
   // employee avatars use English initials for a consistent HR directory view.
@@ -675,58 +673,6 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate }: D
     } catch (err) {
       console.error(err);
       throw err;
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleResign = async () => {
-    if (!employee) return;
-    const resignDateInput = prompt(
-      `Please enter the effective date of resignation for ${employee.nameEn !== "-" ? employee.nameEn : employee.name} (YYYY-MM-DD):`,
-      new Date().toISOString().split("T")[0]
-    );
-    if (!resignDateInput) return;
-
-    // Validate date format YYYY-MM-DD
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(resignDateInput)) {
-      alert("Invalid date format. Please use YYYY-MM-DD.");
-      return;
-    }
-
-    const confirmed = await requestConfirmation({
-      title: "Confirm Resignation",
-      description: `Are you sure you want to mark ${employee.nameEn !== "-" ? employee.nameEn : employee.name} as Resigned with effective date ${resignDateInput}?`,
-      confirmLabel: "Confirm Resign",
-      cancelLabel: "Cancel",
-      tone: "danger",
-    });
-    if (!confirmed) return;
-
-    setIsSaving(true);
-    try {
-      const payload = { 
-        ...employee, 
-        status: "Resign",
-        resignDate: resignDateInput
-      };
-      
-      const res = await fetch("/api/employees/update", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      
-      if (res.ok) {
-        if (onUpdate) onUpdate(payload);
-        alert("Employee status updated to Resign successfully.");
-      } else {
-        const errorData = await res.json();
-        alert(`Failed to save resignation: ${errorData.error || 'Unknown error'}`);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error saving resignation");
     } finally {
       setIsSaving(false);
     }
@@ -1509,35 +1455,6 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate }: D
                 </div>
               )}
 
-              {/* Action Buttons */}
-              {!isEditing && (
-                <div className="grid grid-cols-3 gap-2 mt-4">
-                  <button 
-                    onClick={() => setModalConfig({ isOpen: true, title: "Position Adjustment" })} 
-                    className="flex items-center justify-center gap-1.5 px-2 py-2 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg text-[11px] font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:bg-[#0F172A] active:text-white dark:active:bg-white dark:active:text-black transition-colors"
-                  >
-                    <Briefcase className="w-3.5 h-3.5 shrink-0" /> 
-                    <span className="truncate">Position Adjustment</span>
-                  </button>
-                  <button 
-                    onClick={() => setModalConfig({ isOpen: true, title: "Transfer" })} 
-                    className="flex items-center justify-center gap-1.5 px-2 py-2 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg text-[11px] font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:bg-[#0F172A] active:text-white dark:active:bg-white dark:active:text-black transition-colors"
-                  >
-                    <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" /> 
-                    <span className="truncate">Transfer</span>
-                  </button>
-                  <button 
-                    onClick={handleResign}
-                    className="flex items-center justify-center gap-1.5 px-2 py-2 bg-white dark:bg-[#121212] border border-rose-200 dark:border-rose-500/20 rounded-lg text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 active:bg-rose-600 active:text-white dark:active:bg-rose-500 dark:active:text-white transition-colors"
-                  >
-                    <UserMinus className="w-3.5 h-3.5 shrink-0" /> 
-                    <span className="truncate">Resign</span>
-                  </button>
-                </div>
-              )}
-
-
-
               <div className="mt-4 border-b border-slate-200 dark:border-white/10 overflow-x-auto scrollbar-none">
                 <div className="flex min-w-max gap-1">
                   {EMPLOYEE_PROFILE_TABS.map((tab) => {
@@ -2086,29 +2003,6 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate }: D
         </motion.div>
       )}
     </AnimatePresence>
-
-    {displayEmployee && (
-      <PositionAdjustmentModal
-        isOpen={modalConfig.isOpen}
-        title={modalConfig.title}
-        onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
-        employee={displayEmployee}
-        orgData={orgData}
-        onSave={async (adjData) => {
-          const payload = { ...adjData, type: modalConfig.title };
-          const res = await fetch('/api/employees/schedule-adjustment', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: displayEmployee.id, adjustment: payload })
-          });
-          if (!res.ok) throw new Error("Failed to save adjustment");
-          
-          if (onUpdate) {
-            onUpdate({ ...displayEmployee, pending_adjustment: payload });
-          }
-        }}
-      />
-    )}
 
     {displayEmployee && (
       <PassProbationModal
