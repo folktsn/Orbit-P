@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import {
   EmployeeProfileDrawer,
   type EmployeeData,
@@ -767,8 +768,14 @@ export default function ProbationPage() {
   const [error, setError] = useState("");
   const [fetchedAt, setFetchedAt] = useState("");
   const [search, setSearch] = useState("");
-  const [department, setDepartment] = useState("all");
-  const [station, setStation] = useState("all");
+  const [department, setDepartment] = useState("");
+  const [division, setDivision] = useState("");
+  const [section, setSection] = useState("");
+  const [unit, setUnit] = useState("");
+  const [station, setStation] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [listFilter, setListFilter] = useState<ListFilter>("all");
   const [visibleCount, setVisibleCount] = useState(30);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
@@ -798,7 +805,39 @@ export default function ProbationPage() {
 
   const records = useMemo(() => rawEmployees.map(buildProbationRecord), [rawEmployees]);
   const departments = useMemo(() => Array.from(new Set(records.map((record) => record.employee.department).filter((value) => value !== "-"))).sort(), [records]);
+  const divisions = useMemo(() => Array.from(new Set(records
+    .filter((record) => !department || record.employee.department === department)
+    .map((record) => record.employee.division)
+    .filter((value) => value !== "-"))).sort(), [department, records]);
+  const sections = useMemo(() => Array.from(new Set(records
+    .filter((record) => (!department || record.employee.department === department)
+      && (!division || record.employee.division === division))
+    .map((record) => record.employee.section)
+    .filter((value) => value !== "-"))).sort(), [department, division, records]);
+  const units = useMemo(() => Array.from(new Set(records
+    .filter((record) => (!department || record.employee.department === department)
+      && (!division || record.employee.division === division)
+      && (!section || record.employee.section === section))
+    .map((record) => record.employee.unit)
+    .filter((value) => value !== "-"))).sort(), [department, division, records, section]);
   const stations = useMemo(() => Array.from(new Set(records.map((record) => record.employee.station).filter((value) => value !== "-"))).sort(), [records]);
+
+  const dateRangeText = useMemo(() => {
+    if (!startDate && !endDate) return "ค้นหาวันเริ่มงาน...";
+    const formatLocal = (dateValue: string) => {
+      const parsed = parseDateOnly(dateValue);
+      return parsed
+        ? parsed.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })
+        : dateValue;
+    };
+    if (startDate && endDate) return `${formatLocal(startDate)} - ${formatLocal(endDate)}`;
+    if (startDate) return `ตั้งแต่ ${formatLocal(startDate)}`;
+    return `จนถึง ${formatLocal(endDate)}`;
+  }, [endDate, startDate]);
+
+  const hasActiveFilters = Boolean(
+    search || department || division || section || unit || station || startDate || endDate,
+  );
 
   const filteredRecords = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -818,11 +857,25 @@ export default function ProbationPage() {
           record.employee.nameEn,
           record.employee.title,
           record.employee.department,
+          record.employee.division,
+          record.employee.section,
+          record.employee.unit,
           record.employee.station,
         ].join(" ").toLowerCase();
+        const filterStartDate = startDate ? parseDateOnly(startDate) : null;
+        const filterEndDate = endDate ? parseDateOnly(endDate) : null;
+        const matchesStartDate = !filterStartDate
+          || Boolean(record.startDate && record.startDate >= filterStartDate);
+        const matchesEndDate = !filterEndDate
+          || Boolean(record.startDate && record.startDate <= filterEndDate);
         return (!normalizedSearch || searchable.includes(normalizedSearch))
-          && (department === "all" || record.employee.department === department)
-          && (station === "all" || record.employee.station === station)
+          && (!department || record.employee.department === department)
+          && (!division || record.employee.division === division)
+          && (!section || record.employee.section === section)
+          && (!unit || record.employee.unit === unit)
+          && (!station || record.employee.station === station)
+          && matchesStartDate
+          && matchesEndDate
           && (listFilter === "all"
             || (listFilter.startsWith("followUp")
               ? pendingFollowUp(record) === listFilter
@@ -835,7 +888,7 @@ export default function ProbationPage() {
         if (right.daysRemaining === null) return -1;
         return left.daysRemaining - right.daysRemaining;
       });
-  }, [department, listFilter, records, search, station]);
+  }, [department, division, endDate, listFilter, records, search, section, startDate, station, unit]);
 
   const counts = useMemo(() => ({
     total: records.length,
@@ -885,7 +938,7 @@ export default function ProbationPage() {
 
   return (
     <main className="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8">
-      <section className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-white/10 lg:flex-row lg:items-end lg:justify-between">
+      <section className="border-b border-slate-200 pb-5 dark:border-white/10">
         <div>
           <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-sky-600 dark:text-sky-400">
             <CalendarClock className="size-4" />
@@ -901,15 +954,6 @@ export default function ProbationPage() {
             </p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
-        >
-          <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
-          {isRefreshing ? "กำลังอัปเดต" : "Refresh"}
-        </button>
       </section>
 
       {!isLoading && !error && (
@@ -923,41 +967,187 @@ export default function ProbationPage() {
       )}
 
       <section className="mt-5 border-y border-slate-200 py-4 dark:border-white/10">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(280px,1.4fr)_1fr_1fr]">
-          <label className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-5">
+          <CustomSelect
+            value={department}
+            onChange={(value) => {
+              setDepartment(value);
+              setDivision("");
+              setSection("");
+              setUnit("");
+              setVisibleCount(30);
+            }}
+            options={departments}
+            placeholder="All Departments"
+            triggerClassName="rounded-full px-4 py-2.5"
+          />
+          <CustomSelect
+            value={division}
+            onChange={(value) => {
+              setDivision(value);
+              setSection("");
+              setUnit("");
+              setVisibleCount(30);
+            }}
+            options={divisions}
+            placeholder="All Divisions"
+            triggerClassName="rounded-full px-4 py-2.5"
+          />
+          <CustomSelect
+            value={section}
+            onChange={(value) => {
+              setSection(value);
+              setUnit("");
+              setVisibleCount(30);
+            }}
+            options={sections}
+            placeholder="All Sections"
+            triggerClassName="rounded-full px-4 py-2.5"
+          />
+          <CustomSelect
+            value={unit}
+            onChange={(value) => {
+              setUnit(value);
+              setVisibleCount(30);
+            }}
+            options={units}
+            placeholder="All Units"
+            triggerClassName="rounded-full px-4 py-2.5"
+          />
+          <CustomSelect
+            value={station}
+            onChange={(value) => {
+              setStation(value);
+              setVisibleCount(30);
+            }}
+            options={stations}
+            placeholder="All Stations"
+            triggerClassName="rounded-full px-4 py-2.5"
+          />
+
+          <div className="relative md:col-span-1">
+            <button
+              type="button"
+              onClick={() => setIsDatePickerOpen((open) => !open)}
+              className="flex w-full cursor-pointer items-center justify-between rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm text-slate-600 outline-none focus:ring-2 focus:ring-slate-200 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300 dark:focus:ring-white/20"
+            >
+              <span className="truncate pr-2">{dateRangeText}</span>
+              <CalendarClock className="size-4 shrink-0 text-slate-400" />
+            </button>
+            {isDatePickerOpen && (
+              <>
+                <div className="fixed inset-0 z-50" onClick={() => setIsDatePickerOpen(false)} />
+                <div className="absolute left-0 top-full z-[70] mt-2 w-[min(18rem,calc(100vw-1.5rem))] space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-white/10 dark:bg-[#1a1a1a]">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">จากวันที่ (Start Date)</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(event) => {
+                        setStartDate(event.target.value);
+                        setVisibleCount(30);
+                      }}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none focus:ring-1 focus:ring-blue-500 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">ถึงวันที่ (End Date)</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(event) => {
+                        setEndDate(event.target.value);
+                        setVisibleCount(30);
+                      }}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none focus:ring-1 focus:ring-blue-500 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStartDate("");
+                        setEndDate("");
+                        setIsDatePickerOpen(false);
+                        setVisibleCount(30);
+                      }}
+                      className="flex-1 rounded-full border border-slate-200 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5"
+                    >
+                      ล้างค่า
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsDatePickerOpen(false)}
+                      className="flex-1 rounded-full bg-slate-950 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-slate-950"
+                    >
+                      ตกลง
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <label className="relative block md:col-span-3">
+            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value);
                 setVisibleCount(30);
               }}
-              placeholder="ค้นหาชื่อ รหัส ตำแหน่ง..."
-              className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-950 outline-none transition-colors placeholder:text-slate-400 focus:border-sky-500 dark:border-white/10 dark:bg-[#121212] dark:text-white"
+              placeholder="Search by name, ID, or component..."
+              className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-slate-200 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300 dark:focus:ring-white/20"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setVisibleCount(30);
+                }}
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                aria-label="Clear search"
+              >
+                <X className="size-4" />
+              </button>
+            )}
           </label>
-          <select
-            value={department}
-            onChange={(event) => {
-              setDepartment(event.target.value);
-              setVisibleCount(30);
-            }}
-            className="h-11 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-sky-500 dark:border-white/10 dark:bg-[#121212] dark:text-slate-100"
-          >
-            <option value="all">ทุกฝ่าย / All Departments</option>
-            {departments.map((value) => <option key={value} value={value}>{value}</option>)}
-          </select>
-          <select
-            value={station}
-            onChange={(event) => {
-              setStation(event.target.value);
-              setVisibleCount(30);
-            }}
-            className="h-11 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-sky-500 dark:border-white/10 dark:bg-[#121212] dark:text-slate-100"
-          >
-            <option value="all">ทุกสถานี / All Stations</option>
-            {stations.map((value) => <option key={value} value={value}>{value}</option>)}
-          </select>
+
+          <div className="flex items-center gap-2 md:col-span-1">
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className={cn(
+                "flex min-h-10 items-center justify-center gap-2 rounded-full border border-sky-100 bg-sky-50 px-4 text-sm font-semibold text-sky-600 transition-colors hover:bg-sky-100 disabled:cursor-wait disabled:opacity-70 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20",
+                hasActiveFilters ? "flex-1" : "w-full",
+              )}
+            >
+              <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
+              {isRefreshing ? "กำลังอัปเดต" : "Refresh"}
+            </button>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDepartment("");
+                  setDivision("");
+                  setSection("");
+                  setUnit("");
+                  setStation("");
+                  setSearch("");
+                  setStartDate("");
+                  setEndDate("");
+                  setVisibleCount(30);
+                }}
+                className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full border border-red-100 bg-red-50 px-4 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+              >
+                <X className="size-4" />
+                Clear
+              </button>
+            )}
+          </div>
         </div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {FILTER_OPTIONS.map((option) => (
