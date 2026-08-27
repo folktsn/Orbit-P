@@ -1306,6 +1306,12 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
     return parts.join(" ");
   }, [displayEmployee?.contractStart, displayEmployee?.resignDate]);
 
+  const canPassProbation = Boolean(
+    displayEmployee?.empType?.toLowerCase() === "probation" &&
+    (!displayEmployee.status || displayEmployee.status.toLowerCase() !== "resign") &&
+    (!displayEmployee.resignDate || displayEmployee.resignDate === "-"),
+  );
+
 
   return (
     <>
@@ -1343,18 +1349,18 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
 
             {/* Profile Info */}
             <div className="px-5 pb-5 relative -mt-9">
-              <div className="flex justify-between items-end mb-3">
-                <div className={cn("w-[72px] h-[72px] rounded-full flex items-center justify-center text-2xl font-bold text-white border-4 border-white dark:border-[#0a0a0a] shadow-md shrink-0 overflow-hidden relative bg-slate-100 dark:bg-slate-900", displayEmployee.colorClass)}>
+              <div className="flex items-end justify-between gap-2 mb-3">
+                <div className={cn("w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold text-white border-4 border-white dark:border-[#0a0a0a] shadow-md shrink-0 overflow-hidden relative bg-slate-100 dark:bg-slate-900", displayEmployee.colorClass)}>
                     {displayEmployee.initials}
                 </div>
 
-                <div className="flex-1 min-w-0 px-4 pb-2">
-                  <p className="font-mono text-lg sm:text-xl font-extrabold tracking-wide text-slate-700 dark:text-slate-200 leading-none">
+                <div className="flex-1 min-w-0 px-1 sm:px-4 pb-2">
+                  <p className="font-mono text-base sm:text-xl font-extrabold tracking-wide text-slate-700 dark:text-slate-200 leading-none truncate">
                     @{displayEmployee.id}
                   </p>
                 </div>
                 
-                <div className="flex items-center gap-1.5">
+                <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
                   {isEditing ? (
                     <>
                       <button
@@ -1375,13 +1381,11 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                     </>
                   ) : (
                     <>
-                      {displayEmployee.empType && displayEmployee.empType.toLowerCase() === "probation" && 
-                       (!displayEmployee.status || displayEmployee.status.toLowerCase() !== "resign") &&
-                       (!displayEmployee.resignDate || displayEmployee.resignDate === "-") && (
+                      {canPassProbation && (
                         <button
                           onClick={handlePassProbation}
                           disabled={isSaving}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-emerald-500/15 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all duration-200 disabled:opacity-50 border border-emerald-400/20"
+                          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-emerald-500/15 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all duration-200 disabled:opacity-50 border border-emerald-400/20"
                         >
                           {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                           <span>Pass Probation</span>
@@ -1391,18 +1395,19 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                         type="button"
                         onClick={handleRefreshDetails}
                         disabled={isRefreshingDetails || isLoadingDetails}
-                        className="flex items-center gap-1.5 px-3 py-1.5 border border-sky-200 dark:border-sky-500/20 rounded-xl text-xs font-semibold text-sky-600 dark:text-sky-300 bg-sky-50/70 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/15 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 border border-sky-200 dark:border-sky-500/20 rounded-xl text-xs font-semibold text-sky-600 dark:text-sky-300 bg-sky-50/70 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/15 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Refresh employee details"
                       >
                         <RefreshCw className={cn("w-3.5 h-3.5", (isRefreshingDetails || isLoadingDetails) && "animate-spin")} />
-                        Refresh
+                        <span className="hidden min-[380px]:inline">Refresh</span>
                       </button>
                       <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95 transition-all"
+                        className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95 transition-all"
+                        title="Edit profile"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
-                        Edit Profile
+                        <span className="hidden min-[380px]:inline">Edit Profile</span>
                       </button>
                     </>
                   )}
@@ -1483,6 +1488,18 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                     </span>
                   )}
                 </div>
+              )}
+
+              {!isEditing && canPassProbation && (
+                <button
+                  type="button"
+                  onClick={handlePassProbation}
+                  disabled={isSaving}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-400/20 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-emerald-500/15 transition-all active:scale-[0.99] disabled:opacity-50 sm:hidden"
+                >
+                  {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  <span>Pass Probation</span>
+                </button>
               )}
 
               <div className="mt-4 border-b border-slate-200 dark:border-white/10 overflow-x-auto scrollbar-none">
