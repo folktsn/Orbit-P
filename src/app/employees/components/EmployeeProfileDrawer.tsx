@@ -1395,19 +1395,19 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                         type="button"
                         onClick={handleRefreshDetails}
                         disabled={isRefreshingDetails || isLoadingDetails}
-                        className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 border border-sky-200 dark:border-sky-500/20 rounded-xl text-xs font-semibold text-sky-600 dark:text-sky-300 bg-sky-50/70 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/15 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex h-8 w-8 items-center justify-center text-sky-600 transition-colors hover:text-sky-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:text-sky-300 dark:hover:text-sky-200"
                         title="Refresh employee details"
+                        aria-label="Refresh employee details"
                       >
                         <RefreshCw className={cn("w-3.5 h-3.5", (isRefreshingDetails || isLoadingDetails) && "animate-spin")} />
-                        <span className="hidden min-[380px]:inline">Refresh</span>
                       </button>
                       <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95 transition-all"
+                        className="inline-flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:text-slate-900 active:scale-95 dark:text-slate-300 dark:hover:text-white"
                         title="Edit profile"
+                        aria-label="Edit profile"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
-                        <span className="hidden min-[380px]:inline">Edit Profile</span>
                       </button>
                     </>
                   )}
