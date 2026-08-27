@@ -5,7 +5,9 @@ import {
   AlertTriangle,
   BriefcaseBusiness,
   Building2,
+  CalendarCheck2,
   CalendarClock,
+  Check,
   ChevronRight,
   CircleAlert,
   Clock3,
@@ -14,6 +16,7 @@ import {
   RefreshCw,
   Search,
   Users,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -23,6 +26,8 @@ import {
 
 type RawEmployee = Record<string, unknown>;
 type Urgency = "all" | "overdue" | "due30" | "due60" | "later" | "missing";
+type FollowUpSlot = 1 | 2 | 3;
+type FollowUpDates = [string, string, string];
 
 type ProbationRecord = {
   raw: RawEmployee;
@@ -33,6 +38,7 @@ type ProbationRecord = {
   probationDays: number;
   inferredEndDate: boolean;
   urgency: Exclude<Urgency, "all">;
+  followUpDates: FollowUpDates;
 };
 
 type ProbationResponse = {
@@ -113,6 +119,23 @@ function formatDate(date: Date | null) {
     month: "short",
     year: "numeric",
   }).format(date);
+}
+
+function todayDateOnly() {
+  const today = new Date();
+  return [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function followUpDatesFromRecord(item: RawEmployee): FollowUpDates {
+  return [
+    valueOf(item, ["probation_follow_up_1_date"], ""),
+    valueOf(item, ["probation_follow_up_2_date"], ""),
+    valueOf(item, ["probation_follow_up_3_date"], ""),
+  ];
 }
 
 function cleanName(value: string, language: "th" | "en") {
@@ -237,7 +260,17 @@ function buildProbationRecord(item: RawEmployee): ProbationRecord {
   else if (daysRemaining !== null && daysRemaining <= 60) urgency = "due60";
   else if (daysRemaining !== null) urgency = "later";
 
-  return { raw: item, employee, endDate, startDate, daysRemaining, probationDays, inferredEndDate, urgency };
+  return {
+    raw: item,
+    employee,
+    endDate,
+    startDate,
+    daysRemaining,
+    probationDays,
+    inferredEndDate,
+    urgency,
+    followUpDates: followUpDatesFromRecord(item),
+  };
 }
 
 function urgencyLabel(record: ProbationRecord) {
@@ -253,6 +286,163 @@ function urgencyStyle(urgency: ProbationRecord["urgency"]) {
   if (urgency === "due60") return "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/70 dark:bg-sky-950/40 dark:text-sky-300";
   if (urgency === "missing") return "border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200";
   return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300";
+}
+
+function FollowUpDialog({
+  record,
+  onClose,
+  onSaved,
+}: {
+  record: ProbationRecord;
+  onClose: () => void;
+  onSaved: (employeeId: string, slot: FollowUpSlot, date: string) => void;
+}) {
+  const [dates, setDates] = useState<FollowUpDates>(record.followUpDates);
+  const [savingSlot, setSavingSlot] = useState<FollowUpSlot | null>(null);
+  const [savedSlot, setSavedSlot] = useState<FollowUpSlot | null>(null);
+  const [saveError, setSaveError] = useState("");
+  const latestAllowedDate = todayDateOnly();
+
+  const setDate = (slot: FollowUpSlot, value: string) => {
+    setDates((current) => {
+      const next: FollowUpDates = [...current];
+      next[slot - 1] = value;
+      return next;
+    });
+    setSavedSlot(null);
+    setSaveError("");
+  };
+
+  const saveFollowUp = async (slot: FollowUpSlot) => {
+    const date = dates[slot - 1] || latestAllowedDate;
+    setDate(slot, date);
+    setSavingSlot(slot);
+    setSaveError("");
+
+    try {
+      const response = await fetch("/api/probation/follow-up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeId: record.employee.id,
+          followUpNumber: slot,
+          followUpDate: date,
+        }),
+      });
+      const payload = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "ไม่สามารถบันทึกวันที่ติดตามได้");
+
+      onSaved(record.employee.id, slot, date);
+      setSavedSlot(slot);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "ไม่สามารถบันทึกวันที่ติดตามได้");
+    } finally {
+      setSavingSlot(null);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target && savingSlot === null) onClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="follow-up-title"
+        className="w-full max-w-2xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#121212]"
+      >
+        <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-white/10">
+          <div className="min-w-0">
+            <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-sky-600 dark:text-sky-400">
+              <CalendarCheck2 className="size-4" />
+              Probation Follow-up
+            </div>
+            <h2 id="follow-up-title" className="truncate text-xl font-bold text-slate-950 dark:text-white">
+              บันทึกการติดตามผล
+            </h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              {record.employee.nameEn} · ID {record.employee.id}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={savingSlot !== null}
+            title="ปิด"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-950 disabled:opacity-50 dark:hover:bg-white/10 dark:hover:text-white"
+          >
+            <X className="size-5" />
+          </button>
+        </header>
+
+        <div className="space-y-3 px-5 py-5">
+          {([1, 2, 3] as FollowUpSlot[]).map((slot) => {
+            const date = dates[slot - 1];
+            const isSaving = savingSlot === slot;
+            return (
+              <div key={slot} className="rounded-lg border border-slate-200 p-4 dark:border-white/10 dark:bg-white/[0.02]">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="font-semibold text-slate-950 dark:text-white">การติดตามครั้งที่ {slot}</h3>
+                  {date ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      <Check className="size-4" /> ติดตามเมื่อ {formatDate(parseDateOnly(date))}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-500 dark:text-slate-400">ยังไม่ได้ติดตาม</span>
+                  )}
+                </div>
+                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <input
+                    type="date"
+                    value={date}
+                    max={latestAllowedDate}
+                    onChange={(event) => setDate(slot, event.target.value)}
+                    disabled={savingSlot !== null}
+                    aria-label={`วันที่ติดตามครั้งที่ ${slot}`}
+                    className="h-11 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void saveFollowUp(slot)}
+                    disabled={savingSlot !== null}
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {isSaving ? <RefreshCw className="size-4 animate-spin" /> : <Check className="size-4" />}
+                    {date ? "บันทึกวันที่ติดตาม" : "ติดตามแล้ววันนี้"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {saveError && (
+            <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/30 dark:text-rose-300">
+              {saveError}
+            </p>
+          )}
+          {savedSlot && !saveError && (
+            <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300">
+              บันทึกการติดตามครั้งที่ {savedSlot} เรียบร้อยแล้ว
+            </p>
+          )}
+        </div>
+
+        <footer className="flex justify-end border-t border-slate-200 px-5 py-4 dark:border-white/10">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={savingSlot !== null}
+            className="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-white/15 dark:text-slate-200 dark:hover:bg-white/5"
+          >
+            ปิด
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
 }
 
 function KpiCard({
@@ -294,6 +484,7 @@ export default function ProbationPage() {
   const [urgency, setUrgency] = useState<Urgency>("all");
   const [visibleCount, setVisibleCount] = useState(30);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
+  const [followUpRecord, setFollowUpRecord] = useState<ProbationRecord | null>(null);
 
   const fetchProbation = useCallback(async (forceRefresh = false) => {
     try {
@@ -367,6 +558,15 @@ export default function ProbationPage() {
     setSelectedEmployee(updatedEmployee);
     setIsRefreshing(true);
     void fetchProbation(true);
+  };
+
+  const handleFollowUpSaved = (employeeId: string, slot: FollowUpSlot, date: string) => {
+    const field = `probation_follow_up_${slot}_date`;
+    setRawEmployees((current) => current.map((item) => {
+      const itemId = valueOf(item, ["emp_code", "staff_id", "employeeId", "id"], "");
+      return itemId === employeeId ? { ...item, [field]: date } : item;
+    }));
+    setFetchedAt(new Date().toISOString());
   };
 
   const handleRefresh = () => {
@@ -521,45 +721,78 @@ export default function ProbationPage() {
                   ? Math.min(100, Math.max(0, (elapsedDays / record.probationDays) * 100))
                   : 0;
 
+                const completedFollowUps = record.followUpDates.filter(hasValue).length;
+
                 return (
-                  <button
+                  <article
                     key={record.employee.id}
-                    type="button"
-                    onClick={() => setSelectedEmployee(record.employee)}
-                    className="group grid min-h-32 w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-sky-300 hover:bg-sky-50/40 dark:border-white/10 dark:bg-[#121212] dark:hover:border-sky-800 dark:hover:bg-sky-950/20"
+                    className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-colors hover:border-sky-300 dark:border-white/10 dark:bg-[#121212] dark:hover:border-sky-800"
                   >
-                    <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white", record.employee.colorClass)}>
-                      {record.employee.initials}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="text-xs font-bold text-sky-600 dark:text-sky-400">ID: {record.employee.id}</span>
-                        <span className={cn("rounded-md border px-2 py-0.5 text-[11px] font-semibold", urgencyStyle(record.urgency))}>
-                          {urgencyLabel(record)}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedEmployee(record.employee)}
+                      className="grid min-h-28 w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-3 p-4 text-left transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/20"
+                    >
+                      <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white", record.employee.colorClass)}>
+                        {record.employee.initials}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className="text-xs font-bold text-sky-600 dark:text-sky-400">ID: {record.employee.id}</span>
+                          <span className={cn("rounded-md border px-2 py-0.5 text-[11px] font-semibold", urgencyStyle(record.urgency))}>
+                            {urgencyLabel(record)}
+                          </span>
+                        </span>
+                        <span className="mt-1 block truncate text-sm font-bold text-slate-950 dark:text-white sm:text-base">{record.employee.nameEn}</span>
+                        <span className="block truncate text-xs text-slate-600 dark:text-slate-400">{record.employee.name}</span>
+                        <span className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="inline-flex min-w-0 items-center gap-1"><BriefcaseBusiness className="size-3.5 shrink-0" /><span className="truncate">{record.employee.title}</span></span>
+                          <span className="inline-flex min-w-0 items-center gap-1"><Building2 className="size-3.5 shrink-0" /><span className="truncate">{record.employee.department}</span></span>
+                          <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{record.employee.station}</span>
+                        </span>
+                        <span className="mt-3 block h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                          <span
+                            className={cn("block h-full rounded-full", record.urgency === "overdue" ? "bg-rose-500" : record.urgency === "due30" ? "bg-amber-500" : "bg-sky-500")}
+                            style={{ width: `${progress}%` }}
+                          />
+                        </span>
+                        <span className="mt-1 flex flex-wrap justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-500">
+                          <span>เริ่ม {formatDate(record.startDate)}</span>
+                          <span>ครบกำหนด {formatDate(record.endDate)}{record.inferredEndDate ? " (คำนวณ)" : ""}</span>
                         </span>
                       </span>
-                      <span className="mt-1 block truncate text-sm font-bold text-slate-950 dark:text-white sm:text-base">{record.employee.nameEn}</span>
-                      <span className="block truncate text-xs text-slate-600 dark:text-slate-400">{record.employee.name}</span>
-                      <span className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="inline-flex min-w-0 items-center gap-1"><BriefcaseBusiness className="size-3.5 shrink-0" /><span className="truncate">{record.employee.title}</span></span>
-                        <span className="inline-flex min-w-0 items-center gap-1"><Building2 className="size-3.5 shrink-0" /><span className="truncate">{record.employee.department}</span></span>
-                        <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{record.employee.station}</span>
+                      <span className="flex h-full items-center text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-sky-500">
+                        <ChevronRight className="size-5" />
                       </span>
-                      <span className="mt-3 block h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                        <span
-                          className={cn("block h-full rounded-full", record.urgency === "overdue" ? "bg-rose-500" : record.urgency === "due30" ? "bg-amber-500" : "bg-sky-500")}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </span>
-                      <span className="mt-1 flex flex-wrap justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-500">
-                        <span>เริ่ม {formatDate(record.startDate)}</span>
-                        <span>ครบกำหนด {formatDate(record.endDate)}{record.inferredEndDate ? " (คำนวณ)" : ""}</span>
-                      </span>
-                    </span>
-                    <span className="flex h-full items-center text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-sky-500">
-                      <ChevronRight className="size-5" />
-                    </span>
-                  </button>
+                    </button>
+
+                    <div className="flex flex-col gap-2 border-t border-slate-200 px-4 py-3 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px]">
+                        <span className="mr-1 font-semibold text-slate-600 dark:text-slate-300">ติดตามแล้ว {completedFollowUps}/3 ครั้ง</span>
+                        {record.followUpDates.map((date, index) => (
+                          <span
+                            key={index}
+                            className={cn(
+                              "rounded-md border px-2 py-1 font-medium",
+                              hasValue(date)
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300"
+                                : "border-slate-200 text-slate-400 dark:border-white/10 dark:text-slate-500",
+                            )}
+                          >
+                            ครั้งที่ {index + 1}{hasValue(date) ? ` · ${formatDate(parseDateOnly(date))}` : " · -"}
+                          </span>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFollowUpRecord(record)}
+                        className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 hover:border-sky-400 hover:bg-sky-100 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-300 dark:hover:border-sky-700"
+                      >
+                        <CalendarCheck2 className="size-4" />
+                        บันทึกการติดตาม
+                      </button>
+                    </div>
+                  </article>
                 );
               })}
             </div>
@@ -585,6 +818,15 @@ export default function ProbationPage() {
         onClose={() => setSelectedEmployee(null)}
         onUpdate={handleEmployeeUpdate}
       />
+
+      {followUpRecord && (
+        <FollowUpDialog
+          key={followUpRecord.employee.id}
+          record={followUpRecord}
+          onClose={() => setFollowUpRecord(null)}
+          onSaved={handleFollowUpSaved}
+        />
+      )}
     </main>
   );
 }

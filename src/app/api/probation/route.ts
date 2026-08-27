@@ -1,6 +1,7 @@
 import { ScanCommand, type ScanCommandInput } from "@aws-sdk/lib-dynamodb";
 import { NextRequest, NextResponse } from "next/server";
 import { docClient } from "@/lib/dynamodb";
+import { getProbationCache, setProbationCache } from "@/lib/probationCache";
 
 export const runtime = "nodejs";
 
@@ -20,15 +21,8 @@ const PROBATION_FIELDS = [
   "probation_end_date", "probation_end", "probation_days", "probation_day", "probation_period_days",
   "probation_duration_days", "probation_total_days", "prob_days", "prob_period",
   "resign_date", "last_working_date", "last_work_date", "probation_outcome", "probation_extension_days",
+  "probation_follow_up_1_date", "probation_follow_up_2_date", "probation_follow_up_3_date",
 ] as const;
-
-type ProbationCache = {
-  items: Record<string, unknown>[];
-  fetchedAt: string;
-  expiresAt: number;
-};
-
-let probationCache: ProbationCache | null = null;
 
 function buildProjection(fields: readonly string[]) {
   const ExpressionAttributeNames: Record<string, string> = {};
@@ -110,6 +104,7 @@ export async function GET(request: NextRequest) {
   try {
     const shouldRefresh = request.nextUrl.searchParams.get("refresh") === "1";
     const now = Date.now();
+    const probationCache = getProbationCache();
 
     if (!shouldRefresh && probationCache && probationCache.expiresAt > now) {
       return NextResponse.json(
@@ -125,7 +120,7 @@ export async function GET(request: NextRequest) {
 
     const items = await scanProbationEmployees();
     const fetchedAt = new Date().toISOString();
-    probationCache = { items, fetchedAt, expiresAt: now + CACHE_TTL_MS };
+    setProbationCache({ items, fetchedAt, expiresAt: now + CACHE_TTL_MS });
 
     return NextResponse.json(
       { items, fetchedAt },
