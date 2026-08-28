@@ -941,7 +941,7 @@ export default function ProbationPage() {
 
   return (
     <main className="mx-auto w-full min-w-0 max-w-5xl px-3 py-4 sm:p-8">
-      <section className="border-b border-slate-200 pb-5 dark:border-white/10">
+      <section className="border-b border-slate-200 pb-4 dark:border-white/10">
         <div>
           <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-sky-600 dark:text-sky-400">
             <CalendarClock className="size-4" />
@@ -960,7 +960,7 @@ export default function ProbationPage() {
       </section>
 
       {!isLoading && !error && (
-        <section className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
+        <section className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 min-[900px]:grid-cols-5">
           <KpiCard label="พนักงานทดลองงาน" value={counts.total} helper="Active & Probation" icon={Users} tone="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" />
           <KpiCard label="เลยกำหนด" value={counts.overdue} helper="ต้องติดตามทันที" icon={AlertTriangle} tone="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" />
           <KpiCard label="ภายใน 30 วัน" value={counts.due30} helper="ใกล้ครบกำหนด" icon={Clock3} tone="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" />
@@ -969,7 +969,7 @@ export default function ProbationPage() {
         </section>
       )}
 
-      <section className="mt-5 border-y border-slate-200 py-4 dark:border-white/10">
+      <section className="mt-4 border-y border-slate-200 py-3 dark:border-white/10">
         <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-5">
           <CustomSelect
             value={department}
@@ -1152,7 +1152,7 @@ export default function ProbationPage() {
             )}
           </div>
         </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        <div className="mt-2.5 flex gap-2 overflow-x-auto pb-1">
           {FILTER_OPTIONS.map((option) => (
             <button
               key={option.value}
@@ -1193,7 +1193,7 @@ export default function ProbationPage() {
       )}
 
       {!isLoading && !error && (
-        <section className="mt-5">
+        <section className="mt-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <h2 className="font-semibold text-slate-950 dark:text-white">รายการที่ต้องติดตาม</h2>
