@@ -1217,12 +1217,12 @@ export default function ProbationPage() {
                     <button
                       type="button"
                       onClick={() => setSelectedEmployee(record.employee)}
-                      className="flex w-full min-w-0 items-center gap-3 p-3 text-left sm:gap-4 sm:p-4"
+                      className="flex w-full min-w-0 items-center gap-3 p-3 text-left sm:p-4"
                     >
                       <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-100 text-sm font-bold text-white shadow-sm dark:border-slate-800/80 sm:size-12 sm:text-base", record.employee.colorClass)}>
                         {record.employee.initials}
                       </span>
-                      <span className="min-w-0 flex-1">
+                      <span className="min-w-0 flex-1 md:w-[210px] md:flex-none">
                         <span className="flex min-w-0 items-center gap-2">
                           <span className="truncate text-sm font-bold leading-tight text-sky-700 dark:text-sky-300">ID: {record.employee.id}</span>
                           <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold sm:hidden", urgencyStyle(record.urgency))}>
@@ -1233,7 +1233,7 @@ export default function ProbationPage() {
                         {record.employee.nameEn !== "-" && <span className="block truncate text-xs font-normal text-slate-600 dark:text-slate-400 sm:text-sm">{record.employee.name}</span>}
                       </span>
 
-                      <span className="hidden w-36 shrink-0 items-center justify-center sm:flex md:w-40">
+                      <span className="hidden w-32 shrink-0 items-center justify-center sm:flex md:w-36">
                         <span
                           title={`เริ่ม ${formatDate(record.startDate)} · ครบกำหนด ${formatDate(record.endDate)}${record.inferredEndDate ? " (คำนวณ)" : ""}`}
                           className={cn("rounded-full border px-2.5 py-1 text-[10px] font-semibold", urgencyStyle(record.urgency))}
@@ -1247,12 +1247,12 @@ export default function ProbationPage() {
                         <span className="truncate text-sm">{record.employee.title}</span>
                       </span>
 
-                      <span className="hidden min-w-0 flex-1 items-center justify-end gap-2 lg:flex">
+                      <span className="hidden w-40 min-w-0 shrink-0 items-center justify-end gap-2 min-[860px]:flex">
                         <span className="max-w-full truncate rounded-full border border-slate-100 bg-slate-50 px-3 py-1 text-xs text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
                           {record.employee.department}
                         </span>
                         {hasValue(record.employee.station) && (
-                          <span className="inline-flex shrink-0 items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="hidden shrink-0 items-center gap-1 text-xs text-slate-500 dark:text-slate-400 xl:inline-flex">
                             <MapPin className="size-3.5" />
                             {record.employee.station}
                           </span>
