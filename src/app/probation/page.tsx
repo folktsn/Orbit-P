@@ -1207,61 +1207,66 @@ export default function ProbationPage() {
               <p className="text-sm font-medium text-slate-700 dark:text-slate-300">ไม่พบพนักงานตามเงื่อนไขที่เลือก</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+            <div className="min-w-0 space-y-3 sm:space-y-4">
               {filteredRecords.slice(0, visibleCount).map((record) => {
-                const elapsedDays = record.daysRemaining === null
-                  ? 0
-                  : Math.max(0, record.probationDays - Math.max(record.daysRemaining, 0));
-                const progress = record.startDate
-                  ? Math.min(100, Math.max(0, (elapsedDays / record.probationDays) * 100))
-                  : 0;
-
                 const completedFollowUps = record.followUps.filter((entry) => hasValue(entry.date)).length;
 
                 return (
                   <article
                     key={record.employee.id}
-                    className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-colors hover:border-sky-300 dark:border-white/10 dark:bg-[#121212] dark:hover:border-sky-800"
+                    className="group min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-md dark:border-white/5 dark:bg-[#121212]"
                   >
                     <button
                       type="button"
                       onClick={() => setSelectedEmployee(record.employee)}
-                      className="grid min-h-28 w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-3 p-4 text-left transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/20"
+                      className="flex min-w-0 w-full items-center gap-3 p-3 text-left sm:gap-4 sm:p-4"
                     >
-                      <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white", record.employee.colorClass)}>
+                      <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-100 text-sm font-bold text-white shadow-sm dark:border-slate-800/80 sm:size-12 sm:text-base", record.employee.colorClass)}>
                         {record.employee.initials}
                       </span>
-                      <span className="min-w-0">
-                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="text-xs font-bold text-sky-600 dark:text-sky-400">ID: {record.employee.id}</span>
-                          <span className={cn("rounded-md border px-2 py-0.5 text-[11px] font-semibold", urgencyStyle(record.urgency))}>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="truncate text-sm font-bold leading-tight text-sky-700 dark:text-sky-300">ID: {record.employee.id}</span>
+                          <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold sm:hidden", urgencyStyle(record.urgency))}>
                             {urgencyLabel(record)}
                           </span>
                         </span>
-                        <span className="mt-1 block truncate text-sm font-bold text-slate-950 dark:text-white sm:text-base">{record.employee.nameEn}</span>
-                        <span className="block truncate text-xs text-slate-600 dark:text-slate-400">{record.employee.name}</span>
-                        <span className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                          <span className="inline-flex min-w-0 items-center gap-1"><BriefcaseBusiness className="size-3.5 shrink-0" /><span className="truncate">{record.employee.title}</span></span>
-                          <span className="inline-flex min-w-0 items-center gap-1"><Building2 className="size-3.5 shrink-0" /><span className="truncate">{record.employee.department}</span></span>
-                          <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{record.employee.station}</span>
-                        </span>
-                        <span className="mt-3 block h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                          <span
-                            className={cn("block h-full rounded-full", record.urgency === "overdue" ? "bg-rose-500" : record.urgency === "due30" ? "bg-amber-500" : "bg-sky-500")}
-                            style={{ width: `${progress}%` }}
-                          />
-                        </span>
-                        <span className="mt-1 flex flex-wrap justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-500">
-                          <span>เริ่ม {formatDate(record.startDate)}</span>
-                          <span>ครบกำหนด {formatDate(record.endDate)}{record.inferredEndDate ? " (คำนวณ)" : ""}</span>
+                        <span className="mt-0.5 block truncate text-sm font-bold text-slate-900 dark:text-slate-100 sm:text-base">{record.employee.nameEn !== "-" ? record.employee.nameEn : record.employee.name}</span>
+                        {record.employee.nameEn !== "-" && <span className="block truncate text-xs font-normal text-slate-600 dark:text-slate-400 sm:text-sm">{record.employee.name}</span>}
+                      </span>
+
+                      <span className="hidden w-36 shrink-0 items-center justify-center sm:flex md:w-40">
+                        <span
+                          title={`เริ่ม ${formatDate(record.startDate)} · ครบกำหนด ${formatDate(record.endDate)}${record.inferredEndDate ? " (คำนวณ)" : ""}`}
+                          className={cn("rounded-full border px-2.5 py-1 text-[10px] font-semibold", urgencyStyle(record.urgency))}
+                        >
+                          {urgencyLabel(record)}
                         </span>
                       </span>
-                      <span className="flex h-full items-center text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-sky-500">
+
+                      <span className="hidden min-w-0 flex-1 items-center gap-2 text-slate-500 dark:text-slate-400 md:flex">
+                        <BriefcaseBusiness className="size-4 shrink-0 opacity-50" />
+                        <span className="truncate text-sm">{record.employee.title}</span>
+                      </span>
+
+                      <span className="hidden min-w-0 flex-1 items-center justify-end gap-2 lg:flex">
+                        <span className="max-w-full truncate rounded-full border border-slate-100 bg-slate-50 px-3 py-1 text-xs text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
+                          {record.employee.department}
+                        </span>
+                        {hasValue(record.employee.station) && (
+                          <span className="inline-flex shrink-0 items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                            <MapPin className="size-3.5" />
+                            {record.employee.station}
+                          </span>
+                        )}
+                      </span>
+
+                      <span className="shrink-0 text-slate-300 transition-colors group-hover:text-slate-900 dark:text-slate-600 dark:group-hover:text-slate-300">
                         <ChevronRight className="size-5" />
                       </span>
                     </button>
 
-                    <div className="flex flex-col gap-2 border-t border-slate-200 px-4 py-3 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 border-t border-slate-100 px-3 py-2.5 dark:border-white/5 sm:flex-row sm:items-center sm:justify-between sm:px-4">
                       <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px]">
                         <span className="mr-1 font-semibold text-slate-600 dark:text-slate-300">ติดตามแล้ว {completedFollowUps}/3 ครั้ง</span>
                         {record.followUps.map((followUp, index) => (
@@ -1284,7 +1289,7 @@ export default function ProbationPage() {
                       <button
                         type="button"
                         onClick={() => setFollowUpRecord(record)}
-                        className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 hover:border-sky-400 hover:bg-sky-100 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-300 dark:hover:border-sky-700"
+                        className="inline-flex h-8 shrink-0 items-center justify-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 hover:border-sky-400 hover:bg-sky-100 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-300 dark:hover:border-sky-700"
                       >
                         <CalendarCheck2 className="size-4" />
                         บันทึกการติดตาม
