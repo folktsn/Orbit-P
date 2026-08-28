@@ -89,11 +89,14 @@ const FILTER_OPTIONS: Array<{ value: ListFilter; label: string }> = [
   { value: "followUp3", label: "ติดตาม ครั้งที่ 3" },
 ];
 
-function pendingFollowUp(record: ProbationRecord): FollowUpFilter | null {
-  if (!hasValue(record.followUps[0].date)) return "followUp1";
-  if (!hasValue(record.followUps[1].date)) return "followUp2";
-  if (!hasValue(record.followUps[2].date)) return "followUp3";
-  return null;
+function hasCompletedFollowUp(record: ProbationRecord, filter: FollowUpFilter) {
+  const followUpIndex: Record<FollowUpFilter, number> = {
+    followUp1: 0,
+    followUp2: 1,
+    followUp3: 2,
+  };
+
+  return hasValue(record.followUps[followUpIndex[filter]]?.date);
 }
 
 function hasValue(value: unknown) {
@@ -878,7 +881,7 @@ export default function ProbationPage() {
           && matchesEndDate
           && (listFilter === "all"
             || (listFilter.startsWith("followUp")
-              ? pendingFollowUp(record) === listFilter
+              ? hasCompletedFollowUp(record, listFilter as FollowUpFilter)
               : record.urgency === listFilter));
       })
       .sort((left, right) => {
