@@ -960,7 +960,7 @@ export default function ProbationPage() {
       </section>
 
       {!isLoading && !error && (
-        <section className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 min-[900px]:grid-cols-5">
+        <section className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-5">
           <KpiCard label="พนักงานทดลองงาน" value={counts.total} helper="Active & Probation" icon={Users} tone="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" />
           <KpiCard label="เลยกำหนด" value={counts.overdue} helper="ต้องติดตามทันที" icon={AlertTriangle} tone="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" />
           <KpiCard label="ภายใน 30 วัน" value={counts.due30} helper="ใกล้ครบกำหนด" icon={Clock3} tone="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" />
