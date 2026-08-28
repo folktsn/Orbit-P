@@ -1209,8 +1209,6 @@ export default function ProbationPage() {
           ) : (
             <div className="min-w-0 space-y-3 sm:space-y-4">
               {filteredRecords.slice(0, visibleCount).map((record) => {
-                const completedFollowUps = record.followUps.filter((entry) => hasValue(entry.date)).length;
-
                 return (
                   <article
                     key={record.employee.id}
@@ -1219,7 +1217,7 @@ export default function ProbationPage() {
                     <button
                       type="button"
                       onClick={() => setSelectedEmployee(record.employee)}
-                      className="flex min-w-0 w-full items-center gap-3 p-3 text-left sm:gap-4 sm:p-4"
+                      className="flex w-full min-w-0 items-center gap-3 p-3 text-left sm:gap-4 sm:p-4"
                     >
                       <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-100 text-sm font-bold text-white shadow-sm dark:border-slate-800/80 sm:size-12 sm:text-base", record.employee.colorClass)}>
                         {record.employee.initials}
@@ -1265,36 +1263,6 @@ export default function ProbationPage() {
                         <ChevronRight className="size-5" />
                       </span>
                     </button>
-
-                    <div className="flex flex-col gap-2 border-t border-slate-100 px-3 py-2.5 dark:border-white/5 sm:flex-row sm:items-center sm:justify-between sm:px-4">
-                      <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px]">
-                        <span className="mr-1 font-semibold text-slate-600 dark:text-slate-300">ติดตามแล้ว {completedFollowUps}/3 ครั้ง</span>
-                        {record.followUps.map((followUp, index) => (
-                          <span
-                            key={index}
-                            title={hasValue(followUp.evaluatorName) || hasValue(followUp.evaluatorNameEn)
-                              ? `ผู้ติดตาม: ${followUp.evaluatorName || followUp.evaluatorNameEn}`
-                              : undefined}
-                            className={cn(
-                              "rounded-md border px-2 py-1 font-medium",
-                              hasValue(followUp.date)
-                                ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300"
-                                : "border-slate-200 text-slate-400 dark:border-white/10 dark:text-slate-500",
-                            )}
-                          >
-                            ครั้งที่ {index + 1}{hasValue(followUp.date) ? ` · ${formatDate(parseDateOnly(followUp.date))}` : " · -"}
-                          </span>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setFollowUpRecord(record)}
-                        className="inline-flex h-8 shrink-0 items-center justify-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 text-xs font-semibold text-sky-700 hover:border-sky-400 hover:bg-sky-100 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-300 dark:hover:border-sky-700"
-                      >
-                        <CalendarCheck2 className="size-4" />
-                        บันทึกการติดตาม
-                      </button>
-                    </div>
                   </article>
                 );
               })}
