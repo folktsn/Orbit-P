@@ -940,7 +940,7 @@ export default function ProbationPage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8">
+    <main className="mx-auto w-full min-w-0 max-w-5xl px-3 py-4 sm:p-8">
       <section className="border-b border-slate-200 pb-5 dark:border-white/10">
         <div>
           <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-sky-600 dark:text-sky-400">
