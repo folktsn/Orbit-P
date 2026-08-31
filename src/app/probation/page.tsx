@@ -31,6 +31,7 @@ type RawEmployee = Record<string, unknown>;
 type Urgency = "all" | "overdue" | "due30" | "due60" | "later" | "missing";
 type FollowUpFilter = "followUp1" | "followUp2" | "followUp3";
 type ListFilter = Urgency | FollowUpFilter;
+type EvaluationPeriodFilter = Extract<Urgency, "due30" | "due60" | "later">;
 type FollowUpSlot = 1 | 2 | 3;
 type Evaluator = {
   employeeId: string;
@@ -77,16 +78,19 @@ const COLOR_CLASSES = [
   "bg-indigo-500",
 ];
 
-const FILTER_OPTIONS: Array<{ value: ListFilter; label: string }> = [
+const QUICK_FILTER_OPTIONS: Array<{ value: ListFilter; label: string }> = [
   { value: "all", label: "ทั้งหมด" },
   { value: "overdue", label: "เลยกำหนด" },
-  { value: "due30", label: "30 วัน" },
-  { value: "due60", label: "60 วัน" },
-  { value: "later", label: "90 วัน" },
   { value: "missing", label: "ข้อมูลไม่ครบ" },
   { value: "followUp1", label: "ติดตาม ครั้งที่ 1" },
   { value: "followUp2", label: "ติดตาม ครั้งที่ 2" },
   { value: "followUp3", label: "ติดตาม ครั้งที่ 3" },
+];
+
+const EVALUATION_PERIOD_OPTIONS: Array<{ value: EvaluationPeriodFilter; label: string }> = [
+  { value: "due30", label: "30 วัน" },
+  { value: "due60", label: "60 วัน" },
+  { value: "later", label: "90 วัน" },
 ];
 
 function hasCompletedFollowUp(record: ProbationRecord, filter: FollowUpFilter) {
@@ -839,8 +843,10 @@ export default function ProbationPage() {
   }, [endDate, startDate]);
 
   const hasActiveFilters = Boolean(
-    search || department || division || section || unit || station || startDate || endDate,
+    search || department || division || section || unit || station || startDate || endDate || listFilter !== "all",
   );
+
+  const evaluationPeriod = EVALUATION_PERIOD_OPTIONS.find((option) => option.value === listFilter)?.label ?? "";
 
   const filteredRecords = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -1091,7 +1097,19 @@ export default function ProbationPage() {
             )}
           </div>
 
-          <label className="relative block md:col-span-3">
+          <CustomSelect
+            value={evaluationPeriod}
+            onChange={(value) => {
+              const selectedPeriod = EVALUATION_PERIOD_OPTIONS.find((option) => option.label === value);
+              setListFilter(selectedPeriod?.value ?? "all");
+              setVisibleCount(30);
+            }}
+            options={EVALUATION_PERIOD_OPTIONS.map((option) => option.label)}
+            placeholder="ช่วงการประเมิน"
+            triggerClassName="rounded-full px-4 py-2.5"
+          />
+
+          <label className="relative block md:col-span-2">
             <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input
               value={search}
@@ -1142,6 +1160,7 @@ export default function ProbationPage() {
                   setSearch("");
                   setStartDate("");
                   setEndDate("");
+                  setListFilter("all");
                   setVisibleCount(30);
                 }}
                 className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full border border-red-100 bg-red-50 px-4 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
@@ -1153,7 +1172,7 @@ export default function ProbationPage() {
           </div>
         </div>
         <div className="mt-2.5 flex gap-2 overflow-x-auto pb-1">
-          {FILTER_OPTIONS.map((option) => (
+          {QUICK_FILTER_OPTIONS.map((option) => (
             <button
               key={option.value}
               type="button"
