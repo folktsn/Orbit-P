@@ -41,6 +41,9 @@ export interface EmployeeData {
   idCard: string;
   birthDate?: string;
   age?: string | number;
+  retirementYear?: number;
+  retirementAge?: number;
+  turnsSixtyThisYear?: boolean;
   email: string;
   phone: string;
   address: string;

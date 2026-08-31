@@ -156,8 +156,40 @@ const getDualLanguage = (th: any, en: any, fallback: any) => {
   return safeTh || safeEn || fallback || "-";
 };
 
+const parseEmployeeBirthDate = (value: unknown): Date | null => {
+  if (value === undefined || value === null) return null;
+  const raw = String(value).trim();
+  if (!raw || raw === "-") return null;
+
+  const createDate = (yearValue: number, month: number, day: number) => {
+    const year = yearValue > 2400 ? yearValue - 543 : yearValue;
+    const date = new Date(year, month - 1, day);
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      return null;
+    }
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  const yearFirst = raw.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+  if (yearFirst) {
+    return createDate(Number(yearFirst[1]), Number(yearFirst[2]), Number(yearFirst[3]));
+  }
+
+  const dayFirst = raw.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+  if (dayFirst) {
+    return createDate(Number(dayFirst[3]), Number(dayFirst[2]), Number(dayFirst[1]));
+  }
+
+  return null;
+};
+
 interface EmployeeListProps {
-  activeTab: "all" | "active" | "resigned" | "probation";
+  activeTab: "all" | "active" | "resigned" | "retirement";
   searchQuery?: string;
   departmentFilter?: string;
   divisionFilter?: string;
@@ -372,6 +404,8 @@ export function EmployeeList({
               })(),
               gender: item.gender || "-",
               nationality: item.nationality || "Thai",
+              birthDate: item.birth_date || "-",
+              age: item.age,
               idCard: item.id_card || "-",
               email: item.email || "-",
               phone: item.phone || "-",
@@ -499,32 +533,41 @@ export function EmployeeList({
         const bDays = (b as any).resignDiffDays ?? 999999;
         return aDays - bDays;
       });
-    } else if (activeTab === "probation") {
-      // Must be active, in probation, and NOT resigned or scheduled to resign
-      result = result.filter(emp => 
-        emp.status && emp.status.toLowerCase() === "active" &&
-        !emp.status.toLowerCase().includes("resign") &&
-        (!emp.resignDate || emp.resignDate === "-") &&
-        emp.empType && emp.empType.toLowerCase() === "probation" &&
-        emp.probationEnd && emp.probationEnd !== "-"
-      );
+    } else if (activeTab === "retirement") {
+      const currentYear = today.getFullYear();
 
-      // Calculate days remaining for all active probation employees
       result = result.filter(emp => {
-        const pDate = new Date(emp.probationEnd);
-        if (isNaN(pDate.getTime())) return false;
-        pDate.setHours(0, 0, 0, 0);
-        const diffTime = pDate.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        (emp as any).diffDays = diffDays;
-        return true; // Show all active probation staff sorted by urgency
+        if ((emp.status || "").trim().toLowerCase() !== "active") return false;
+
+        const birthDate = parseEmployeeBirthDate(emp.birthDate);
+        if (birthDate) {
+          const retirementYear = birthDate.getFullYear() + 60;
+          if (retirementYear > currentYear) return false;
+
+          const birthdayPassed =
+            today.getMonth() > birthDate.getMonth() ||
+            (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
+          const currentAge = currentYear - birthDate.getFullYear() - (birthdayPassed ? 0 : 1);
+
+          emp.retirementYear = retirementYear;
+          emp.retirementAge = currentAge;
+          emp.turnsSixtyThisYear = retirementYear === currentYear;
+          return true;
+        }
+
+        const storedAge = Number(emp.age);
+        if (!Number.isFinite(storedAge) || storedAge < 60) return false;
+
+        emp.retirementYear = currentYear - Math.max(0, storedAge - 60);
+        emp.retirementAge = storedAge;
+        emp.turnsSixtyThisYear = false;
+        return true;
       });
 
-      // Sort by remaining days ascending (least to most)
       result = [...result].sort((a, b) => {
-        const aDays = (a as any).diffDays ?? 999999;
-        const bDays = (b as any).diffDays ?? 999999;
-        return aDays - bDays;
+        const retirementYearDiff = (b.retirementYear ?? 0) - (a.retirementYear ?? 0);
+        if (retirementYearDiff !== 0) return retirementYearDiff;
+        return a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: "base" });
       });
     }
 
@@ -674,7 +717,7 @@ export function EmployeeList({
               )}
               
               {/* Probation Countdown Alert Badge */}
-              {(activeTab === "probation" || activeTab === "active") && (emp as any).diffDays !== undefined && (
+              {activeTab === "active" && (emp as any).diffDays !== undefined && (
                 <div className="flex items-center shrink-0 mr-2 md:mr-4">
                   {(() => {
                     const days = (emp as any).diffDays;
@@ -708,6 +751,17 @@ export function EmployeeList({
                       );
                     }
                   })()}
+                </div>
+              )}
+
+              {activeTab === "retirement" && emp.retirementAge !== undefined && (
+                <div className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300 sm:gap-1.5 sm:px-3 sm:text-xs">
+                  <Calendar className="h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    {emp.turnsSixtyThisYear
+                      ? "ครบ 60 ปีในปีนี้"
+                      : `อายุ ${emp.retirementAge} ปี`}
+                  </span>
                 </div>
               )}
 

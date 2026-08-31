@@ -58,7 +58,7 @@ const EMPLOYEE_LIST_FIELDS = [
   'station_th', 'station_en', 'station', 'work_location',
   'supervisor', 'status', 'emp_type', 'start_date', 'hire_date', 'contractStart', 'contractEnd', 'contract_end',
   'probation_end_date', 'probation_end', 'probation_days', 'probation_day', 'probation_period_days', 'probation_duration_days', 'probation_total_days', 'prob_days', 'prob_period', 'resign_date', 'last_working_date', 'probation_outcome', 'probation_extension_days',
-  'id_card', 'phone',
+  'birth_date', 'age', 'id_card', 'phone',
   'emergency_contact', 'emergency_contact_name', 'emergency_contact_relation', 'emergency_contact_phone',
   'emergency_name', 'emergency_relation', 'emergency_phone',
   'contact_person', 'contact_relation', 'contact_phone',

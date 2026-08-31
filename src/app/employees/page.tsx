@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 
 export default function EmployeesPage() {
-  const [activeTab, setActiveTab] = useState<"all" | "active" | "resigned" | "probation">("active");
+  const [activeTab, setActiveTab] = useState<"all" | "active" | "resigned" | "retirement">("active");
   const [searchQuery, setSearchQuery] = useState("");
   
   // Organization Filters State
@@ -137,15 +137,15 @@ export default function EmployeesPage() {
             Active
           </button>
           <button
-            onClick={() => setActiveTab("probation")}
+            onClick={() => setActiveTab("retirement")}
             className={cn(
               "min-w-0 rounded-full px-2 py-2 text-xs font-semibold transition-all duration-300 sm:px-6 sm:text-sm",
-              activeTab === "probation"
+              activeTab === "retirement"
                 ? "bg-[#0F172A] text-white dark:bg-white dark:text-[#0F172A]"
                 : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             )}
           >
-            Probation
+            Retirement
           </button>
           <button
             onClick={() => setActiveTab("resigned")}
