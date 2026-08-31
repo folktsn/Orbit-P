@@ -82,15 +82,18 @@ const QUICK_FILTER_OPTIONS: Array<{ value: ListFilter; label: string }> = [
   { value: "all", label: "ทั้งหมด" },
   { value: "overdue", label: "เลยกำหนด" },
   { value: "missing", label: "ข้อมูลไม่ครบ" },
-  { value: "followUp1", label: "ติดตาม ครั้งที่ 1" },
-  { value: "followUp2", label: "ติดตาม ครั้งที่ 2" },
-  { value: "followUp3", label: "ติดตาม ครั้งที่ 3" },
 ];
 
 const EVALUATION_PERIOD_OPTIONS: Array<{ value: EvaluationPeriodFilter; label: string }> = [
   { value: "due30", label: "30 วัน" },
   { value: "due60", label: "60 วัน" },
   { value: "later", label: "90 วัน" },
+];
+
+const FOLLOW_UP_FILTER_OPTIONS: Array<{ value: FollowUpFilter; label: string }> = [
+  { value: "followUp1", label: "ติดตาม ครั้งที่ 1" },
+  { value: "followUp2", label: "ติดตาม ครั้งที่ 2" },
+  { value: "followUp3", label: "ติดตาม ครั้งที่ 3" },
 ];
 
 function hasCompletedFollowUp(record: ProbationRecord, filter: FollowUpFilter) {
@@ -847,6 +850,7 @@ export default function ProbationPage() {
   );
 
   const evaluationPeriod = EVALUATION_PERIOD_OPTIONS.find((option) => option.value === listFilter)?.label ?? "";
+  const followUpStatus = FOLLOW_UP_FILTER_OPTIONS.find((option) => option.value === listFilter)?.label ?? "";
 
   const filteredRecords = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -1033,7 +1037,9 @@ export default function ProbationPage() {
             placeholder="All Stations"
             triggerClassName="rounded-full px-4 py-2.5"
           />
+        </div>
 
+        <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 md:grid-cols-6">
           <div className="relative md:col-span-1">
             <button
               type="button"
@@ -1106,6 +1112,18 @@ export default function ProbationPage() {
             }}
             options={EVALUATION_PERIOD_OPTIONS.map((option) => option.label)}
             placeholder="ช่วงการประเมิน"
+            triggerClassName="rounded-full px-4 py-2.5"
+          />
+
+          <CustomSelect
+            value={followUpStatus}
+            onChange={(value) => {
+              const selectedFollowUp = FOLLOW_UP_FILTER_OPTIONS.find((option) => option.label === value);
+              setListFilter(selectedFollowUp?.value ?? "all");
+              setVisibleCount(30);
+            }}
+            options={FOLLOW_UP_FILTER_OPTIONS.map((option) => option.label)}
+            placeholder="สถานะการติดตาม"
             triggerClassName="rounded-full px-4 py-2.5"
           />
 
