@@ -744,6 +744,280 @@ function FollowUpDialog({
   );
 }
 
+function BulkFollowUpDialog({
+  records,
+  onClose,
+  onSaved,
+  onComplete,
+}: {
+  records: ProbationRecord[];
+  onClose: () => void;
+  onSaved: (employeeId: string, slot: FollowUpSlot, entry: FollowUpEntry) => void;
+  onComplete: () => void;
+}) {
+  const [slot, setSlot] = useState<FollowUpSlot>(1);
+  const [followUpDate, setFollowUpDate] = useState(todayDateOnly());
+  const [evaluatorId, setEvaluatorId] = useState("");
+  const [evaluator, setEvaluator] = useState<Evaluator | null>(null);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState("");
+  const lookupTimerRef = useRef<number | null>(null);
+  const lookupVersionRef = useRef(0);
+
+  const pendingRecords = useMemo(
+    () => records.filter((record) => !hasValue(record.followUps[slot - 1]?.date)),
+    [records, slot],
+  );
+  const skippedCount = records.length - pendingRecords.length;
+
+  useEffect(() => () => {
+    if (lookupTimerRef.current) window.clearTimeout(lookupTimerRef.current);
+  }, []);
+
+  const lookupEvaluator = async (requestedId?: string) => {
+    const normalizedId = (requestedId ?? evaluatorId).trim();
+    if (!normalizedId) throw new Error("กรุณากรอกรหัสพนักงานผู้ติดตาม");
+
+    if (lookupTimerRef.current) window.clearTimeout(lookupTimerRef.current);
+    lookupTimerRef.current = null;
+    const lookupVersion = ++lookupVersionRef.current;
+    setIsLookingUp(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/probation/follow-up?employeeId=${encodeURIComponent(normalizedId)}`, {
+        cache: "no-store",
+      });
+      const payload = await response.json() as { evaluator?: Evaluator; error?: string };
+      if (!response.ok || !payload.evaluator) throw new Error(payload.error || "ไม่พบข้อมูลผู้ติดตาม");
+      if (lookupVersion !== lookupVersionRef.current) return null;
+      setEvaluator(payload.evaluator);
+      setEvaluatorId(payload.evaluator.employeeId);
+      return payload.evaluator;
+    } catch (lookupError) {
+      if (lookupVersion !== lookupVersionRef.current) return null;
+      setEvaluator(null);
+      setError(lookupError instanceof Error ? lookupError.message : "ไม่สามารถตรวจสอบผู้ติดตามได้");
+      throw lookupError;
+    } finally {
+      if (lookupVersion === lookupVersionRef.current) setIsLookingUp(false);
+    }
+  };
+
+  const scheduleEvaluatorLookup = (value: string) => {
+    lookupVersionRef.current += 1;
+    if (lookupTimerRef.current) window.clearTimeout(lookupTimerRef.current);
+    setEvaluatorId(value);
+    setEvaluator(null);
+    setError("");
+
+    const normalizedId = value.trim();
+    if (normalizedId.length < 5) {
+      setIsLookingUp(false);
+      return;
+    }
+    lookupTimerRef.current = window.setTimeout(() => {
+      void lookupEvaluator(normalizedId).catch(() => undefined);
+    }, 450);
+  };
+
+  const saveBulkFollowUp = async () => {
+    setError("");
+    if (pendingRecords.length === 0) {
+      setError(`พนักงานที่เลือกมีข้อมูลการติดตามครั้งที่ ${slot} ครบแล้ว`);
+      return;
+    }
+
+    try {
+      let verifiedEvaluator = evaluator;
+      if (!verifiedEvaluator || verifiedEvaluator.employeeId !== evaluatorId.trim()) {
+        verifiedEvaluator = await lookupEvaluator();
+      }
+      if (!verifiedEvaluator) throw new Error("กรุณารอการตรวจสอบรหัสพนักงานผู้ติดตาม");
+
+      setIsSaving(true);
+      setProgress(0);
+      const failedEmployeeIds: string[] = [];
+      let completed = 0;
+
+      for (let index = 0; index < pendingRecords.length; index += 5) {
+        const batch = pendingRecords.slice(index, index + 5);
+        const results = await Promise.allSettled(batch.map(async (record) => {
+          const response = await fetch("/api/probation/follow-up", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              employeeId: record.employee.id,
+              followUpNumber: slot,
+              followUpDate,
+              evaluatorId: verifiedEvaluator.employeeId,
+            }),
+          });
+          const payload = await response.json() as {
+            error?: string;
+            evaluator?: Evaluator;
+          };
+          if (!response.ok || !payload.evaluator) {
+            throw new Error(payload.error || "ไม่สามารถบันทึกการติดตามได้");
+          }
+
+          const savedEntry: FollowUpEntry = {
+            date: followUpDate,
+            evaluatorId: payload.evaluator.employeeId,
+            evaluatorName: payload.evaluator.name,
+            evaluatorNameEn: payload.evaluator.nameEn,
+            evaluatorPosition: payload.evaluator.position,
+            attachmentName: "",
+            attachmentData: "",
+          };
+          return { employeeId: record.employee.id, savedEntry };
+        }));
+
+        results.forEach((result, resultIndex) => {
+          const employeeId = batch[resultIndex].employee.id;
+          if (result.status === "fulfilled") {
+            onSaved(employeeId, slot, result.value.savedEntry);
+          } else {
+            failedEmployeeIds.push(employeeId);
+          }
+        });
+        completed += batch.length;
+        setProgress(completed);
+      }
+
+      if (failedEmployeeIds.length > 0) {
+        setError(
+          `บันทึกสำเร็จ ${pendingRecords.length - failedEmployeeIds.length} คน และไม่สำเร็จ ${failedEmployeeIds.length} คน (${failedEmployeeIds.join(", ")})`,
+        );
+        return;
+      }
+      onComplete();
+      onClose();
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "ไม่สามารถบันทึกการติดตามแบบกลุ่มได้");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm"
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target && !isSaving) onClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bulk-follow-up-title"
+        className="w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#121212]"
+      >
+        <header className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-white/10">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400">
+              <CalendarCheck2 className="size-3.5" />
+              Probation Follow-up
+            </div>
+            <h2 id="bulk-follow-up-title" className="mt-0.5 text-base font-bold text-slate-950 dark:text-white">
+              บันทึกการติดตาม {records.length.toLocaleString()} คน
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSaving}
+            title="ปิด"
+            className="flex size-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-white/10"
+          >
+            <X className="size-4" />
+          </button>
+        </header>
+
+        <div className="space-y-3 p-4">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block min-w-0">
+              <span className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">ครั้งที่ติดตาม</span>
+              <select
+                value={slot}
+                onChange={(event) => setSlot(Number(event.target.value) as FollowUpSlot)}
+                disabled={isSaving}
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-sky-500 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+              >
+                <option value={1}>ครั้งที่ 1</option>
+                <option value={2}>ครั้งที่ 2</option>
+                <option value={3}>ครั้งที่ 3</option>
+              </select>
+            </label>
+            <label className="block min-w-0">
+              <span className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">วันที่ติดตาม</span>
+              <input
+                type="date"
+                value={followUpDate}
+                max={todayDateOnly()}
+                onChange={(event) => setFollowUpDate(event.target.value)}
+                disabled={isSaving}
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-sky-500 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+              />
+            </label>
+          </div>
+
+          <label className="block min-w-0">
+            <span className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">รหัสพนักงานผู้ติดตาม</span>
+            <span className="relative block">
+              <input
+                value={evaluatorId}
+                onChange={(event) => scheduleEvaluatorLookup(event.target.value)}
+                disabled={isSaving}
+                placeholder="เช่น 05283"
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-950 outline-none focus:border-sky-500 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+              />
+              {isLookingUp && <RefreshCw className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-sky-500" />}
+            </span>
+          </label>
+
+          {evaluator && (
+            <div className="border-l-2 border-sky-500 pl-2 text-xs">
+              <p className="font-semibold text-slate-950 dark:text-white">
+                {evaluator.name}{evaluator.nameEn ? ` / ${evaluator.nameEn}` : ""}
+              </p>
+              <p className="mt-0.5 text-slate-500 dark:text-slate-400">{evaluator.position}</p>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-xs dark:bg-white/5">
+            <span className="text-slate-600 dark:text-slate-300">พร้อมบันทึก {pendingRecords.length.toLocaleString()} คน</span>
+            {skippedCount > 0 && <span className="text-amber-600 dark:text-amber-300">ข้ามข้อมูลเดิม {skippedCount.toLocaleString()} คน</span>}
+          </div>
+
+          {error && <p role="alert" className="text-xs font-medium text-rose-600 dark:text-rose-300">{error}</p>}
+
+          <div className="flex justify-end gap-2 border-t border-slate-200 pt-3 dark:border-white/10">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSaving}
+              className="h-9 rounded-md px-3 text-xs font-semibold text-slate-500 hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-white/10"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              onClick={() => void saveBulkFollowUp()}
+              disabled={isSaving || isLookingUp || pendingRecords.length === 0}
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
+            >
+              {isSaving ? <RefreshCw className="size-4 animate-spin" /> : <Check className="size-4" />}
+              {isSaving ? `กำลังบันทึก ${progress}/${pendingRecords.length}` : `บันทึก ${pendingRecords.length.toLocaleString()} คน`}
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function KpiCard({
   label,
   value,
@@ -790,6 +1064,8 @@ export default function ProbationPage() {
   const [visibleCount, setVisibleCount] = useState(30);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
   const [followUpRecord, setFollowUpRecord] = useState<ProbationRecord | null>(null);
+  const [selectedFollowUpIds, setSelectedFollowUpIds] = useState<Set<string>>(() => new Set());
+  const [isBulkFollowUpOpen, setIsBulkFollowUpOpen] = useState(false);
 
   const fetchProbation = useCallback(async (forceRefresh = false) => {
     try {
@@ -903,6 +1179,17 @@ export default function ProbationPage() {
       });
   }, [department, division, endDate, listFilter, records, search, section, startDate, station, unit]);
 
+  const displayedRecords = useMemo(
+    () => filteredRecords.slice(0, visibleCount),
+    [filteredRecords, visibleCount],
+  );
+  const selectedFollowUpRecords = useMemo(
+    () => records.filter((record) => selectedFollowUpIds.has(record.employee.id)),
+    [records, selectedFollowUpIds],
+  );
+  const allDisplayedSelected = displayedRecords.length > 0
+    && displayedRecords.every((record) => selectedFollowUpIds.has(record.employee.id));
+
   const counts = useMemo(() => ({
     total: records.length,
     overdue: records.filter((record) => record.urgency === "overdue").length,
@@ -935,6 +1222,26 @@ export default function ProbationPage() {
         : item;
     }));
     setFetchedAt(new Date().toISOString());
+  };
+
+  const toggleFollowUpSelection = (employeeId: string) => {
+    setSelectedFollowUpIds((current) => {
+      const next = new Set(current);
+      if (next.has(employeeId)) next.delete(employeeId);
+      else next.add(employeeId);
+      return next;
+    });
+  };
+
+  const toggleDisplayedSelection = () => {
+    setSelectedFollowUpIds((current) => {
+      const next = new Set(current);
+      displayedRecords.forEach((record) => {
+        if (allDisplayedSelected) next.delete(record.employee.id);
+        else next.add(record.employee.id);
+      });
+      return next;
+    });
   };
 
   const handleRefresh = () => {
@@ -1231,11 +1538,46 @@ export default function ProbationPage() {
 
       {!isLoading && !error && (
         <section className="mt-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="font-semibold text-slate-950 dark:text-white">รายการที่ต้องติดตาม</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">พบ {filteredRecords.length.toLocaleString()} คน</p>
             </div>
+            {displayedRecords.length > 0 && (
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={toggleDisplayedSelection}
+                  className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-600 hover:border-sky-400 hover:text-sky-700 dark:border-white/15 dark:bg-[#121212] dark:text-slate-300"
+                >
+                  {allDisplayedSelected ? "ยกเลิกที่แสดง" : "เลือกที่แสดง"}
+                </button>
+                {selectedFollowUpRecords.length > 0 && (
+                  <>
+                    <span className="text-xs font-semibold text-sky-700 dark:text-sky-300">
+                      เลือก {selectedFollowUpRecords.length.toLocaleString()} คน
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsBulkFollowUpOpen(true)}
+                      className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-sky-600 px-3 text-xs font-semibold text-white shadow-sm hover:bg-sky-700"
+                    >
+                      <CalendarCheck2 className="size-4" />
+                      บันทึกการติดตาม
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFollowUpIds(new Set())}
+                      title="ล้างรายการที่เลือก"
+                      aria-label="ล้างรายการที่เลือก"
+                      className="flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-white/10"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {filteredRecords.length === 0 ? (
@@ -1245,17 +1587,30 @@ export default function ProbationPage() {
             </div>
           ) : (
             <div className="min-w-0 space-y-3 sm:space-y-4">
-              {filteredRecords.slice(0, visibleCount).map((record) => {
+              {displayedRecords.map((record) => {
                 return (
                   <article
                     key={record.employee.id}
                     className="group min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-md dark:border-white/5 dark:bg-[#121212]"
                   >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedEmployee(record.employee)}
-                      className="flex w-full min-w-0 items-center gap-3 p-3 text-left sm:p-4"
-                    >
+                    <div className="flex min-w-0 items-center">
+                      <label
+                        title="เลือกสำหรับติดตามหลายคน"
+                        className="flex shrink-0 cursor-pointer items-center self-stretch pl-3 sm:pl-4"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedFollowUpIds.has(record.employee.id)}
+                          onChange={() => toggleFollowUpSelection(record.employee.id)}
+                          aria-label={`เลือก ${record.employee.nameEn} สำหรับติดตาม`}
+                          className="size-4 cursor-pointer rounded border-slate-300 accent-sky-600"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedEmployee(record.employee)}
+                        className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left sm:p-4"
+                      >
                       <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-100 text-sm font-bold text-white shadow-sm dark:border-slate-800/80 sm:size-12 sm:text-base", record.employee.colorClass)}>
                         {record.employee.initials}
                       </span>
@@ -1299,7 +1654,18 @@ export default function ProbationPage() {
                       <span className="shrink-0 text-slate-300 transition-colors group-hover:text-slate-900 dark:text-slate-600 dark:group-hover:text-slate-300">
                         <ChevronRight className="size-5" />
                       </span>
-                    </button>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFollowUpRecord(record)}
+                        title="บันทึกการติดตาม"
+                        aria-label={`บันทึกการติดตาม ${record.employee.nameEn}`}
+                        className="mr-3 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-sky-200 text-sky-700 transition-colors hover:bg-sky-50 dark:border-sky-500/30 dark:text-sky-300 dark:hover:bg-sky-950/30 sm:mr-4 xl:h-9 xl:w-auto xl:gap-1.5 xl:px-3"
+                      >
+                        <CalendarCheck2 className="size-4" />
+                        <span className="hidden text-xs font-semibold xl:inline">บันทึกการติดตาม</span>
+                      </button>
+                    </div>
                   </article>
                 );
               })}
@@ -1334,6 +1700,15 @@ export default function ProbationPage() {
           record={followUpRecord}
           onClose={() => setFollowUpRecord(null)}
           onSaved={handleFollowUpSaved}
+        />
+      )}
+
+      {isBulkFollowUpOpen && selectedFollowUpRecords.length > 0 && (
+        <BulkFollowUpDialog
+          records={selectedFollowUpRecords}
+          onClose={() => setIsBulkFollowUpOpen(false)}
+          onSaved={handleFollowUpSaved}
+          onComplete={() => setSelectedFollowUpIds(new Set())}
         />
       )}
     </main>
