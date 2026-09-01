@@ -45,6 +45,11 @@ export default function EmployeesPage() {
   }, [startDate, endDate, activeTab]);
 
   useEffect(() => {
+    const initialQuery = new URLSearchParams(window.location.search).get("q");
+    const frame = initialQuery
+      ? requestAnimationFrame(() => setSearchQuery(initialQuery))
+      : null;
+
     fetch('/api/organization')
       .then(async (res) => {
         if (!res.ok) return [];
@@ -53,6 +58,10 @@ export default function EmployeesPage() {
       })
       .then(setOrgData)
       .catch(() => setOrgData([]));
+
+    return () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
   }, []);
 
   const formatWithCode = (name: string, code: string) => {

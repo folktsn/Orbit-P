@@ -156,7 +156,7 @@
     width: 100%;
     max-width: 760px;
     height: 36px;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 2px;
     border-radius: 12px;
   }
@@ -217,7 +217,7 @@
   .pill-nav {
     grid-area: nav;
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     width: 100%;
     min-width: 0;
     height: 34px;
@@ -234,7 +234,7 @@
     min-width: 0;
     min-height: 28px;
     padding: 0 0.25rem;
-    font-size: 0.5625rem;
+    font-size: 0.5rem;
   }
 
   .pill-nav .pill .label-stack,

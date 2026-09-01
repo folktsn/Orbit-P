@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { name: "Organization", href: "/organization" },
   { name: "Manpower", href: "/manpower" },
   { name: "Employees", href: "/employees" },
+  { name: "Quality", href: "/data-quality" },
   { name: "Recruitment", href: "/ats" },
   { name: "Probation", href: "/probation" },
 ];

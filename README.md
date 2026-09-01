@@ -132,6 +132,19 @@ Key behavior:
 - Stores probation evaluation documents
 - Scheduled/background logic processes status changes when dates are reached
 
+### Data Quality
+
+Read-only employee master data monitoring for HR operations.
+
+Key behavior:
+
+- Checks current employees for duplicate identities and duplicate name/date-of-birth combinations
+- Finds missing employee, contact, emergency contact, position, department, and station fields
+- Validates birth, start, probation, and separation dates
+- Compares employee departments and positions with `PA_OrgStructure`
+- Supports severity/category filters, employee search, CSV export, and direct links to employee records
+- Never changes employee master data automatically
+
 ## Data Stores
 
 ### Amazon DynamoDB
