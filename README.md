@@ -143,6 +143,8 @@ Key behavior:
 - Validates birth, start, probation, and separation dates
 - Compares employee departments and positions with `PA_OrgStructure`
 - Supports severity/category filters, employee search, CSV export, and direct links to employee records
+- Supports issue workflow states, assignee lookup, due dates, notes, and a compact change history
+- Stores workflow state separately in S3 at `data-quality/workflow.json`
 - Never changes employee master data automatically
 
 ## Data Stores
@@ -179,6 +181,7 @@ Main areas:
 - Employee document files
 - Probation evaluation files
 - Manpower budget data
+- Data quality workflow state
 
 ### SQLite / Prisma
 

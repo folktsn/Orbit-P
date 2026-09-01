@@ -228,8 +228,9 @@ function makeIssue(
   relatedEmployeeIds?: string[],
 ): QualityIssue {
   const id = employeeId(item);
+  const relationKey = relatedEmployeeIds?.length ? [...relatedEmployeeIds].sort().join("-") : "single";
   return {
-    id: `${category}:${code}:${id}:${relatedEmployeeIds?.join("-") || "single"}`,
+    id: `${category}:${code}:${id}:${relationKey}`,
     severity,
     category,
     title,

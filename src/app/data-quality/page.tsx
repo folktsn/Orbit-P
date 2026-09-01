@@ -7,8 +7,12 @@ import {
   CheckCircle2,
   ChevronDown,
   CircleAlert,
+  CircleDot,
+  ClipboardCheck,
+  Clock3,
   Copy,
   Download,
+  EyeOff,
   ExternalLink,
   Info,
   Network,
@@ -20,6 +24,11 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  IssueWorkflowDialog,
+  type WorkflowRecord,
+  type WorkflowStatus,
+} from "./components/IssueWorkflowDialog";
 
 type Severity = "critical" | "warning" | "info";
 type Category = "duplicate" | "missing" | "date" | "organization";
@@ -81,6 +90,13 @@ const CATEGORY = {
   organization: { label: "ผังองค์กร", icon: Network },
 } satisfies Record<Category, { label: string; icon: typeof Copy }>;
 
+const WORKFLOW_STATUS = {
+  open: { label: "ยังไม่ดำเนินการ", className: "border-slate-200 bg-slate-50 text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300", icon: CircleDot },
+  in_progress: { label: "กำลังดำเนินการ", className: "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300", icon: Clock3 },
+  resolved: { label: "แก้ไขแล้ว", className: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300", icon: CheckCircle2 },
+  ignored: { label: "ยกเว้น", className: "border-slate-300 bg-slate-100 text-slate-600 dark:border-white/15 dark:bg-white/10 dark:text-slate-300", icon: EyeOff },
+} satisfies Record<WorkflowStatus, { label: string; className: string; icon: typeof CircleDot }>;
+
 function formatTimestamp(value: string) {
   return new Intl.DateTimeFormat("th-TH", {
     dateStyle: "medium",
@@ -109,6 +125,17 @@ function IssueBadge({ issue }: { issue: QualityIssue }) {
   );
 }
 
+function WorkflowBadge({ status }: { status: WorkflowStatus }) {
+  const config = WORKFLOW_STATUS[status];
+  const Icon = config.icon;
+  return (
+    <span className={cn("inline-flex h-6 max-w-full items-center gap-1 rounded-full border px-2 text-[9px] font-bold", config.className)}>
+      <Icon className="h-3 w-3 shrink-0" />
+      <span className="truncate">{config.label}</span>
+    </span>
+  );
+}
+
 export default function DataQualityPage() {
   const [data, setData] = useState<QualityResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,6 +143,11 @@ export default function DataQualityPage() {
   const [query, setQuery] = useState("");
   const [severity, setSeverity] = useState<"all" | Severity>("all");
   const [category, setCategory] = useState<"all" | Category>("all");
+  const [workflowStatus, setWorkflowStatus] = useState<"all" | WorkflowStatus>("all");
+  const [workflows, setWorkflows] = useState<Record<string, WorkflowRecord>>({});
+  const [workflowLoading, setWorkflowLoading] = useState(true);
+  const [workflowError, setWorkflowError] = useState("");
+  const [selectedIssue, setSelectedIssue] = useState<QualityIssue | null>(null);
 
   const loadData = useCallback(async (refresh = false) => {
     setLoading(true);
@@ -132,16 +164,33 @@ export default function DataQualityPage() {
     }
   }, []);
 
+  const loadWorkflow = useCallback(async () => {
+    setWorkflowLoading(true);
+    setWorkflowError("");
+    try {
+      const response = await fetch("/api/data-quality/actions", { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "ไม่สามารถโหลดสถานะการดำเนินงานได้");
+      setWorkflows(payload.items ?? {});
+    } catch (loadError) {
+      setWorkflowError(loadError instanceof Error ? loadError.message : "ไม่สามารถโหลดสถานะการดำเนินงานได้");
+    } finally {
+      setWorkflowLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const frame = requestAnimationFrame(() => void loadData());
+    const frame = requestAnimationFrame(() => void Promise.all([loadData(), loadWorkflow()]));
     return () => cancelAnimationFrame(frame);
-  }, [loadData]);
+  }, [loadData, loadWorkflow]);
 
   const filteredIssues = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("th");
     return (data?.issues ?? []).filter((issue) => {
       if (severity !== "all" && issue.severity !== severity) return false;
       if (category !== "all" && issue.category !== category) return false;
+      const issueWorkflowStatus = workflows[issue.id]?.status ?? "open";
+      if (workflowStatus !== "all" && issueWorkflowStatus !== workflowStatus) return false;
       if (!normalizedQuery) return true;
       return [
         issue.employee.id,
@@ -155,17 +204,28 @@ export default function DataQualityPage() {
         ...issue.fields,
       ].join(" ").toLocaleLowerCase("th").includes(normalizedQuery);
     });
-  }, [category, data?.issues, query, severity]);
+  }, [category, data?.issues, query, severity, workflowStatus, workflows]);
+
+  const workflowCounts = useMemo(() => {
+    const counts: Record<WorkflowStatus, number> = { open: 0, in_progress: 0, resolved: 0, ignored: 0 };
+    (data?.issues ?? []).forEach((issue) => {
+      counts[workflows[issue.id]?.status ?? "open"] += 1;
+    });
+    return counts;
+  }, [data?.issues, workflows]);
 
   const healthyPercent = data?.summary.currentRecords
     ? Math.round((data.summary.healthyEmployees / data.summary.currentRecords) * 100)
     : 0;
 
   const exportCsv = () => {
-    const header = ["Severity", "Category", "Employee ID", "Name TH", "Name EN", "Issue", "Description", "Fields", "Department", "Position", "Station"];
+    const header = ["Severity", "Category", "Workflow", "Assignee", "Due Date", "Employee ID", "Name TH", "Name EN", "Issue", "Description", "Fields", "Department", "Position", "Station"];
     const rows = filteredIssues.map((issue) => [
       SEVERITY[issue.severity].label,
       CATEGORY[issue.category].label,
+      WORKFLOW_STATUS[workflows[issue.id]?.status ?? "open"].label,
+      workflows[issue.id]?.assignee?.name ?? "",
+      workflows[issue.id]?.dueDate ?? "",
       issue.employee.id,
       issue.employee.nameTh,
       issue.employee.nameEn,
@@ -210,11 +270,11 @@ export default function DataQualityPage() {
           </button>
           <button
             type="button"
-            onClick={() => void loadData(true)}
-            disabled={loading}
+            onClick={() => void Promise.all([loadData(true), loadWorkflow()])}
+            disabled={loading || workflowLoading}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 text-xs font-bold text-sky-700 transition hover:bg-sky-100 disabled:opacity-60 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300"
           >
-            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+            <RefreshCw className={cn("h-4 w-4", (loading || workflowLoading) && "animate-spin")} />
             Refresh
           </button>
         </div>
@@ -237,7 +297,7 @@ export default function DataQualityPage() {
           </section>
 
           <section className="space-y-3 border-y border-slate-200 py-4 dark:border-white/10">
-            <div className="grid min-w-0 grid-cols-1 gap-2.5 md:grid-cols-[minmax(0,1fr)_180px_180px]">
+            <div className="grid min-w-0 grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_170px_170px_190px]">
               <label className="relative block min-w-0">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
@@ -254,11 +314,13 @@ export default function DataQualityPage() {
               </label>
               <SelectFilter value={severity} onChange={(value) => setSeverity(value as "all" | Severity)} label="ทุกระดับ" options={Object.entries(SEVERITY).map(([value, item]) => ({ value, label: item.label }))} />
               <SelectFilter value={category} onChange={(value) => setCategory(value as "all" | Category)} label="ทุกประเภท" options={Object.entries(CATEGORY).map(([value, item]) => ({ value, label: item.label }))} />
+              <SelectFilter value={workflowStatus} onChange={(value) => setWorkflowStatus(value as "all" | WorkflowStatus)} label="ทุกสถานะดำเนินงาน" options={Object.entries(WORKFLOW_STATUS).map(([value, item]) => ({ value, label: item.label }))} />
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span>พบ {filteredIssues.length.toLocaleString("th-TH")} รายการ</span>
-              {data && <span>Org Structure {data.metadata.organizationRecords.toLocaleString("th-TH")} รายการ · Rules v{data.metadata.rulesVersion}</span>}
+              <span>กำลังดำเนินการ {workflowCounts.in_progress.toLocaleString("th-TH")} · แก้แล้ว {workflowCounts.resolved.toLocaleString("th-TH")}</span>
             </div>
+            {workflowError && <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">{workflowError}</p>}
           </section>
 
           <section>
@@ -269,13 +331,13 @@ export default function DataQualityPage() {
             ) : filteredIssues.length ? (
               <>
                 <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#121212] lg:block">
-                  <div className="grid grid-cols-[110px_220px_170px_minmax(220px,1fr)_210px_34px] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
-                    <span>ระดับ</span><span>พนักงาน</span><span>ประเภท</span><span>ข้อสังเกต</span><span>ข้อมูลอ้างอิง</span><span />
+                  <div className="grid grid-cols-[105px_205px_145px_minmax(210px,1fr)_180px_150px] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
+                    <span>ระดับ</span><span>พนักงาน</span><span>ประเภท</span><span>ข้อสังเกต</span><span>ข้อมูลอ้างอิง</span><span>ดำเนินการ</span>
                   </div>
-                  {filteredIssues.map((issue) => <IssueRow key={issue.id} issue={issue} />)}
+                  {filteredIssues.map((issue) => <IssueRow key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} />)}
                 </div>
                 <div className="grid gap-2.5 lg:hidden">
-                  {filteredIssues.map((issue) => <IssueCard key={issue.id} issue={issue} />)}
+                  {filteredIssues.map((issue) => <IssueCard key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} />)}
                 </div>
               </>
             ) : (
@@ -287,6 +349,14 @@ export default function DataQualityPage() {
             )}
           </section>
         </>
+      )}
+      {selectedIssue && (
+        <IssueWorkflowDialog
+          issue={selectedIssue}
+          record={workflows[selectedIssue.id]}
+          onClose={() => setSelectedIssue(null)}
+          onSaved={(record) => setWorkflows((current) => ({ ...current, [record.issueId]: record }))}
+        />
       )}
     </div>
   );
@@ -323,22 +393,28 @@ function SelectFilter({ value, onChange, label, options }: { value: string; onCh
   );
 }
 
-function IssueRow({ issue }: { issue: QualityIssue }) {
+function IssueRow({ issue, workflow, onManage }: { issue: QualityIssue; workflow?: WorkflowRecord; onManage: () => void }) {
   const CategoryIcon = CATEGORY[issue.category].icon;
+  const status = workflow?.status ?? "open";
   return (
-    <div className="grid min-h-20 grid-cols-[110px_220px_170px_minmax(220px,1fr)_210px_34px] items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 hover:bg-slate-50/70 dark:border-white/5 dark:hover:bg-white/[0.025]">
+    <div className="grid min-h-20 grid-cols-[105px_205px_145px_minmax(210px,1fr)_180px_150px] items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 hover:bg-slate-50/70 dark:border-white/5 dark:hover:bg-white/[0.025]">
       <IssueBadge issue={issue} />
       <div className="min-w-0"><p className="truncate text-xs font-extrabold text-sky-600 dark:text-sky-400">ID: {issue.employee.id}</p><p className="truncate text-sm font-bold text-slate-900 dark:text-white">{displayName(issue)}</p><p className="truncate text-[10px] text-slate-500">{issue.employee.nameTh}</p></div>
       <div className="flex min-w-0 items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300"><CategoryIcon className="h-4 w-4 shrink-0 text-slate-400" /><span className="truncate">{CATEGORY[issue.category].label}</span></div>
       <div className="min-w-0"><p className="truncate text-sm font-bold text-slate-900 dark:text-white">{issue.title}</p><p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{issue.description}</p></div>
       <div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300">{issue.employee.department || "-"}</p><p className="mt-0.5 truncate text-[10px] text-slate-500">{issue.fields.join(", ")}</p></div>
-      <Link href={`/employees?q=${encodeURIComponent(issue.employee.id)}`} title="Open employee" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-sky-50 hover:text-sky-600 dark:hover:bg-sky-500/10 dark:hover:text-sky-300"><ExternalLink className="h-4 w-4" /></Link>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <div className="min-w-0 flex-1"><WorkflowBadge status={status} />{workflow?.assignee && <p className="mt-1 truncate text-[9px] text-slate-500">{workflow.assignee.name}</p>}</div>
+        <button type="button" onClick={onManage} title="Manage workflow" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-500/10 dark:hover:text-amber-300"><ClipboardCheck className="h-4 w-4" /></button>
+        <Link href={`/employees?q=${encodeURIComponent(issue.employee.id)}`} title="Open employee" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-sky-50 hover:text-sky-600 dark:hover:bg-sky-500/10 dark:hover:text-sky-300"><ExternalLink className="h-4 w-4" /></Link>
+      </div>
     </div>
   );
 }
 
-function IssueCard({ issue }: { issue: QualityIssue }) {
+function IssueCard({ issue, workflow, onManage }: { issue: QualityIssue; workflow?: WorkflowRecord; onManage: () => void }) {
   const CategoryIcon = CATEGORY[issue.category].icon;
+  const status = workflow?.status ?? "open";
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm dark:border-white/10 dark:bg-[#121212]">
       <div className="flex items-start justify-between gap-3">
@@ -351,8 +427,13 @@ function IssueCard({ issue }: { issue: QualityIssue }) {
       <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{issue.description}</p>
       <div className="mt-3 flex items-end justify-between gap-3">
         <div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300">{issue.employee.department || issue.employee.position || "-"}</p><p className="mt-0.5 truncate text-[10px] text-slate-400">{issue.fields.join(", ")}</p></div>
-        <Link href={`/employees?q=${encodeURIComponent(issue.employee.id)}`} title="Open employee" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-sky-200 hover:text-sky-600 dark:border-white/10 dark:hover:border-sky-500/30 dark:hover:text-sky-300"><ExternalLink className="h-4 w-4" /></Link>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <WorkflowBadge status={status} />
+          <button type="button" onClick={onManage} title="Manage workflow" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-amber-200 hover:text-amber-600 dark:border-white/10 dark:hover:border-amber-500/30 dark:hover:text-amber-300"><ClipboardCheck className="h-4 w-4" /></button>
+          <Link href={`/employees?q=${encodeURIComponent(issue.employee.id)}`} title="Open employee" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-sky-200 hover:text-sky-600 dark:border-white/10 dark:hover:border-sky-500/30 dark:hover:text-sky-300"><ExternalLink className="h-4 w-4" /></Link>
+        </div>
       </div>
+      {workflow?.assignee && <p className="mt-2 truncate text-[10px] text-slate-500">ผู้รับผิดชอบ: {workflow.assignee.name}{workflow.dueDate ? ` · ${workflow.dueDate}` : ""}</p>}
     </article>
   );
 }
