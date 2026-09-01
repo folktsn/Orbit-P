@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   AlertTriangle,
   CalendarDays,
@@ -13,9 +12,9 @@ import {
   Copy,
   Download,
   EyeOff,
-  ExternalLink,
   Info,
   Network,
+  PanelRightOpen,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -23,6 +22,10 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  EmployeeProfileDrawer,
+  type EmployeeData,
+} from "@/app/employees/components/EmployeeProfileDrawer";
 import { cn } from "@/lib/utils";
 import {
   IssueWorkflowDialog,
@@ -109,6 +112,51 @@ function displayName(issue: QualityIssue) {
   return issue.employee.nameEn || issue.employee.nameTh || "ไม่พบชื่อพนักงาน";
 }
 
+function employeeProfileFromIssue(issue: QualityIssue): EmployeeData {
+  const employee = issue.employee;
+  const profileName = employee.nameEn || employee.nameTh || employee.id || "EMP";
+  const nameParts = profileName
+    .replace(/^(?:Mr\.?|Mrs\.?|Miss|Ms\.?|Dr\.?|นาย|นางสาว|นาง)\s*/i, "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const initials = nameParts.length > 1
+    ? `${nameParts[0][0]}${nameParts.at(-1)?.[0] ?? ""}`.toUpperCase()
+    : (nameParts[0] || "EMP").slice(0, 2).toUpperCase();
+  const colors = ["bg-emerald-500", "bg-blue-500", "bg-pink-500", "bg-amber-500", "bg-purple-500", "bg-rose-500", "bg-indigo-500"];
+  let colorHash = 0;
+  for (const character of employee.id) colorHash = character.charCodeAt(0) + ((colorHash << 5) - colorHash);
+
+  return {
+    id: employee.id,
+    name: employee.nameTh || employee.nameEn || "-",
+    nameEn: employee.nameEn || employee.nameTh || "-",
+    initials,
+    colorClass: colors[Math.abs(colorHash) % colors.length],
+    title: employee.position || "-",
+    department: employee.department || "-",
+    station: employee.station || "-",
+    division: employee.division || "-",
+    section: employee.section || "-",
+    unit: "-",
+    supervisor: "-",
+    status: employee.status || "Active",
+    empType: "-",
+    contractStart: "-",
+    contractEnd: "-",
+    probationEnd: "-",
+    gender: "-",
+    nationality: "-",
+    idCard: "-",
+    email: "-",
+    phone: "-",
+    address: "-",
+    emergencyContact: "-",
+    education: "-",
+    workHistory: "-",
+  };
+}
+
 function escapeCsv(value: unknown) {
   const text = String(value ?? "");
   return `"${text.replace(/"/g, '""')}"`;
@@ -148,6 +196,7 @@ export default function DataQualityPage() {
   const [workflowLoading, setWorkflowLoading] = useState(true);
   const [workflowError, setWorkflowError] = useState("");
   const [selectedIssue, setSelectedIssue] = useState<QualityIssue | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
 
   const loadData = useCallback(async (refresh = false) => {
     setLoading(true);
@@ -334,10 +383,10 @@ export default function DataQualityPage() {
                   <div className="grid grid-cols-[105px_205px_145px_minmax(210px,1fr)_180px_150px] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
                     <span>ระดับ</span><span>พนักงาน</span><span>ประเภท</span><span>ข้อสังเกต</span><span>ข้อมูลอ้างอิง</span><span>ดำเนินการ</span>
                   </div>
-                  {filteredIssues.map((issue) => <IssueRow key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} />)}
+                  {filteredIssues.map((issue) => <IssueRow key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} onOpenEmployee={() => setSelectedEmployee(employeeProfileFromIssue(issue))} />)}
                 </div>
                 <div className="grid gap-2.5 lg:hidden">
-                  {filteredIssues.map((issue) => <IssueCard key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} />)}
+                  {filteredIssues.map((issue) => <IssueCard key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} onOpenEmployee={() => setSelectedEmployee(employeeProfileFromIssue(issue))} />)}
                 </div>
               </>
             ) : (
@@ -358,6 +407,16 @@ export default function DataQualityPage() {
           onSaved={(record) => setWorkflows((current) => ({ ...current, [record.issueId]: record }))}
         />
       )}
+      <EmployeeProfileDrawer
+        isOpen={Boolean(selectedEmployee)}
+        employee={selectedEmployee}
+        blurBackground
+        onClose={() => setSelectedEmployee(null)}
+        onUpdate={(updatedEmployee) => {
+          setSelectedEmployee(updatedEmployee);
+          void loadData(true);
+        }}
+      />
     </div>
   );
 }
@@ -393,7 +452,7 @@ function SelectFilter({ value, onChange, label, options }: { value: string; onCh
   );
 }
 
-function IssueRow({ issue, workflow, onManage }: { issue: QualityIssue; workflow?: WorkflowRecord; onManage: () => void }) {
+function IssueRow({ issue, workflow, onManage, onOpenEmployee }: { issue: QualityIssue; workflow?: WorkflowRecord; onManage: () => void; onOpenEmployee: () => void }) {
   const CategoryIcon = CATEGORY[issue.category].icon;
   const status = workflow?.status ?? "open";
   return (
@@ -406,13 +465,13 @@ function IssueRow({ issue, workflow, onManage }: { issue: QualityIssue; workflow
       <div className="flex min-w-0 items-center gap-1.5">
         <div className="min-w-0 flex-1"><WorkflowBadge status={status} />{workflow?.assignee && <p className="mt-1 truncate text-[9px] text-slate-500">{workflow.assignee.name}</p>}</div>
         <button type="button" onClick={onManage} title="Manage workflow" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-500/10 dark:hover:text-amber-300"><ClipboardCheck className="h-4 w-4" /></button>
-        <Link href={`/employees?q=${encodeURIComponent(issue.employee.id)}`} title="Open employee" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-sky-50 hover:text-sky-600 dark:hover:bg-sky-500/10 dark:hover:text-sky-300"><ExternalLink className="h-4 w-4" /></Link>
+        <button type="button" onClick={onOpenEmployee} title="Open employee profile" aria-label={`Open employee profile ${issue.employee.id}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-sky-50 hover:text-sky-600 dark:hover:bg-sky-500/10 dark:hover:text-sky-300"><PanelRightOpen className="h-4 w-4" /></button>
       </div>
     </div>
   );
 }
 
-function IssueCard({ issue, workflow, onManage }: { issue: QualityIssue; workflow?: WorkflowRecord; onManage: () => void }) {
+function IssueCard({ issue, workflow, onManage, onOpenEmployee }: { issue: QualityIssue; workflow?: WorkflowRecord; onManage: () => void; onOpenEmployee: () => void }) {
   const CategoryIcon = CATEGORY[issue.category].icon;
   const status = workflow?.status ?? "open";
   return (
@@ -430,7 +489,7 @@ function IssueCard({ issue, workflow, onManage }: { issue: QualityIssue; workflo
         <div className="flex shrink-0 items-center gap-1.5">
           <WorkflowBadge status={status} />
           <button type="button" onClick={onManage} title="Manage workflow" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-amber-200 hover:text-amber-600 dark:border-white/10 dark:hover:border-amber-500/30 dark:hover:text-amber-300"><ClipboardCheck className="h-4 w-4" /></button>
-          <Link href={`/employees?q=${encodeURIComponent(issue.employee.id)}`} title="Open employee" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-sky-200 hover:text-sky-600 dark:border-white/10 dark:hover:border-sky-500/30 dark:hover:text-sky-300"><ExternalLink className="h-4 w-4" /></Link>
+          <button type="button" onClick={onOpenEmployee} title="Open employee profile" aria-label={`Open employee profile ${issue.employee.id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-sky-200 hover:text-sky-600 dark:border-white/10 dark:hover:border-sky-500/30 dark:hover:text-sky-300"><PanelRightOpen className="h-4 w-4" /></button>
         </div>
       </div>
       {workflow?.assignee && <p className="mt-2 truncate text-[10px] text-slate-500">ผู้รับผิดชอบ: {workflow.assignee.name}{workflow.dueDate ? ` · ${workflow.dueDate}` : ""}</p>}
