@@ -27,6 +27,12 @@ else
   echo "==> Dependencies unchanged"
 fi
 
+echo "==> Generating Prisma client"
+./node_modules/.bin/prisma generate
+
+echo "==> Applying additive Prisma schema changes"
+./node_modules/.bin/prisma db push
+
 echo "==> Building production bundle with Webpack"
 ./node_modules/.bin/next build --webpack
 

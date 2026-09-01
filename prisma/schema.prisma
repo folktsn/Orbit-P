@@ -94,3 +94,30 @@ model LineWebhook {
   status       String   @default("Linked") // Linked, Unlinked
   createdAt    DateTime @default(now())
 }
+
+model DataQualityAction {
+  issueId          String                     @id
+  status           String                     @default("open")
+  assigneeId       String?
+  assigneeName     String?
+  assigneePosition String?
+  dueDate          String                     @default("")
+  note             String                     @default("")
+  updatedAt        DateTime                   @updatedAt
+  updatedById      String
+  updatedByName    String
+  history          DataQualityActionHistory[]
+}
+
+model DataQualityActionHistory {
+  id            String            @id @default(cuid())
+  issueId       String
+  action        DataQualityAction @relation(fields: [issueId], references: [issueId], onDelete: Cascade)
+  status        String
+  changedAt     DateTime          @default(now())
+  changedById   String
+  changedByName String
+  note          String            @default("")
+
+  @@index([issueId, changedAt])
+}

@@ -144,7 +144,7 @@ Key behavior:
 - Compares employee departments and positions with `PA_OrgStructure`
 - Supports severity/category filters, employee search, CSV export, and direct links to employee records
 - Supports issue workflow states, assignee lookup, due dates, notes, and a compact change history
-- Stores workflow state separately in S3 at `data-quality/workflow.json`
+- Stores workflow state and history separately in the local Prisma database
 - Never changes employee master data automatically
 
 ## Data Stores
@@ -181,7 +181,6 @@ Main areas:
 - Employee document files
 - Probation evaluation files
 - Manpower budget data
-- Data quality workflow state
 
 ### SQLite / Prisma
 
@@ -189,6 +188,7 @@ Used for local app data such as:
 
 - ATS candidate workflow data
 - LINE webhook mapping data
+- Data quality workflow state and history
 - Local development database files
 
 Do not treat SQLite as the primary employee master database.
