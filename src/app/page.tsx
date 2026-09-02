@@ -1,22 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect } from "react";
 import { KpiCards } from "./components/KpiCards";
 import { MainChart } from "./components/MainChart";
 import { SidePanel } from "./components/SidePanel";
 
 export default function Dashboard() {
-  // Simulate Background Service (Cron Job)
-  useEffect(() => {
-    fetch('/api/cron/process-adjustments')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) console.log("Background Service:", data.message);
-      })
-      .catch(err => console.error("Background Service Error:", err));
-  }, []);
-
   return (
     <div className="w-full min-w-0 space-y-5 p-4 sm:space-y-6 sm:p-6 lg:space-y-8 lg:p-8">
       <motion.div

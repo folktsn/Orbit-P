@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   AlertTriangle,
   CalendarDays,
@@ -21,17 +22,19 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  EmployeeProfileDrawer,
-  type EmployeeData,
-} from "@/app/employees/components/EmployeeProfileDrawer";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import type { EmployeeData } from "@/app/employees/components/EmployeeProfileDrawer";
 import { cn } from "@/lib/utils";
-import {
-  IssueWorkflowDialog,
-  type WorkflowRecord,
-  type WorkflowStatus,
-} from "./components/IssueWorkflowDialog";
+import type { WorkflowRecord, WorkflowStatus } from "./components/IssueWorkflowDialog";
+
+const EmployeeProfileDrawer = dynamic(() =>
+  import("@/app/employees/components/EmployeeProfileDrawer").then((module) => module.EmployeeProfileDrawer),
+);
+const IssueWorkflowDialog = dynamic(() =>
+  import("./components/IssueWorkflowDialog").then((module) => module.IssueWorkflowDialog),
+);
+
+const ISSUES_PAGE_SIZE = 50;
 
 type Severity = "critical" | "warning" | "info";
 type Category = "duplicate" | "missing" | "date" | "organization";
@@ -189,6 +192,7 @@ export default function DataQualityPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [severity, setSeverity] = useState<"all" | Severity>("all");
   const [category, setCategory] = useState<"all" | Category>("all");
   const [workflowStatus, setWorkflowStatus] = useState<"all" | WorkflowStatus>("all");
@@ -197,6 +201,8 @@ export default function DataQualityPage() {
   const [workflowError, setWorkflowError] = useState("");
   const [selectedIssue, setSelectedIssue] = useState<QualityIssue | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
+  const [hasOpenedEmployeeDrawer, setHasOpenedEmployeeDrawer] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(ISSUES_PAGE_SIZE);
 
   const loadData = useCallback(async (refresh = false) => {
     setLoading(true);
@@ -234,7 +240,7 @@ export default function DataQualityPage() {
   }, [loadData, loadWorkflow]);
 
   const filteredIssues = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("th");
+    const normalizedQuery = deferredQuery.trim().toLocaleLowerCase("th");
     return (data?.issues ?? []).filter((issue) => {
       if (severity !== "all" && issue.severity !== severity) return false;
       if (category !== "all" && issue.category !== category) return false;
@@ -253,7 +259,17 @@ export default function DataQualityPage() {
         ...issue.fields,
       ].join(" ").toLocaleLowerCase("th").includes(normalizedQuery);
     });
-  }, [category, data?.issues, query, severity, workflowStatus, workflows]);
+  }, [category, data?.issues, deferredQuery, severity, workflowStatus, workflows]);
+
+  const visibleIssues = useMemo(
+    () => filteredIssues.slice(0, visibleCount),
+    [filteredIssues, visibleCount],
+  );
+
+  const openEmployeeProfile = (issue: QualityIssue) => {
+    setHasOpenedEmployeeDrawer(true);
+    setSelectedEmployee(employeeProfileFromIssue(issue));
+  };
 
   const workflowCounts = useMemo(() => {
     const counts: Record<WorkflowStatus, number> = { open: 0, in_progress: 0, resolved: 0, ignored: 0 };
@@ -351,22 +367,25 @@ export default function DataQualityPage() {
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   value={query}
-                  onChange={(event) => setQuery(event.target.value)}
+                  onChange={(event) => {
+                    setQuery(event.target.value);
+                    setVisibleCount(ISSUES_PAGE_SIZE);
+                  }}
                   placeholder="Search by name, ID, issue, or department..."
                   className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-10 text-sm text-slate-700 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100 dark:border-white/10 dark:bg-[#121212] dark:text-slate-200 dark:focus:border-sky-500/40 dark:focus:ring-sky-500/10"
                 />
                 {query && (
-                  <button type="button" onClick={() => setQuery("")} title="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                  <button type="button" onClick={() => { setQuery(""); setVisibleCount(ISSUES_PAGE_SIZE); }} title="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white">
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </label>
-              <SelectFilter value={severity} onChange={(value) => setSeverity(value as "all" | Severity)} label="ทุกระดับ" options={Object.entries(SEVERITY).map(([value, item]) => ({ value, label: item.label }))} />
-              <SelectFilter value={category} onChange={(value) => setCategory(value as "all" | Category)} label="ทุกประเภท" options={Object.entries(CATEGORY).map(([value, item]) => ({ value, label: item.label }))} />
-              <SelectFilter value={workflowStatus} onChange={(value) => setWorkflowStatus(value as "all" | WorkflowStatus)} label="ทุกสถานะดำเนินงาน" options={Object.entries(WORKFLOW_STATUS).map(([value, item]) => ({ value, label: item.label }))} />
+              <SelectFilter value={severity} onChange={(value) => { setSeverity(value as "all" | Severity); setVisibleCount(ISSUES_PAGE_SIZE); }} label="ทุกระดับ" options={Object.entries(SEVERITY).map(([value, item]) => ({ value, label: item.label }))} />
+              <SelectFilter value={category} onChange={(value) => { setCategory(value as "all" | Category); setVisibleCount(ISSUES_PAGE_SIZE); }} label="ทุกประเภท" options={Object.entries(CATEGORY).map(([value, item]) => ({ value, label: item.label }))} />
+              <SelectFilter value={workflowStatus} onChange={(value) => { setWorkflowStatus(value as "all" | WorkflowStatus); setVisibleCount(ISSUES_PAGE_SIZE); }} label="ทุกสถานะดำเนินงาน" options={Object.entries(WORKFLOW_STATUS).map(([value, item]) => ({ value, label: item.label }))} />
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
-              <span>พบ {filteredIssues.length.toLocaleString("th-TH")} รายการ</span>
+              <span>แสดง {visibleIssues.length.toLocaleString("th-TH")} จาก {filteredIssues.length.toLocaleString("th-TH")} รายการ</span>
               <span>กำลังดำเนินการ {workflowCounts.in_progress.toLocaleString("th-TH")} · แก้แล้ว {workflowCounts.resolved.toLocaleString("th-TH")}</span>
             </div>
             {workflowError && <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">{workflowError}</p>}
@@ -383,11 +402,22 @@ export default function DataQualityPage() {
                   <div className="grid grid-cols-[105px_205px_145px_minmax(210px,1fr)_180px_150px] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
                     <span>ระดับ</span><span>พนักงาน</span><span>ประเภท</span><span>ข้อสังเกต</span><span>ข้อมูลอ้างอิง</span><span>ดำเนินการ</span>
                   </div>
-                  {filteredIssues.map((issue) => <IssueRow key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} onOpenEmployee={() => setSelectedEmployee(employeeProfileFromIssue(issue))} />)}
+                  {visibleIssues.map((issue) => <IssueRow key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} onOpenEmployee={() => openEmployeeProfile(issue)} />)}
                 </div>
                 <div className="grid gap-2.5 lg:hidden">
-                  {filteredIssues.map((issue) => <IssueCard key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} onOpenEmployee={() => setSelectedEmployee(employeeProfileFromIssue(issue))} />)}
+                  {visibleIssues.map((issue) => <IssueCard key={issue.id} issue={issue} workflow={workflows[issue.id]} onManage={() => setSelectedIssue(issue)} onOpenEmployee={() => openEmployeeProfile(issue)} />)}
                 </div>
+                {visibleCount < filteredIssues.length && (
+                  <div className="mt-5 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((count) => count + ISSUES_PAGE_SIZE)}
+                      className="h-10 rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-slate-500 hover:bg-slate-50 dark:border-white/15 dark:bg-[#121212] dark:text-slate-200 dark:hover:bg-white/5"
+                    >
+                      แสดงเพิ่มอีก {Math.min(ISSUES_PAGE_SIZE, filteredIssues.length - visibleCount).toLocaleString("th-TH")} รายการ
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <div className="flex min-h-52 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center dark:border-white/15 dark:bg-[#121212]">
@@ -407,16 +437,18 @@ export default function DataQualityPage() {
           onSaved={(record) => setWorkflows((current) => ({ ...current, [record.issueId]: record }))}
         />
       )}
-      <EmployeeProfileDrawer
-        isOpen={Boolean(selectedEmployee)}
-        employee={selectedEmployee}
-        blurBackground
-        onClose={() => setSelectedEmployee(null)}
-        onUpdate={(updatedEmployee) => {
-          setSelectedEmployee(updatedEmployee);
-          void loadData(true);
-        }}
-      />
+      {hasOpenedEmployeeDrawer && (
+        <EmployeeProfileDrawer
+          isOpen={Boolean(selectedEmployee)}
+          employee={selectedEmployee}
+          blurBackground
+          onClose={() => setSelectedEmployee(null)}
+          onUpdate={(updatedEmployee) => {
+            setSelectedEmployee(updatedEmployee);
+            void loadData(true);
+          }}
+        />
+      )}
     </div>
   );
 }
