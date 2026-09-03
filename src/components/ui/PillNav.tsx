@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Moon, Sun, LogOut, ShieldCheck } from "lucide-react";
@@ -9,16 +9,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import "./PillNav.css";
 import MetallicPaint from "@/components/ui/MetallicPaint";
-
-const NAV_ITEMS = [
-  { name: "Dashboard", href: "/" },
-  { name: "Organization", href: "/organization" },
-  { name: "Manpower", href: "/manpower" },
-  { name: "Employees", href: "/employees" },
-  { name: "Quality", href: "/data-quality" },
-  { name: "Recruitment", href: "/ats" },
-  { name: "Probation", href: "/probation" },
-];
+import { PAGE_DEFINITIONS } from "@/lib/permissions";
 
 function PillItem({ item, isActive }: { item: { name: string; href: string }; isActive: boolean }) {
   return (
@@ -36,7 +27,8 @@ function PillItem({ item, isActive }: { item: { name: string; href: string }; is
 export function PillNav() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const { user, logout, can } = useAuth();
+  const { user, logout, can, canPage } = useAuth();
+  const navItems = PAGE_DEFINITIONS.filter(({ key }) => canPage(key));
   const [mounted, setMounted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -109,11 +101,11 @@ export function PillNav() {
         </div>
       </div>
 
-      <nav ref={navRef} className="pill-nav" aria-label="Primary navigation">
-        {NAV_ITEMS.map((item) => (
+      {navItems.length > 0 && <nav ref={navRef} className="pill-nav" aria-label="Primary navigation" style={{ "--nav-count": navItems.length, "--nav-mobile-font-size": navItems.length <= 3 ? "0.75rem" : navItems.length === 4 ? "0.625rem" : "0.5rem" } as CSSProperties}>
+        {navItems.map((item) => (
           <PillItem key={item.name} item={item} isActive={pathname === item.href} />
         ))}
-      </nav>
+      </nav>}
 
       <div className="pill-actions">
         {mounted && can("admin") && (

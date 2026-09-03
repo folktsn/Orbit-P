@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
         { items: probationCache.items, fetchedAt: probationCache.fetchedAt },
         {
           headers: {
-            "Cache-Control": "private, max-age=30",
+            "Cache-Control": "private, no-store",
             "X-Probation-Cache": "HIT",
           },
         },
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
       { items, fetchedAt },
       {
         headers: {
-          "Cache-Control": "private, max-age=30",
+          "Cache-Control": "private, no-store",
           "X-Probation-Cache": "MISS",
         },
       },

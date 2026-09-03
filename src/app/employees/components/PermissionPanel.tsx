@@ -6,12 +6,16 @@ import {
   DEFAULT_PERMISSIONS,
   PERMISSION_DEFINITIONS,
   normalizePermissions,
+  normalizePageAccess,
+  PAGE_DEFINITIONS,
+  type PageAccess,
   type PermissionKey,
   type PermissionSet,
 } from "@/lib/permissions";
 
 type PermissionResponse = {
   permissions: PermissionSet;
+  pageAccess?: PageAccess;
   isExplicit?: boolean;
   updatedAt?: string | null;
   updatedBy?: { id: string; name: string } | null;
@@ -21,7 +25,7 @@ type PermissionResponse = {
 type PermissionPanelProps = {
   staffId: string;
   canAdmin: boolean;
-  onSaved?: (staffId: string, permissions: PermissionSet) => void;
+  onSaved?: (staffId: string, permissions: PermissionSet, pageAccess: PageAccess) => void;
   onDirtyChange?: (dirty: boolean) => void;
   onSavingChange?: (saving: boolean) => void;
 };
@@ -29,6 +33,8 @@ type PermissionPanelProps = {
 export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onSavingChange }: PermissionPanelProps) {
   const [permissions, setPermissions] = useState<PermissionSet>(DEFAULT_PERMISSIONS);
   const [savedPermissions, setSavedPermissions] = useState<PermissionSet>(DEFAULT_PERMISSIONS);
+  const [pageAccess, setPageAccess] = useState<PageAccess>(() => normalizePageAccess());
+  const [savedPageAccess, setSavedPageAccess] = useState<PageAccess>(() => normalizePageAccess());
   const [metadata, setMetadata] = useState<Pick<PermissionResponse, "isExplicit" | "updatedAt" | "updatedBy">>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -36,7 +42,8 @@ export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onS
   const [saved, setSaved] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
-  const dirty = loaded && JSON.stringify(permissions) !== JSON.stringify(savedPermissions);
+  const dirty = loaded && (JSON.stringify(permissions) !== JSON.stringify(savedPermissions)
+    || JSON.stringify(pageAccess) !== JSON.stringify(savedPageAccess));
 
   useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
 
@@ -53,6 +60,9 @@ export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onS
         const normalized = normalizePermissions(result.permissions);
         setPermissions(normalized);
         setSavedPermissions(normalized);
+        const pages = normalizePageAccess(result.pageAccess);
+        setPageAccess(pages);
+        setSavedPageAccess(pages);
         setMetadata({ isExplicit: result.isExplicit, updatedAt: result.updatedAt, updatedBy: result.updatedBy });
         setLoaded(true);
       })
@@ -91,16 +101,19 @@ export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onS
       const response = await fetch("/api/permissions", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ staffId, permissions }),
+        body: JSON.stringify({ staffId, permissions, pageAccess }),
       });
       const result = await response.json() as PermissionResponse;
       if (!response.ok) throw new Error(result.error || "ไม่สามารถบันทึกสิทธิ์ได้");
       const normalized = normalizePermissions(result.permissions);
       setPermissions(normalized);
       setSavedPermissions(normalized);
+      const pages = normalizePageAccess(result.pageAccess);
+      setPageAccess(pages);
+      setSavedPageAccess(pages);
       setMetadata({ isExplicit: true, updatedAt: result.updatedAt, updatedBy: result.updatedBy });
       setSaved(true);
-      onSaved?.(staffId, normalized);
+      onSaved?.(staffId, normalized, pages);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "ไม่สามารถบันทึกสิทธิ์ได้");
     } finally {
@@ -161,6 +174,27 @@ export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onS
         </div>
       ) : null}
 
+      {loaded && !loading && (
+        <fieldset className="mt-4 border-t border-slate-200 pt-3 dark:border-white/10">
+          <legend className="pr-2 text-xs font-semibold text-slate-800 dark:text-slate-100">สิทธิ์เข้าถึงแต่ละหน้า</legend>
+          {permissions.admin && <p className="mb-2 text-[11px] text-emerald-600 dark:text-emerald-400">Admin: ทุกหน้า</p>}
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+            {PAGE_DEFINITIONS.map((page) => {
+              const enabled = permissions.view && (permissions.admin || pageAccess[page.key]);
+              return (
+                <button key={page.key} type="button" role="checkbox" aria-checked={enabled} aria-label={`เข้าถึง ${page.name}`}
+                  disabled={!canAdmin || saving || permissions.admin || !permissions.view}
+                  onClick={() => { setPageAccess((current) => ({ ...current, [page.key]: !current[page.key] })); setSaved(false); setError(""); }}
+                  className="flex min-h-10 min-w-0 items-center gap-2 py-2 text-left text-[11px] font-medium text-slate-700 disabled:cursor-default dark:text-slate-200">
+                  <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${enabled ? "border-sky-500 bg-sky-500 text-white" : "border-slate-300 text-transparent dark:border-white/20"}`}><Check className="h-3 w-3" /></span>
+                  <span>{page.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
+
       {error && <p role="alert" className="mt-3 text-xs font-medium text-rose-600 dark:text-rose-400">{error}</p>}
       {!loading && !loaded && (
         <button type="button" onClick={() => { setLoading(true); setError(""); setRetryKey((key) => key + 1); }} className="mt-3 flex items-center gap-2 text-xs font-semibold text-sky-600">
@@ -179,7 +213,7 @@ export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onS
           </p>
           {canAdmin && (
             <div className="ml-auto flex items-center gap-2">
-            {dirty && <button type="button" title="ยกเลิกการเปลี่ยนแปลง" aria-label="ยกเลิกการเปลี่ยนแปลง" disabled={saving} onClick={() => { setPermissions(savedPermissions); setError(""); }} className="flex h-8 w-8 items-center justify-center text-slate-500 disabled:opacity-40"><Undo2 className="h-4 w-4" /></button>}
+            {dirty && <button type="button" title="ยกเลิกการเปลี่ยนแปลง" aria-label="ยกเลิกการเปลี่ยนแปลง" disabled={saving} onClick={() => { setPermissions(savedPermissions); setPageAccess(savedPageAccess); setError(""); }} className="flex h-8 w-8 items-center justify-center text-slate-500 disabled:opacity-40"><Undo2 className="h-4 w-4" /></button>}
             <button
               type="button"
               onClick={savePermissions}

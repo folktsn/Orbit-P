@@ -419,7 +419,7 @@ export async function GET(request: NextRequest) {
     const cached = globalWithQualityCache[QUALITY_CACHE_KEY];
     if (!refresh && cached && cached.expiresAt > Date.now()) {
       return NextResponse.json(cached.value, {
-        headers: { "Cache-Control": "private, max-age=60", "X-Data-Quality-Cache": "HIT" },
+        headers: { "Cache-Control": "private, no-store", "X-Data-Quality-Cache": "HIT" },
       });
     }
 
@@ -431,7 +431,7 @@ export async function GET(request: NextRequest) {
     globalWithQualityCache[QUALITY_CACHE_KEY] = { value: result, expiresAt: Date.now() + CACHE_TTL_MS };
 
     return NextResponse.json(result, {
-      headers: { "Cache-Control": "private, max-age=60", "X-Data-Quality-Cache": "MISS" },
+      headers: { "Cache-Control": "private, no-store", "X-Data-Quality-Cache": "MISS" },
     });
   } catch (error) {
     console.error("Error analyzing employee data quality:", error);

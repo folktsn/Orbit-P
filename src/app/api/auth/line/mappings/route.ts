@@ -37,7 +37,7 @@ export async function GET(request: Request) {
         { success: true, mappings: cache.mappings },
         {
           headers: {
-            "Cache-Control": "private, max-age=60",
+            "Cache-Control": "private, no-store",
             "X-Line-Mappings-Cache": "HIT",
           },
         }
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
       { success: true, mappings: mappingMap },
       {
         headers: {
-          "Cache-Control": "private, max-age=60",
+          "Cache-Control": "private, no-store",
           "X-Line-Mappings-Cache": "MISS",
         },
       }

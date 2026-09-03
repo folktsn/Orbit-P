@@ -3,7 +3,7 @@ import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { authorizeRequest } from "@/lib/auth-session";
 import { docClient } from "@/lib/dynamodb";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_PERMISSIONS, normalizePermissions } from "@/lib/permissions";
+import { DEFAULT_PERMISSIONS, normalizePermissions, normalizePageAccess, isPageAccess } from "@/lib/permissions";
 
 function cleanStaffId(value: unknown) {
   return String(value || "").normalize("NFKC").trim().slice(0, 80);
@@ -27,6 +27,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     staffId,
     permissions,
+    pageAccess: normalizePageAccess(grant?.pageAccess),
     isExplicit: Boolean(grant),
     updatedAt: grant?.updatedAt.toISOString() || null,
     updatedBy: grant ? { id: grant.updatedById, name: grant.updatedByName } : null,
@@ -47,6 +48,10 @@ export async function PUT(request: Request) {
   if (!["access", "view", "edit", "admin"].every((key) => typeof raw[key] === "boolean")) {
     return NextResponse.json({ error: "All four permission values are required" }, { status: 400 });
   }
+  if (body.pageAccess !== undefined && !isPageAccess(body.pageAccess)) {
+    return NextResponse.json({ error: "All seven page access values must be booleans" }, { status: 400 });
+  }
+  const pageAccess = body.pageAccess === undefined ? undefined : JSON.stringify(body.pageAccess);
   const permissions = normalizePermissions({
     access: raw.access === true,
     view: raw.view === true,
@@ -81,6 +86,7 @@ export async function PUT(request: Request) {
         viewPermission: permissions.view,
         editPermission: permissions.edit,
         adminPermission: permissions.admin,
+        pageAccess,
         updatedById: authorization.user.staffId || authorization.user.username,
         updatedByName: authorization.user.displayName,
       },
@@ -89,6 +95,7 @@ export async function PUT(request: Request) {
         viewPermission: permissions.view,
         editPermission: permissions.edit,
         adminPermission: permissions.admin,
+        ...(pageAccess === undefined ? {} : { pageAccess }),
         updatedById: authorization.user.staffId || authorization.user.username,
         updatedByName: authorization.user.displayName,
       },
@@ -101,6 +108,7 @@ export async function PUT(request: Request) {
   return NextResponse.json({
     staffId,
     permissions,
+    pageAccess: normalizePageAccess(grant.pageAccess),
     updatedAt: grant.updatedAt.toISOString(),
     updatedBy: { id: grant.updatedById, name: grant.updatedByName },
   }, { headers: { "Cache-Control": "no-store" } });

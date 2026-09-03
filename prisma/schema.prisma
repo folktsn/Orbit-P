@@ -101,6 +101,7 @@ model PermissionGrant {
   viewPermission   Boolean  @default(true)
   editPermission   Boolean  @default(false)
   adminPermission  Boolean  @default(false)
+  pageAccess       String?
   updatedById      String
   updatedByName    String
   createdAt        DateTime @default(now())

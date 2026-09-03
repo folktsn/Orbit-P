@@ -7,6 +7,10 @@ import {
   DEFAULT_PERMISSIONS,
   normalizePermissions,
   permissionsForLegacyRole,
+  normalizePageAccess,
+  hasPageAccess,
+  apiPageRequirements,
+  type PageAccess,
   type PermissionKey,
   type PermissionSet,
 } from "@/lib/permissions";
@@ -22,6 +26,7 @@ export type SessionUser = {
   lineAvatarUrl?: string;
   staffId?: string;
   permissions: PermissionSet;
+  pageAccess?: PageAccess;
 };
 
 type SessionPayload = SessionUser & {
@@ -110,34 +115,38 @@ function verifySessionToken(token?: string | null): SessionPayload | null {
   }
 }
 
-async function currentPermissions(payload: SessionPayload) {
-  if (!payload.staffId) return permissionsForLegacyRole(payload.role);
+async function currentAccess(payload: SessionPayload) {
+  if (!payload.staffId) return { permissions: permissionsForLegacyRole(payload.role), pageAccess: normalizePageAccess() };
 
-  return resolvePermissionsForStaff(payload.staffId);
+  return resolveAccessForStaff(payload.staffId);
 }
 
 export async function resolvePermissionsForStaff(staffId: string) {
-  const grant = await prisma.permissionGrant.findUnique({ where: { staffId } });
-  if (!grant) return DEFAULT_PERMISSIONS;
+  return (await resolveAccessForStaff(staffId)).permissions;
+}
 
-  return normalizePermissions({
+async function resolveAccessForStaff(staffId: string) {
+  const grant = await prisma.permissionGrant.findUnique({ where: { staffId } });
+  if (!grant) return { permissions: DEFAULT_PERMISSIONS, pageAccess: normalizePageAccess() };
+
+  return { permissions: normalizePermissions({
     access: grant.accessPermission,
     view: grant.viewPermission,
     edit: grant.editPermission,
     admin: grant.adminPermission,
-  });
+  }), pageAccess: normalizePageAccess(grant.pageAccess) };
 }
 
 export async function getSessionUser(request: Request): Promise<SessionUser | null> {
   const payload = verifySessionToken(readCookie(request, SESSION_COOKIE));
   if (!payload) return null;
-  const permissions = await currentPermissions(payload);
+  const { permissions, pageAccess } = await currentAccess(payload);
   if (!permissions.access) return null;
 
   const { expiresAt: _expiresAt, ...user } = payload;
   void _expiresAt;
   const role = permissions.admin ? "admin" : user.role === "admin" ? "employee" : user.role;
-  return { ...user, role, permissions };
+  return { ...user, role, permissions, pageAccess };
 }
 
 export async function authorizeRequest(
@@ -155,6 +164,12 @@ export async function authorizeRequest(
     return {
       ok: false,
       response: NextResponse.json({ error: `Missing ${required} permission` }, { status: 403 }),
+    };
+  }
+  if (!user.permissions.admin && !apiPageRequirements(request).some((page) => hasPageAccess(user, page))) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึงข้อมูลของหน้านี้", code: "PAGE_ACCESS_DENIED" }, { status: 403 }),
     };
   }
   return { ok: true, user };

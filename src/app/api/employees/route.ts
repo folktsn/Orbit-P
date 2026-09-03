@@ -65,6 +65,11 @@ const EMPLOYEE_LIST_FIELDS = [
   'contact_person', 'contact_relation', 'contact_phone',
 ] as const;
 
+const EMPLOYEE_DIRECTORY_FIELDS = [
+  'staff_id', 'emp_code', 'title_th', 'title_en', 'first_name_th', 'last_name_th',
+  'first_name_en', 'last_name_en', 'name_th', 'name_en', 'name', 'position_th', 'position_en', 'position',
+] as const;
+
 function compactEmployeeRecord(item: Record<string, unknown>, fields: readonly string[]) {
   return fields.reduce((record, field) => {
     if (item[field] !== undefined) {
@@ -133,6 +138,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const staffId = searchParams.get('id')?.trim();
 
+    if (!staffId && searchParams.get('view') === 'directory') {
+      const cacheKey = 'list:operator-directory';
+      let items = getCachedEmployees(cacheKey);
+      if (!items) {
+        items = await scanEmployees(EMPLOYEE_DIRECTORY_FIELDS);
+        setCachedEmployees(items, cacheKey);
+      }
+      return NextResponse.json(items, { headers: { 'Cache-Control': 'private, no-store' } });
+    }
+
     if (staffId) {
       const { item, cache } = await getEmployeeById(staffId);
       if (!item) {
@@ -141,7 +156,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(item, {
         status: 200,
         headers: {
-          'Cache-Control': 'private, max-age=60',
+          'Cache-Control': 'private, no-store',
           'X-Employees-Cache': cache,
           'X-Employees-View': 'detail',
         },
@@ -154,7 +169,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cachedItems, {
         status: 200,
         headers: {
-          'Cache-Control': 'private, max-age=60',
+          'Cache-Control': 'private, no-store',
           'X-Employees-Cache': 'HIT',
           'X-Employees-View': 'list',
         },
@@ -167,7 +182,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(compactItems, {
       status: 200,
       headers: {
-        'Cache-Control': 'private, max-age=60',
+        'Cache-Control': 'private, no-store',
         'X-Employees-Cache': 'MISS',
         'X-Employees-View': 'list',
       },

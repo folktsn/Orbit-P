@@ -62,7 +62,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
   useEffect(() => {
     if (isOpen) {
       setIsSearching(true);
-      fetch('/api/employees')
+      fetch('/api/employees?view=directory')
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {

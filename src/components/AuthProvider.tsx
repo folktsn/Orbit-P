@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { hasPermission, type PermissionKey, type PermissionSet } from "@/lib/permissions";
+import { hasPermission, hasPageAccess, homePageForUser, type PageAccess, type PageKey, type PermissionKey, type PermissionSet } from "@/lib/permissions";
 
 export interface UserProfile {
   username: string;
@@ -12,6 +12,7 @@ export interface UserProfile {
   lineAvatarUrl?: string;
   staffId?: string;
   permissions: PermissionSet;
+  pageAccess?: PageAccess;
 }
 
 interface AuthContextType {
@@ -21,6 +22,7 @@ interface AuthContextType {
   login: (username: string, role: "admin" | "recruiter" | "hr") => Promise<boolean>;
   loginWithLine: () => Promise<boolean>;
   can: (permission: PermissionKey) => boolean;
+  canPage: (page: PageKey | "admin") => boolean;
   logout: () => void;
 }
 
@@ -29,19 +31,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [verifiedPath, setVerifiedPath] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/auth/session", { cache: "no-store" })
+    let controller: AbortController | undefined;
+    const restoreSession = () => {
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
+      fetch("/api/auth/session", { cache: "no-store", signal: current.signal })
       .then(async (response) => {
         if (!response.ok) return null;
         const result = await response.json();
         return result.user as UserProfile | undefined;
       })
       .then((sessionUser) => {
-        if (cancelled) return;
+        if (cancelled || current.signal.aborted) return;
         if (sessionUser) {
           sessionStorage.setItem("orbithire_session", JSON.stringify(sessionUser));
           setUser(sessionUser);
@@ -51,17 +59,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .catch((error) => {
+        if (current.signal.aborted) return;
         console.error("Failed to restore auth session", error);
         if (!cancelled) setUser(null);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && !current.signal.aborted) { setLoading(false); setVerifiedPath(pathname); }
       });
+    };
+    restoreSession();
+    window.addEventListener("focus", restoreSession);
 
     return () => {
       cancelled = true;
+      controller?.abort();
+      window.removeEventListener("focus", restoreSession);
     };
-  }, []);
+  }, [pathname]);
 
   const login = async (username: string, role: "admin" | "recruiter" | "hr"): Promise<boolean> => {
     setLoading(true);
@@ -76,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const newSession = result.user as UserProfile;
       sessionStorage.setItem("orbithire_session", JSON.stringify(newSession));
       setUser(newSession);
-      router.replace("/");
+      router.replace(homePageForUser(newSession));
       return true;
     } finally {
       setLoading(false);
@@ -94,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const resolvedSession: UserProfile = result.user;
         sessionStorage.setItem("orbithire_session", JSON.stringify(resolvedSession));
         setUser(resolvedSession);
+        router.replace(homePageForUser(resolvedSession));
       } else {
         setLoading(false);
         return false;
@@ -105,33 +120,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     setLoading(false);
-    router.replace("/");
     return true;
   };
 
-  const logout = () => {
-    void fetch("/api/auth/session", { method: "DELETE" });
-    sessionStorage.removeItem("orbithire_session");
-    setUser(null);
-    router.replace("/login");
+  const logout = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/session", { method: "DELETE" });
+      if (!response.ok) throw new Error("Failed to clear session");
+      sessionStorage.removeItem("orbithire_session");
+      setUser(null);
+      router.replace("/login");
+    } catch (error) {
+      console.error("Failed to sign out", error);
+      window.alert("ไม่สามารถออกจากระบบได้ กรุณาลองใหม่");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const can = (permission: PermissionKey) => hasPermission(user?.permissions, permission);
+  const canPage = (page: PageKey | "admin") => hasPageAccess(user, page);
 
   const isPublicRoute = pathname === "/login";
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || verifiedPath !== pathname) return;
 
     if (!user && !isPublicRoute) {
       router.replace("/login");
     } else if (user && isPublicRoute) {
-      router.replace("/");
+      router.replace(homePageForUser(user));
     }
-  }, [user, loading, pathname, router, isPublicRoute]);
+  }, [user, loading, pathname, router, isPublicRoute, verifiedPath]);
 
   // Prevent flashing of protected content while loading or redirecting
-  if (loading) {
+  if (loading || verifiedPath !== pathname) {
     return <LoadingScreen />;
   }
 
@@ -140,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, loginWithLine, can, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, loginWithLine, can, canPage, logout }}>
       {children}
     </AuthContext.Provider>
   );

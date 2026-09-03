@@ -332,3 +332,123 @@ test('an editor cannot rebind an Admin LINE identity through the employee update
   assert.equal(response.status, 403);
   assert.equal(updates, 0);
 });
+
+const allPages = permissions.normalizePageAccess();
+const onlyPages = (...keys) => Object.fromEntries(Object.keys(allPages).map((key) => [key, keys.includes(key)]));
+const pageGrant = (pages, editable = false) => ({
+  staffId: '00002', accessPermission: true, viewPermission: true, editPermission: editable, adminPermission: false,
+  pageAccess: JSON.stringify(pages),
+});
+
+test('legacy page access is preserved, but malformed explicit grants fail closed', () => {
+  assert.deepEqual(permissions.normalizePageAccess(null), allPages);
+  assert.deepEqual(permissions.normalizePageAccess('{invalid'), onlyPages());
+  assert.deepEqual(permissions.normalizePageAccess({ employees: true }), onlyPages('employees'));
+  assert.equal(permissions.isPageAccess({ ...allPages, extra: true }), false);
+  assert.equal(permissions.isPageAccess({ ...allPages, employees: 'true' }), false);
+  assert.equal(permissions.isPageAccess(allPages), true);
+  assert.equal(permissions.hasPageAccess({ permissions: DEFAULT_PERMISSIONS, pageAccess: onlyPages('probation') }, 'employees'), false);
+  assert.equal(permissions.homePageForUser({ permissions: DEFAULT_PERMISSIONS, pageAccess: onlyPages('probation') }), '/probation');
+  assert.equal(permissions.pageKeyForPath('/employees/00002'), 'employees');
+  assert.equal(permissions.pageKeyForPath('/employees-other'), undefined);
+  assert.equal(permissions.hasPageAccess({ permissions: ADMIN_PERMISSIONS, pageAccess: onlyPages() }, 'admin'), true);
+  assert.equal(permissions.hasPageAccess({ permissions: { ...DEFAULT_PERMISSIONS, view: false }, pageAccess: allPages }, 'employees'), false);
+});
+
+test('page permissions are reread from the database and cannot be forged in a session', async () => {
+  const { prisma, grants } = createDatabase([pageGrant(onlyPages('probation'))]);
+  const auth = sessionModule(prisma);
+  const token = auth.createSessionToken({ ...admin, staffId: '00002', permissions: ADMIN_PERMISSIONS, pageAccess: allPages });
+  assert.deepEqual((await auth.getSessionUser(userRequest(token))).pageAccess, onlyPages('probation'));
+  assert.equal((await auth.authorizeRequest(userRequest(token, '/api/probation'), 'view')).ok, true);
+  assert.equal((await auth.authorizeRequest(userRequest(token, '/api/employees'), 'view')).response.status, 403);
+  grants.set('00002', pageGrant(onlyPages('employees')));
+  assert.equal((await auth.authorizeRequest(userRequest(token, '/api/probation'), 'view')).response.status, 403);
+  assert.equal((await auth.authorizeRequest(userRequest(token, '/api/employees'), 'view')).ok, true);
+});
+
+test('module API permissions reject direct calls, forged headers, and unclassified endpoints', async () => {
+  const { prisma } = createDatabase([pageGrant(onlyPages('dashboard'), true)]);
+  const auth = sessionModule(prisma);
+  const token = auth.createSessionToken({ ...admin, staffId: '00002' });
+  const routes = ['/api/ats', '/api/probation', '/api/probation/follow-up', '/api/employees', '/api/employees?id=00001',
+    '/api/employees?view=directory', '/api/organization', '/api/organization/update', '/api/manpower/current',
+    '/api/manpower/budgets', '/api/data-quality', '/api/data-quality/actions', '/api/attachments', '/api/permissions',
+    '/api/auth/line/mappings', '/api/unknown'];
+  for (const route of routes) {
+    const request = new Request(`https://example.test${route}`, { headers: {
+      cookie: `orbithire_auth=${token}`, referer: 'https://example.test/probation', 'x-page': 'probation',
+    } });
+    const result = await auth.authorizeRequest(request, 'view');
+    assert.equal(result.response?.status, 403, route);
+  }
+  for (const route of ['/api/employees/update', '/api/organization/update', '/api/manpower/budgets', '/api/probation/follow-up', '/api/data-quality/actions', '/api/ats']) {
+    const result = await auth.authorizeRequest(new Request(`https://example.test${route}`, { method: 'PUT', headers: { cookie: `orbithire_auth=${token}` } }), 'edit');
+    assert.equal(result.response?.status, 403, route);
+  }
+});
+
+test('shared workflows retain profile and lookup access without exposing the full employee directory', async () => {
+  const { prisma } = createDatabase([pageGrant(onlyPages('probation'), true)]);
+  const auth = sessionModule(prisma);
+  const token = auth.createSessionToken({ ...admin, staffId: '00002' });
+  for (const route of ['/api/probation', '/api/probation/follow-up', '/api/employees?id=00003', '/api/employees?view=directory', '/api/organization', '/api/attachments']) {
+    assert.equal((await auth.authorizeRequest(userRequest(token, route), 'view')).ok, true, route);
+  }
+  assert.equal((await auth.authorizeRequest(userRequest(token, '/api/employees'), 'view')).response.status, 403);
+  assert.equal((await auth.authorizeRequest(userRequest(token, '/api/manpower/current'), 'view')).response.status, 403);
+  const mutation = new Request('https://example.test/api/organization/update', { method: 'PUT', headers: { cookie: `orbithire_auth=${token}` } });
+  assert.equal((await auth.authorizeRequest(mutation, 'edit')).response.status, 403);
+  const viewOnly = sessionModule(createDatabase([pageGrant(onlyPages('probation'))]).prisma);
+  assert.equal((await viewOnly.authorizeRequest(new Request('https://example.test/api/probation/follow-up', { method: 'PUT', headers: { cookie: `orbithire_auth=${token}` } }), 'edit')).response.status, 403);
+});
+
+test('page grants save atomically, reject malformed inputs, and survive legacy permission-only updates', async () => {
+  const { prisma, grants } = createDatabase([adminGrant(), pageGrant(allPages)]);
+  const auth = sessionModule(prisma);
+  const route = loadTs('src/app/api/permissions/route.ts', {
+    '@/lib/auth-session': auth, '@/lib/prisma': { prisma }, '@/lib/permissions': permissions,
+    '@/lib/dynamodb': { docClient: { send: async () => ({ Item: { staff_id: '00002' } }) } },
+  });
+  const token = auth.createSessionToken(admin);
+  const request = (pageAccess) => new Request('https://example.test/api/permissions', {
+    method: 'PUT', headers: { cookie: `orbithire_auth=${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ staffId: '00002', permissions: DEFAULT_PERMISSIONS, pageAccess }),
+  });
+  for (const invalid of [null, [], {}, { ...allPages, employees: 'false' }, { ...allPages, admin: true }]) {
+    assert.equal((await route.PUT(request(invalid))).status, 400);
+  }
+  const selected = onlyPages('employees', 'probation');
+  const response = await route.PUT(request(selected));
+  assert.deepEqual((await response.json()).pageAccess, selected);
+  assert.deepEqual(JSON.parse(grants.get('00002').pageAccess), selected);
+  assert.equal((await route.PUT(request(undefined))).status, 200);
+  assert.deepEqual(JSON.parse(grants.get('00002').pageAccess), selected);
+  const stored = await route.GET(userRequest(token, '/api/permissions?staffId=00002'));
+  assert.deepEqual((await stored.json()).pageAccess, selected);
+});
+
+test('employee directory lookup exposes no personal or financial data and is gated before cache access', async () => {
+  const { prisma, grants } = createDatabase([pageGrant(onlyPages('probation'))]);
+  const auth = sessionModule(prisma);
+  const token = auth.createSessionToken({ ...admin, staffId: '00002' });
+  const cache = new Map();
+  let scans = 0;
+  const route = loadTs('src/app/api/employees/route.ts', {
+    '@/lib/auth-session': auth,
+    '@/lib/employeesCache': {
+      getCachedEmployeeValue: (key) => cache.get(key), setCachedEmployeeValue: (key, value) => cache.set(key, value),
+      getCachedEmployees: (key) => cache.get(key), setCachedEmployees: (value, key) => cache.set(key, value),
+    },
+    '@/lib/dynamodb': { docClient: { send: async () => {
+      scans++; return { Items: [{ staff_id: '00003', name_en: 'Test Employee', position: 'Staff', id_card: 'private', bank_account: 'private', birth_date: 'private' }] };
+    } } },
+  });
+  const allowed = await route.GET(userRequest(token, '/api/employees?view=directory'));
+  assert.equal(allowed.headers.get('cache-control'), 'private, no-store');
+  assert.deepEqual(await allowed.json(), [{ staff_id: '00003', name_en: 'Test Employee', position: 'Staff' }]);
+  assert.equal((await route.GET(userRequest(token, '/api/employees'))).status, 403);
+  grants.set('00002', pageGrant(onlyPages()));
+  assert.equal((await route.GET(userRequest(token, '/api/employees?view=directory'))).status, 403);
+  assert.equal(scans, 1);
+});

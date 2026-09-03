@@ -95,6 +95,14 @@ Administrators can open `/admin` from the shield icon in the header or **Admin /
 
 Both the admin directory API and permission updates require a current Admin grant on the server. Non-admin users cannot access the directory or save grants. The last Admin cannot be demoted, and the editor prevents saving when the initial permission load fails. Directory responses exclude personal identifiers, bank details, and LINE user IDs. Employee directory fields are cached for 60 seconds; permission grants are always read fresh.
 
+The same editor also provides **สิทธิ์เข้าถึงแต่ละหน้า** for Dashboard, Organization, Manpower, Employees, Quality, Recruitment, and Probation. Page access is saved atomically with the four global permissions. It cannot grant View or Edit by itself. Admin users always have access to every page, including `/admin`; their page preferences apply if they are later demoted. Existing users retain access to all regular pages until an Admin changes their selection. A null `PermissionGrant.pageAccess` means this legacy default; malformed explicit values fail closed.
+
+Navigation hides denied pages, and direct page navigation is checked before mounting the page. Sessions refresh on navigation and tab focus; the server reloads both global and page permissions for every protected API request, including mutations. Login opens the first permitted page. Users with no allowed pages see an access-denied screen. A forged URL parameter, Referer, or page header cannot authorize a module API.
+
+Page access controls workflows, not employee-level record scope. Employee profiles, attachments, profile updates, and the minimal operator directory are shared by Employees, Probation, and Quality. Organization read data is also shared by those pages and Manpower for filters and position selection; organization mutations still require Organization access. The full employee-list API requires Employees access. Dedicated Recruitment, Probation, Quality, and Manpower APIs require their corresponding page. Protected API responses use no-store while existing server-side caches remain active, so permission checks occur before returning cached data.
+
+Run `node scripts/permissions.test.cjs` for isolated permission and page-access regression tests. Before deploying the additive nullable `PermissionGrant.pageAccess` column, back up SQLite; do not reset grants or the production database. No existing employee's permission selection is changed by the schema update.
+
 Production LINE sessions use a server-verified LINE access token and a signed, HTTP-only session cookie. Direct LINE User ID login is restricted to local development.
 
 ### Employee Documents

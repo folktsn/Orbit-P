@@ -238,13 +238,13 @@ export async function GET(request: NextRequest) {
     if (view === 'departments') {
       return NextResponse.json({ today, departments: summarizeDepartments(employees, today) }, {
         status: 200,
-        headers: { 'Cache-Control': 'private, max-age=30' },
+        headers: { 'Cache-Control': 'private, no-store' },
       });
     }
 
     return NextResponse.json({ today, department, ...countDepartmentRows(employees, department, today) }, {
       status: 200,
-      headers: { 'Cache-Control': 'private, max-age=30' },
+      headers: { 'Cache-Control': 'private, no-store' },
     });
   } catch (error) {
     console.error('Error calculating manpower current headcount:', error);
