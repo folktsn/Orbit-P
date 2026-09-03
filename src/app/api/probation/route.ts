@@ -25,12 +25,15 @@ const PROBATION_FIELDS = [
   "probation_follow_up_1_date", "probation_follow_up_1_evaluator_id", "probation_follow_up_1_evaluator_name",
   "probation_follow_up_1_evaluator_name_en", "probation_follow_up_1_evaluator_position",
   "probation_follow_up_1_attachment_name", "probation_follow_up_1_attachment_data",
+  "probation_follow_up_1_comment",
   "probation_follow_up_2_date", "probation_follow_up_2_evaluator_id", "probation_follow_up_2_evaluator_name",
   "probation_follow_up_2_evaluator_name_en", "probation_follow_up_2_evaluator_position",
   "probation_follow_up_2_attachment_name", "probation_follow_up_2_attachment_data",
+  "probation_follow_up_2_comment",
   "probation_follow_up_3_date", "probation_follow_up_3_evaluator_id", "probation_follow_up_3_evaluator_name",
   "probation_follow_up_3_evaluator_name_en", "probation_follow_up_3_evaluator_position",
   "probation_follow_up_3_attachment_name", "probation_follow_up_3_attachment_data",
+  "probation_follow_up_3_comment",
 ] as const;
 
 function buildProjection(fields: readonly string[]) {

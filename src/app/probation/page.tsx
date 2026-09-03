@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import {
   AlertTriangle,
   BriefcaseBusiness,
@@ -21,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MAX_FOLLOW_UP_COMMENT_LENGTH } from "@/lib/probationFollowUp";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import {
   EmployeeProfileDrawer,
@@ -45,6 +45,7 @@ type FollowUpEntry = {
   evaluatorName: string;
   evaluatorNameEn: string;
   evaluatorPosition: string;
+  comment: string;
   attachmentName: string;
   attachmentData: string;
 };
@@ -177,6 +178,7 @@ function followUpsFromRecord(item: RawEmployee): FollowUpEntries {
     evaluatorName: valueOf(item, [`probation_follow_up_${slot}_evaluator_name`], ""),
     evaluatorNameEn: valueOf(item, [`probation_follow_up_${slot}_evaluator_name_en`], ""),
     evaluatorPosition: valueOf(item, [`probation_follow_up_${slot}_evaluator_position`], ""),
+    comment: typeof item[`probation_follow_up_${slot}_comment`] === "string" ? item[`probation_follow_up_${slot}_comment`] as string : "",
     attachmentName: valueOf(item, [`probation_follow_up_${slot}_attachment_name`], ""),
     attachmentData: valueOf(item, [`probation_follow_up_${slot}_attachment_data`], ""),
   })) as FollowUpEntries;
@@ -352,7 +354,6 @@ function FollowUpDialog({
         }
       : null),
   );
-  const [imageFiles, setImageFiles] = useState<Array<File | null>>([null, null, null]);
   const [savingSlot, setSavingSlot] = useState<FollowUpSlot | null>(null);
   const [lookingUpSlot, setLookingUpSlot] = useState<FollowUpSlot | null>(null);
   const [savedSlot, setSavedSlot] = useState<FollowUpSlot | null>(null);
@@ -448,31 +449,6 @@ function FollowUpDialog({
     }, 450);
   };
 
-  const selectImage = (slot: FollowUpSlot, file: File | null) => {
-    if (file && !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setSlotErrors((current) => ({ ...current, [slot]: "รองรับรูป JPG, PNG และ WebP เท่านั้น" }));
-      return;
-    }
-    if (file && file.size > 20 * 1024 * 1024) {
-      setSlotErrors((current) => ({ ...current, [slot]: "รูปต้องมีขนาดไม่เกิน 20 MB" }));
-      return;
-    }
-
-    setImageFiles((current) => {
-      const next = [...current];
-      next[slot - 1] = file;
-      return next;
-    });
-    setSlotErrors((current) => ({ ...current, [slot]: "" }));
-  };
-
-  const fileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("ไม่สามารถอ่านไฟล์รูปภาพได้"));
-    reader.readAsDataURL(file);
-  });
-
   const viewImage = async (slot: FollowUpSlot) => {
     const entry = entries[slot - 1];
     const previewWindow = window.open("", "_blank");
@@ -496,7 +472,6 @@ function FollowUpDialog({
   const saveFollowUp = async (slot: FollowUpSlot) => {
     const currentEntry = entries[slot - 1];
     const date = currentEntry.date || latestAllowedDate;
-    const file = imageFiles[slot - 1];
     setSlotErrors((current) => ({ ...current, [slot]: "" }));
 
     try {
@@ -507,7 +482,6 @@ function FollowUpDialog({
       if (!evaluator) throw new Error("กรุณารอการตรวจสอบรหัสพนักงานผู้ติดตาม");
 
       setSavingSlot(slot);
-      const attachmentData = file ? await fileAsDataUrl(file) : "";
       const response = await fetch("/api/probation/follow-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -516,15 +490,13 @@ function FollowUpDialog({
           followUpNumber: slot,
           followUpDate: date,
           evaluatorId: evaluator.employeeId,
-          attachmentName: file?.name,
-          attachmentData,
+          comment: currentEntry.comment,
         }),
       });
       const payload = await response.json() as {
         error?: string;
         evaluator?: Evaluator;
-        attachmentName?: string;
-        attachmentData?: string;
+        comment?: string;
       };
       if (!response.ok || !payload.evaluator) throw new Error(payload.error || "ไม่สามารถบันทึกการติดตามได้");
 
@@ -534,17 +506,13 @@ function FollowUpDialog({
         evaluatorName: payload.evaluator.name,
         evaluatorNameEn: payload.evaluator.nameEn,
         evaluatorPosition: payload.evaluator.position,
-        attachmentName: payload.attachmentName || currentEntry.attachmentName,
-        attachmentData: payload.attachmentData || currentEntry.attachmentData,
+        comment: payload.comment ?? currentEntry.comment,
+        attachmentName: currentEntry.attachmentName,
+        attachmentData: currentEntry.attachmentData,
       };
 
       updateEntry(slot, savedEntry);
       setEvaluator(slot, payload.evaluator);
-      setImageFiles((current) => {
-        const next = [...current];
-        next[slot - 1] = null;
-        return next;
-      });
       onSaved(record.employee.id, slot, savedEntry);
       setSavedSlot(slot);
     } catch (error) {
@@ -622,7 +590,6 @@ function FollowUpDialog({
           {([1, 2, 3] as FollowUpSlot[]).map((slot) => {
             const entry = entries[slot - 1];
             const evaluator = evaluators[slot - 1];
-            const selectedImage = imageFiles[slot - 1];
             const isSaving = savingSlot === slot;
             const isLookingUp = lookingUpSlot === slot;
             return (
@@ -681,32 +648,31 @@ function FollowUpDialog({
                   </div>
                 )}
 
+                <label className="mt-2 block min-w-0">
+                  <span className="mb-1 flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                    <span className="font-semibold text-slate-600 dark:text-slate-300">Comment <span className="font-normal">(ไม่บังคับ)</span></span>
+                    <span>{entry.comment.length.toLocaleString()}/{MAX_FOLLOW_UP_COMMENT_LENGTH.toLocaleString()}</span>
+                  </span>
+                  <textarea
+                    rows={2}
+                    value={entry.comment}
+                    maxLength={MAX_FOLLOW_UP_COMMENT_LENGTH}
+                    onChange={(event) => updateEntry(slot, { comment: event.target.value })}
+                    disabled={savingSlot !== null}
+                    aria-label={`Comment การติดตามครั้งที่ ${slot}`}
+                    className="block min-h-14 w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs leading-5 text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                  />
+                </label>
+
                 <div className="mt-1.5 flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-1.5">
-                    <label
-                      title="แนบรูป (ไม่บังคับ)"
-                      aria-label={`แนบรูปการติดตามครั้งที่ ${slot}`}
-                      className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
-                    >
-                      <Image src="/upload-cloud.png" alt="" width={22} height={22} className="size-[22px] object-contain" />
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="sr-only"
-                        disabled={savingSlot !== null}
-                        onChange={(event) => selectImage(slot, event.target.files?.[0] || null)}
-                      />
-                    </label>
-                    <span className="max-w-36 truncate text-[10px] text-slate-500 dark:text-slate-400 sm:max-w-44">
-                      {selectedImage?.name || entry.attachmentName || "ยังไม่ได้แนบรูป"}
-                    </span>
                     {entry.attachmentData && (
                       <button
                         type="button"
                         onClick={() => void viewImage(slot)}
                         className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-sky-700 hover:bg-sky-50 dark:text-sky-300 dark:hover:bg-sky-950/30"
-                        title="ดูรูป"
-                        aria-label={`ดูรูปการติดตามครั้งที่ ${slot}`}
+                        title={entry.attachmentName || "ดูรูปเดิม"}
+                        aria-label={`ดูรูปเดิมการติดตามครั้งที่ ${slot}`}
                       >
                         <Eye className="size-3.5" />
                       </button>
@@ -715,6 +681,7 @@ function FollowUpDialog({
                   <button
                     type="button"
                     onClick={() => void saveFollowUp(slot)}
+                    aria-label={`บันทึกการติดตามครั้งที่ ${slot}`}
                     disabled={savingSlot !== null || lookingUpSlot !== null}
                     className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md bg-emerald-600 px-2.5 text-[11px] font-semibold text-white hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
                   >
@@ -733,7 +700,7 @@ function FollowUpDialog({
           })}
 
           {savedSlot && !slotErrors[savedSlot] && (
-            <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300">
+            <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300">
               บันทึกการติดตามครั้งที่ {savedSlot} เรียบร้อยแล้ว
             </p>
           )}
@@ -757,6 +724,7 @@ function BulkFollowUpDialog({
 }) {
   const [slot, setSlot] = useState<FollowUpSlot>(1);
   const [followUpDate, setFollowUpDate] = useState(todayDateOnly());
+  const [comments, setComments] = useState<Record<FollowUpSlot, string>>({ 1: "", 2: "", 3: "" });
   const [evaluatorId, setEvaluatorId] = useState("");
   const [evaluator, setEvaluator] = useState<Evaluator | null>(null);
   const [isLookingUp, setIsLookingUp] = useState(false);
@@ -852,11 +820,13 @@ function BulkFollowUpDialog({
               followUpNumber: slot,
               followUpDate,
               evaluatorId: verifiedEvaluator.employeeId,
+              comment: comments[slot],
             }),
           });
           const payload = await response.json() as {
             error?: string;
             evaluator?: Evaluator;
+            comment?: string;
           };
           if (!response.ok || !payload.evaluator) {
             throw new Error(payload.error || "ไม่สามารถบันทึกการติดตามได้");
@@ -868,8 +838,9 @@ function BulkFollowUpDialog({
             evaluatorName: payload.evaluator.name,
             evaluatorNameEn: payload.evaluator.nameEn,
             evaluatorPosition: payload.evaluator.position,
-            attachmentName: "",
-            attachmentData: "",
+            comment: payload.comment ?? comments[slot],
+            attachmentName: record.followUps[slot - 1].attachmentName,
+            attachmentData: record.followUps[slot - 1].attachmentData,
           };
           return { employeeId: record.employee.id, savedEntry };
         }));
@@ -912,9 +883,9 @@ function BulkFollowUpDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="bulk-follow-up-title"
-        className="w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#121212]"
+        className="flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#121212]"
       >
-        <header className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-white/10">
+        <header className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-white/10">
           <div>
             <div className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400">
               <CalendarCheck2 className="size-3.5" />
@@ -935,7 +906,7 @@ function BulkFollowUpDialog({
           </button>
         </header>
 
-        <div className="space-y-3 p-4">
+        <div className="min-h-0 space-y-3 overflow-y-auto p-4">
           <div className="grid grid-cols-2 gap-3">
             <label className="block min-w-0">
               <span className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">ครั้งที่ติดตาม</span>
@@ -986,7 +957,23 @@ function BulkFollowUpDialog({
             </div>
           )}
 
-          <div className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-xs dark:bg-white/5">
+          <label className="block min-w-0">
+            <span className="mb-1 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span className="font-semibold text-slate-600 dark:text-slate-300">Comment <span className="font-normal">(ไม่บังคับ)</span></span>
+              <span>{comments[slot].length.toLocaleString()}/{MAX_FOLLOW_UP_COMMENT_LENGTH.toLocaleString()}</span>
+            </span>
+            <textarea
+              rows={3}
+              value={comments[slot]}
+              maxLength={MAX_FOLLOW_UP_COMMENT_LENGTH}
+              onChange={(event) => setComments((current) => ({ ...current, [slot]: event.target.value }))}
+              disabled={isSaving}
+              aria-label={`Comment การติดตามครั้งที่ ${slot} สำหรับพนักงานที่เลือก`}
+              className="block w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+            />
+          </label>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-slate-50 px-3 py-2 text-xs dark:bg-white/5">
             <span className="text-slate-600 dark:text-slate-300">พร้อมบันทึก {pendingRecords.length.toLocaleString()} คน</span>
             {skippedCount > 0 && <span className="text-amber-600 dark:text-amber-300">ข้ามข้อมูลเดิม {skippedCount.toLocaleString()} คน</span>}
           </div>
@@ -1216,6 +1203,7 @@ export default function ProbationPage() {
             [`${prefix}_evaluator_name`]: entry.evaluatorName,
             [`${prefix}_evaluator_name_en`]: entry.evaluatorNameEn,
             [`${prefix}_evaluator_position`]: entry.evaluatorPosition,
+            [`${prefix}_comment`]: entry.comment,
             [`${prefix}_attachment_name`]: entry.attachmentName,
             [`${prefix}_attachment_data`]: entry.attachmentData,
           }

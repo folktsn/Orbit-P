@@ -159,6 +159,12 @@ Key behavior:
 - Stores probation evaluation documents
 - Scheduled/background logic processes status changes when dates are reached
 
+Follow-up records have three independent rounds with a date, an automatically resolved evaluator employee code/name/position, and an optional **Comment** (up to 2,000 characters). Comment replaces the image-upload control in the follow-up dialog. Existing images remain stored and can still be opened from the legacy-image icon; saving a comment does not upload, delete, or overwrite attachments. Probation evaluation documents are unchanged.
+
+Comments are stored as `probation_follow_up_1_comment`, `probation_follow_up_2_comment`, and `probation_follow_up_3_comment` on the DynamoDB `fullstaff` record. Blank comments are allowed and can clear an existing note; older clients that omit `comment` preserve it. Saves require Edit and Probation page access, and invalidate both employee and probation caches. Bulk follow-up applies the selected round's comment to the selected employees without an existing follow-up date for that round; completed records are skipped. The bulk dialog keeps a separate draft comment for each round.
+
+Run `node scripts/probation-follow-up.test.cjs` for isolated follow-up persistence, validation, cache, and authorization regression tests. No migration or attachment removal is required.
+
 ### Data Quality
 
 Read-only employee master data monitoring for HR operations.

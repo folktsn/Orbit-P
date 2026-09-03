@@ -7,6 +7,7 @@ import { invalidateEmployeesCache } from "@/lib/employeesCache";
 import { invalidateProbationCache } from "@/lib/probationCache";
 import { uploadAttachment } from "@/lib/s3";
 import { authorizeRequest } from "@/lib/auth-session";
+import { MAX_FOLLOW_UP_COMMENT_LENGTH } from "@/lib/probationFollowUp";
 
 export const runtime = "nodejs";
 
@@ -22,6 +23,7 @@ type FollowUpRequest = {
   followUpNumber?: unknown;
   followUpDate?: unknown;
   evaluatorId?: unknown;
+  comment?: unknown;
   attachmentName?: unknown;
   attachmentData?: unknown;
 };
@@ -205,6 +207,13 @@ export async function POST(request: Request) {
     if (!evaluatorId) {
       return NextResponse.json({ error: "กรุณาระบุรหัสพนักงานผู้ติดตาม" }, { status: 400 });
     }
+    if (body.comment !== undefined && typeof body.comment !== "string") {
+      return NextResponse.json({ error: "Comment ต้องเป็นข้อความ" }, { status: 400 });
+    }
+    if (typeof body.comment === "string" && body.comment.length > MAX_FOLLOW_UP_COMMENT_LENGTH) {
+      return NextResponse.json({ error: `Comment ต้องไม่เกิน ${MAX_FOLLOW_UP_COMMENT_LENGTH.toLocaleString()} ตัวอักษร` }, { status: 400 });
+    }
+    const comment = typeof body.comment === "string" ? body.comment.trim() : undefined;
 
     const evaluator = await findEvaluator(evaluatorId);
     if (!evaluator) {
@@ -247,6 +256,13 @@ export async function POST(request: Request) {
       "#evaluatorPosition = :evaluatorPosition",
     ];
 
+    // Older clients omit comment; do not erase a previously saved note.
+    if (comment !== undefined) {
+      names["#comment"] = `${prefix}_comment`;
+      values[":comment"] = comment;
+      assignments.push("#comment = :comment");
+    }
+
     if (uploadedImage) {
       names["#attachmentName"] = `${prefix}_attachment_name`;
       names["#attachmentData"] = `${prefix}_attachment_data`;
@@ -274,6 +290,7 @@ export async function POST(request: Request) {
       followUpNumber,
       followUpDate,
       evaluator,
+      comment,
       attachmentName: uploadedImage?.fileName || undefined,
       attachmentData: uploadedImage?.key || undefined,
       updatedItem: response.Attributes,

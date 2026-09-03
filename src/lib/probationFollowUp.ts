@@ -1,0 +1,1 @@
+export const MAX_FOLLOW_UP_COMMENT_LENGTH = 2000;
