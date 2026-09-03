@@ -58,7 +58,8 @@ export const PAGE_DEFINITIONS = [
 
 export type PageKey = typeof PAGE_DEFINITIONS[number]["key"];
 export type PageAccess = Record<PageKey, boolean>;
-export const DEFAULT_PAGE_ACCESS = Object.fromEntries(PAGE_DEFINITIONS.map(({ key }) => [key, true])) as PageAccess;
+// Quality requires an explicit Admin grant, including for legacy users.
+export const DEFAULT_PAGE_ACCESS = Object.fromEntries(PAGE_DEFINITIONS.map(({ key }) => [key, key !== "dataQuality"])) as PageAccess;
 
 export function isPageAccess(input: unknown): input is PageAccess {
   return Boolean(input && typeof input === "object" && !Array.isArray(input)

@@ -333,15 +333,15 @@ test('an editor cannot rebind an Admin LINE identity through the employee update
   assert.equal(updates, 0);
 });
 
-const allPages = permissions.normalizePageAccess();
+const allPages = Object.fromEntries(permissions.PAGE_DEFINITIONS.map(({ key }) => [key, true]));
 const onlyPages = (...keys) => Object.fromEntries(Object.keys(allPages).map((key) => [key, keys.includes(key)]));
 const pageGrant = (pages, editable = false) => ({
   staffId: '00002', accessPermission: true, viewPermission: true, editPermission: editable, adminPermission: false,
   pageAccess: JSON.stringify(pages),
 });
 
-test('legacy page access is preserved, but malformed explicit grants fail closed', () => {
-  assert.deepEqual(permissions.normalizePageAccess(null), allPages);
+test('legacy page access excludes Quality and malformed explicit grants fail closed', () => {
+  assert.deepEqual(permissions.normalizePageAccess(null), { ...allPages, dataQuality: false });
   assert.deepEqual(permissions.normalizePageAccess('{invalid'), onlyPages());
   assert.deepEqual(permissions.normalizePageAccess({ employees: true }), onlyPages('employees'));
   assert.equal(permissions.isPageAccess({ ...allPages, extra: true }), false);
@@ -451,4 +451,80 @@ test('employee directory lookup exposes no personal or financial data and is gat
   grants.set('00002', pageGrant(onlyPages()));
   assert.equal((await route.GET(userRequest(token, '/api/employees?view=directory'))).status, 403);
   assert.equal(scans, 1);
+});
+
+test('Quality requires an explicit page grant regardless of global View or Edit', () => {
+  for (const globalPermissions of [DEFAULT_PERMISSIONS, permissions.normalizePermissions({ edit: true })]) {
+    for (const pageAccess of [undefined, null, permissions.normalizePageAccess(), onlyPages('employees', 'probation')]) {
+      assert.equal(permissions.hasPageAccess({ permissions: globalPermissions, pageAccess }, 'dataQuality'), false);
+    }
+    assert.equal(permissions.hasPageAccess({ permissions: globalPermissions, pageAccess: onlyPages('dataQuality') }, 'dataQuality'), true);
+  }
+  assert.deepEqual(permissions.normalizePageAccess(), { ...allPages, dataQuality: false });
+  assert.equal(permissions.hasPageAccess({ permissions: ADMIN_PERMISSIONS, pageAccess: onlyPages() }, 'dataQuality'), true);
+  assert.equal(permissions.hasPageAccess({ permissions: { ...DEFAULT_PERMISSIONS, view: false }, pageAccess: allPages }, 'dataQuality'), false);
+});
+
+test('Quality API denies missing and legacy grants before returning cache or accessing data', async (t) => {
+  const { NextRequest } = require('next/server');
+  const cacheKey = '__s_recruit_data_quality_cache__';
+  const previousCache = globalThis[cacheKey];
+  globalThis[cacheKey] = { value: { private: 'must-not-leak' }, expiresAt: Date.now() + 60000 };
+  t.after(() => {
+    if (previousCache === undefined) delete globalThis[cacheKey];
+    else globalThis[cacheKey] = previousCache;
+  });
+  for (const grant of [null, { ...pageGrant(allPages), pageAccess: null }, { ...pageGrant(allPages, true), pageAccess: null }]) {
+    const { prisma } = createDatabase(grant ? [grant] : []);
+    const auth = sessionModule(prisma);
+    const token = auth.createSessionToken({ ...admin, staffId: '00002', pageAccess: allPages });
+    let reads = 0;
+    const docClient = { send: async () => { reads++; throw new Error('Unauthorized database access'); } };
+    prisma.dataQualityAction = { findMany: async () => { reads++; return []; } };
+    const mocks = { '@/lib/auth-session': auth, '@/lib/dynamodb': { docClient }, '@/lib/prisma': { prisma } };
+    const quality = loadTs('src/app/api/data-quality/route.ts', mocks);
+    const workflow = loadTs('src/app/api/data-quality/actions/route.ts', mocks);
+    for (const [route, method, handler] of [
+      ['/api/data-quality', 'GET', quality.GET],
+      ['/api/data-quality?refresh=1', 'GET', quality.GET],
+      ['/api/data-quality/actions', 'GET', workflow.GET],
+      ['/api/data-quality/actions', 'PUT', workflow.PUT],
+    ]) {
+      const response = await handler(new NextRequest('https://example.test' + route, {
+        method, headers: { cookie: 'orbithire_auth=' + token, referer: 'https://example.test/data-quality', 'x-page': 'dataQuality' },
+      }));
+      assert.equal(response.status, 403, route + ' ' + method);
+      assert.equal(JSON.stringify(await response.json()).includes('must-not-leak'), false);
+    }
+    assert.equal(reads, 0);
+  }
+});
+
+test('only an Admin can enable Quality, and granting or revoking it affects an existing session', async () => {
+  const { prisma, grants } = createDatabase([adminGrant(), { ...pageGrant(allPages, true), pageAccess: null }]);
+  const auth = sessionModule(prisma);
+  let lookups = 0;
+  const route = loadTs('src/app/api/permissions/route.ts', {
+    '@/lib/auth-session': auth, '@/lib/prisma': { prisma }, '@/lib/permissions': permissions,
+    '@/lib/dynamodb': { docClient: { send: async () => { lookups++; return { Item: { staff_id: '00002' } }; } } },
+  });
+  const editor = auth.createSessionToken({ ...admin, staffId: '00002', pageAccess: allPages });
+  const adminToken = auth.createSessionToken(admin);
+  const setQuality = (token, allowed) => new Request('https://example.test/api/permissions', {
+    method: 'PUT', headers: { cookie: 'orbithire_auth=' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ staffId: '00002', permissions: DEFAULT_PERMISSIONS, pageAccess: { ...allPages, dataQuality: allowed } }),
+  });
+  const access = () => auth.authorizeRequest(userRequest(editor, '/api/data-quality'), 'view');
+  assert.equal((await access()).response.status, 403);
+  assert.equal((await route.PUT(setQuality(editor, true))).status, 403);
+  assert.equal(lookups, 0);
+  assert.equal(grants.get('00002').pageAccess, null);
+  assert.equal((await route.PUT(setQuality(adminToken, true))).status, 200);
+  assert.equal((await access()).ok, true);
+  assert.equal(grants.get('00002').updatedById, '00001');
+  const mutation = new Request('https://example.test/api/data-quality/actions', { method: 'PUT', headers: { cookie: 'orbithire_auth=' + editor } });
+  assert.equal((await auth.authorizeRequest(mutation, 'edit')).response.status, 403);
+  assert.equal((await route.PUT(setQuality(adminToken, false))).status, 200);
+  assert.equal((await access()).response.status, 403);
+  assert.equal((await auth.authorizeRequest(userRequest(adminToken, '/api/data-quality'), 'view')).ok, true);
 });
