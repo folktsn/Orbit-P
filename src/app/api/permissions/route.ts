@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { authorizeRequest } from "@/lib/auth-session";
+import { docClient } from "@/lib/dynamodb";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PERMISSIONS, normalizePermissions } from "@/lib/permissions";
 
@@ -52,6 +54,19 @@ export async function PUT(request: Request) {
     admin: raw.admin === true,
   });
 
+  try {
+    const employee = await docClient.send(new GetCommand({
+      TableName: "fullstaff", Key: { staff_id: staffId },
+      ProjectionExpression: "staff_id",
+    }));
+    if (!employee.Item) {
+      return NextResponse.json({ error: "ไม่พบรหัสพนักงานนี้ในระบบ" }, { status: 404 });
+    }
+  } catch (error) {
+    console.error("Failed to verify permission target:", error);
+    return NextResponse.json({ error: "ไม่สามารถตรวจสอบรหัสพนักงานได้ กรุณาลองใหม่" }, { status: 503 });
+  }
+
   const grant = await prisma.$transaction(async (tx) => {
     const current = await tx.permissionGrant.findUnique({ where: { staffId } });
     if (current?.adminPermission && !permissions.admin) {
@@ -59,24 +74,24 @@ export async function PUT(request: Request) {
       if (adminCount <= 1) return null;
     }
     return tx.permissionGrant.upsert({
-    where: { staffId },
-    create: {
-      staffId,
-      accessPermission: permissions.access,
-      viewPermission: permissions.view,
-      editPermission: permissions.edit,
-      adminPermission: permissions.admin,
-      updatedById: authorization.user.staffId || authorization.user.username,
-      updatedByName: authorization.user.displayName,
-    },
-    update: {
-      accessPermission: permissions.access,
-      viewPermission: permissions.view,
-      editPermission: permissions.edit,
-      adminPermission: permissions.admin,
-      updatedById: authorization.user.staffId || authorization.user.username,
-      updatedByName: authorization.user.displayName,
-    },
+      where: { staffId },
+      create: {
+        staffId,
+        accessPermission: permissions.access,
+        viewPermission: permissions.view,
+        editPermission: permissions.edit,
+        adminPermission: permissions.admin,
+        updatedById: authorization.user.staffId || authorization.user.username,
+        updatedByName: authorization.user.displayName,
+      },
+      update: {
+        accessPermission: permissions.access,
+        viewPermission: permissions.view,
+        editPermission: permissions.edit,
+        adminPermission: permissions.admin,
+        updatedById: authorization.user.staffId || authorization.user.username,
+        updatedByName: authorization.user.displayName,
+      },
     });
   });
   if (!grant) {

@@ -89,7 +89,11 @@ Permissions are stored per employee code and enforced by both the UI and API rou
 - `View Permission`: allows protected HR data to be viewed
 - `Admin Permission`: allows permission grants to be changed and includes every other permission
 
-Permission dependencies are normalized automatically: Admin includes Edit, View, and Access; Edit includes View and Access; View includes Access. Employees without an explicit grant receive Access and View only. Administrators manage a person's permissions from the `System Data` tab in the employee profile side sheet.
+Permission dependencies are normalized automatically: Admin includes Edit, View, and Access; Edit includes View and Access; View includes Access. Employees without an explicit grant receive Access and View only.
+
+Administrators can open `/admin` from the shield icon in the header or **Admin / จัดการสิทธิ์** in their profile menu. Search by employee code, name, position, or department; filter by permission and employment status; select an employee, adjust the four permissions, and save. The directory displays 20 employees per page, LINE-link status, and the latest saved permissions. Changes record the acting administrator and update time. The same permission editor remains available in the employee side sheet's `System Data` tab.
+
+Both the admin directory API and permission updates require a current Admin grant on the server. Non-admin users cannot access the directory or save grants. The last Admin cannot be demoted, and the editor prevents saving when the initial permission load fails. Directory responses exclude personal identifiers, bank details, and LINE user IDs. Employee directory fields are cached for 60 seconds; permission grants are always read fresh.
 
 Production LINE sessions use a server-verified LINE access token and a signed, HTTP-only session cookie. Direct LINE User ID login is restricted to local development.
 

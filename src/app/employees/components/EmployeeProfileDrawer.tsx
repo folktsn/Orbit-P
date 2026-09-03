@@ -1882,7 +1882,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                 )}
                 {activeProfileTab === "system" && (
                   <div className="space-y-4">
-                    <PermissionPanel staffId={displayEmployee.id} canAdmin={canAdminPermissions} />
+                    <PermissionPanel key={displayEmployee.id} staffId={displayEmployee.id} canAdmin={canAdminPermissions} />
                     {displayEmployee.databaseDetails && displayEmployee.databaseDetails.length > 0 && (
                       <div>
                         <h3 className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-3">Database Details</h3>

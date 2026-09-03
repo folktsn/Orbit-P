@@ -36,6 +36,7 @@ function createDatabase(initial = []) {
   const prisma = {
     permissionGrant: {
       findUnique: async ({ where }) => grants.get(where.staffId) || null,
+      findMany: async () => [...grants.values()],
       count: async () => [...grants.values()].filter((row) => row.adminPermission).length,
       upsert: async ({ where, create, update }) => {
         const row = { ...(grants.get(where.staffId) || create), ...update, updatedAt: new Date() };
@@ -188,6 +189,7 @@ test('last Admin cannot be removed; another Admin allows a controlled demotion',
   const auth = sessionModule(prisma);
   const route = loadTs('src/app/api/permissions/route.ts', {
     '@/lib/auth-session': auth, '@/lib/prisma': { prisma }, '@/lib/permissions': permissions,
+    '@/lib/dynamodb': { docClient: { send: async () => ({ Item: { staff_id: '00001' } }) } },
   });
   const token = auth.createSessionToken(admin);
   const request = () => new Request('https://example.test/api/permissions', {
@@ -199,6 +201,116 @@ test('last Admin cannot be removed; another Admin allows a controlled demotion',
   grants.set('00002', adminGrant('00002'));
   assert.equal((await route.PUT(request())).status, 200);
   assert.equal(grants.get('00001').adminPermission, false);
+});
+
+test('only an Admin can save valid employee grants and actor metadata is server supplied', async () => {
+  const { prisma, grants } = createDatabase([adminGrant()]);
+  const auth = sessionModule(prisma);
+  let lookups = 0;
+  const route = loadTs('src/app/api/permissions/route.ts', {
+    '@/lib/auth-session': auth, '@/lib/prisma': { prisma }, '@/lib/permissions': permissions,
+    '@/lib/dynamodb': { docClient: { send: async (command) => {
+      lookups++;
+      return command.input.Key.staff_id === '00002' ? { Item: { staff_id: '00002' } } : {};
+    } } },
+  });
+  const request = (token, staffId = '00002', values = ADMIN_PERMISSIONS) => new Request('https://example.test/api/permissions', {
+    method: 'PUT', headers: { cookie: `orbithire_auth=${token || ''}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ staffId, permissions: values, updatedById: 'forged-actor' }),
+  });
+  const viewer = auth.createSessionToken({ ...admin, staffId: '00002', permissions: DEFAULT_PERMISSIONS });
+  assert.equal((await route.PUT(request())).status, 401);
+  assert.equal((await route.PUT(request(viewer))).status, 403);
+  assert.equal(lookups, 0);
+  const token = auth.createSessionToken(admin);
+  assert.equal((await route.PUT(request(token, '00002', { admin: true }))).status, 400);
+  assert.equal((await route.PUT(request(token, 'missing'))).status, 404);
+  assert.equal(grants.has('missing'), false);
+  const response = await route.PUT(request(token));
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.deepEqual(result.permissions, ADMIN_PERMISSIONS);
+  assert.equal(result.updatedBy.id, admin.staffId);
+  assert.equal(grants.get('00002').adminPermission, true);
+});
+
+function directoryRoute(records = []) {
+  const { prisma, grants } = createDatabase([adminGrant()]);
+  prisma.lineWebhook = { findMany: async () => [{ staffId: '00002' }] };
+  const auth = sessionModule(prisma);
+  const state = { scans: [], cache: new Map() };
+  const route = loadTs('src/app/api/admin/users/route.ts', {
+    '@/lib/auth-session': auth, '@/lib/prisma': { prisma }, '@/lib/permissions': permissions,
+    '@/lib/employeesCache': {
+      getCachedEmployeeValue: (key) => state.cache.get(key),
+      setCachedEmployeeValue: (key, value) => state.cache.set(key, value),
+    },
+    '@/lib/dynamodb': { docClient: { send: async (command) => {
+      state.scans.push(command.input);
+      return command.input.ExclusiveStartKey
+        ? { Items: records.slice(10) }
+        : { Items: records.slice(0, 10), LastEvaluatedKey: { staff_id: 'cursor' } };
+    } } },
+  });
+  return { route, state, grants, auth, token: auth.createSessionToken(admin) };
+}
+
+const directoryRecords = Array.from({ length: 25 }, (_, index) => ({
+  staff_id: String(index + 1).padStart(5, '0'),
+  first_name_en: 'Test', last_name_en: `Employee ${index + 1}`, name_th: `พนักงาน ทดสอบ ${index + 1}`,
+  position_th: 'เจ้าหน้าที่บุคคล', department: 'Human Resources',
+  status: index === 24 ? 'Resigned' : 'Active',
+  line_user_id: index === 0 ? adminLineId : '',
+  id_card: 'private', bank_account: 'private', email: 'private', birth_date: 'private',
+}));
+
+test('admin directory rejects unauthenticated and non-admin callers before scanning', async () => {
+  const { route, state, auth, token } = directoryRoute(directoryRecords);
+  assert.equal((await route.GET(userRequest(null, '/api/admin/users'))).status, 401);
+  const viewer = auth.createSessionToken({ ...admin, staffId: '00002', permissions: DEFAULT_PERMISSIONS });
+  assert.equal((await route.GET(userRequest(viewer, '/api/admin/users'))).status, 403);
+  assert.equal(state.scans.length, 0);
+  assert.equal((await route.GET(userRequest(token, '/api/admin/users?permission=superuser'))).status, 400);
+  assert.equal(state.scans.length, 0);
+});
+
+test('admin directory paginates all Dynamo pages and returns only safe fields', async () => {
+  const { route, state, token } = directoryRoute(directoryRecords);
+  const response = await route.GET(userRequest(token, '/api/admin/users'));
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  const result = await response.json();
+  assert.equal(result.users.length, 20);
+  assert.equal(result.total, 24);
+  assert.equal(result.totalEmployees, 25);
+  assert.equal(result.totalAdmins, 1);
+  assert.equal(result.users[0].staffId, '00001');
+  assert.equal(result.users[1].linked, true);
+  assert.equal(state.scans.length, 2);
+  assert.deepEqual(Object.keys(result.users[0]).sort(), ['staffId', 'name', 'nameTh', 'position', 'department', 'status', 'linked', 'permissions', 'isExplicit'].sort());
+  const projectedFields = Object.values(state.scans[0].ExpressionAttributeNames);
+  assert.equal(projectedFields.includes('id_card'), false);
+  assert.equal(projectedFields.includes('bank_account'), false);
+  const last = await (await route.GET(userRequest(token, '/api/admin/users?page=99'))).json();
+  assert.equal(last.page, 2);
+  assert.equal(last.users.length, 4);
+  assert.equal(state.scans.length, 2);
+});
+
+test('admin search and status filters combine with fresh permission grants', async () => {
+  const { route, grants, token, state } = directoryRoute(directoryRecords);
+  const get = async (query) => (await route.GET(userRequest(token, `/api/admin/users?${query}`))).json();
+  assert.equal((await get('q=00002')).users[0].staffId, '00002');
+  assert.equal((await get('q=Test%20Resources')).total, 24);
+  assert.equal((await get(`q=${encodeURIComponent('พนักงาน')}`)).total, 24);
+  assert.equal((await get('status=inactive')).users[0].staffId, '00025');
+  assert.equal((await get('status=all')).total, 25);
+  assert.equal((await get('permission=edit')).total, 1);
+  grants.set('00002', adminGrant('00002'));
+  assert.equal((await get('permission=admin')).total, 2);
+  grants.set('00003', { staffId: '00003', accessPermission: false, viewPermission: false, editPermission: false, adminPermission: false });
+  assert.equal((await get('permission=blocked')).users[0].staffId, '00003');
+  assert.equal((await get('q=no-match')).total, 0);
+  assert.equal(state.scans.length, 2);
 });
 
 test('an editor cannot rebind an Admin LINE identity through the employee update API', async () => {

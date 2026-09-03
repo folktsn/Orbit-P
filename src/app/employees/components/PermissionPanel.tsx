@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Loader2, Save, ShieldCheck } from "lucide-react";
+import { Check, Loader2, RefreshCw, Save, ShieldCheck, Undo2 } from "lucide-react";
 import {
   DEFAULT_PERMISSIONS,
   PERMISSION_DEFINITIONS,
@@ -18,7 +18,15 @@ type PermissionResponse = {
   error?: string;
 };
 
-export function PermissionPanel({ staffId, canAdmin }: { staffId: string; canAdmin: boolean }) {
+type PermissionPanelProps = {
+  staffId: string;
+  canAdmin: boolean;
+  onSaved?: (staffId: string, permissions: PermissionSet) => void;
+  onDirtyChange?: (dirty: boolean) => void;
+  onSavingChange?: (saving: boolean) => void;
+};
+
+export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onSavingChange }: PermissionPanelProps) {
   const [permissions, setPermissions] = useState<PermissionSet>(DEFAULT_PERMISSIONS);
   const [savedPermissions, setSavedPermissions] = useState<PermissionSet>(DEFAULT_PERMISSIONS);
   const [metadata, setMetadata] = useState<Pick<PermissionResponse, "isExplicit" | "updatedAt" | "updatedBy">>({});
@@ -26,6 +34,11 @@ export function PermissionPanel({ staffId, canAdmin }: { staffId: string; canAdm
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  const dirty = loaded && JSON.stringify(permissions) !== JSON.stringify(savedPermissions);
+
+  useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,6 +54,7 @@ export function PermissionPanel({ staffId, canAdmin }: { staffId: string; canAdm
         setPermissions(normalized);
         setSavedPermissions(normalized);
         setMetadata({ isExplicit: result.isExplicit, updatedAt: result.updatedAt, updatedBy: result.updatedBy });
+        setLoaded(true);
       })
       .catch((loadError) => {
         if (!cancelled) setError(loadError instanceof Error ? loadError.message : "ไม่สามารถโหลดสิทธิ์ได้");
@@ -52,11 +66,12 @@ export function PermissionPanel({ staffId, canAdmin }: { staffId: string; canAdm
     return () => {
       cancelled = true;
     };
-  }, [staffId]);
+  }, [staffId, retryKey]);
 
   const togglePermission = (key: PermissionKey) => {
-    if (!canAdmin) return;
+    if (!canAdmin || !loaded || saving) return;
     setSaved(false);
+    setError("");
     setPermissions((current) => {
       const next = { ...current, [key]: !current[key] };
       if (key === "access" && !next.access) return { access: false, view: false, edit: false, admin: false };
@@ -67,7 +82,9 @@ export function PermissionPanel({ staffId, canAdmin }: { staffId: string; canAdm
   };
 
   const savePermissions = async () => {
+    if (!canAdmin || !loaded || !dirty || saving) return;
     setSaving(true);
+    onSavingChange?.(true);
     setSaved(false);
     setError("");
     try {
@@ -83,14 +100,14 @@ export function PermissionPanel({ staffId, canAdmin }: { staffId: string; canAdm
       setSavedPermissions(normalized);
       setMetadata({ isExplicit: true, updatedAt: result.updatedAt, updatedBy: result.updatedBy });
       setSaved(true);
+      onSaved?.(staffId, normalized);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "ไม่สามารถบันทึกสิทธิ์ได้");
     } finally {
       setSaving(false);
+      onSavingChange?.(false);
     }
   };
-
-  const dirty = JSON.stringify(permissions) !== JSON.stringify(savedPermissions);
 
   return (
     <section className="border-t border-slate-200 pt-4 dark:border-white/10">
@@ -113,7 +130,7 @@ export function PermissionPanel({ staffId, canAdmin }: { staffId: string; canAdm
 
       {loading ? (
         <div className="flex h-24 items-center justify-center text-slate-400"><Loader2 className="h-4 w-4 animate-spin" /></div>
-      ) : (
+      ) : loaded ? (
         <div className="space-y-2">
           {PERMISSION_DEFINITIONS.map((definition) => {
             const enabled = permissions[definition.key];
@@ -142,18 +159,27 @@ export function PermissionPanel({ staffId, canAdmin }: { staffId: string; canAdm
             );
           })}
         </div>
-      )}
+      ) : null}
 
       {error && <p role="alert" className="mt-3 text-xs font-medium text-rose-600 dark:text-rose-400">{error}</p>}
+      {!loading && !loaded && (
+        <button type="button" onClick={() => { setLoading(true); setError(""); setRetryKey((key) => key + 1); }} className="mt-3 flex items-center gap-2 text-xs font-semibold text-sky-600">
+          <RefreshCw className="h-4 w-4" />ลองใหม่
+        </button>
+      )}
+      {saved && <p role="status" className="mt-3 text-xs text-emerald-600 dark:text-emerald-400">บันทึกสิทธิ์แล้ว</p>}
 
-      {!loading && (
-        <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-white/5">
+      {!loading && loaded && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 dark:border-white/5">
           <p className="min-w-0 text-[10px] text-slate-400">
             {metadata.updatedBy
               ? `แก้ไขล่าสุดโดย ${metadata.updatedBy.name}`
-              : "ใช้สิทธิ์เริ่มต้น: เข้าถึงและดูข้อมูลได้"}
+              : metadata.isExplicit ? "กำหนดสิทธิ์เฉพาะบุคคล" : "ใช้สิทธิ์เริ่มต้น: เข้าถึงและดูข้อมูลได้"}
+            {metadata.updatedAt && <time dateTime={metadata.updatedAt} className="mt-0.5 block">{new Date(metadata.updatedAt).toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" })}</time>}
           </p>
           {canAdmin && (
+            <div className="ml-auto flex items-center gap-2">
+            {dirty && <button type="button" title="ยกเลิกการเปลี่ยนแปลง" aria-label="ยกเลิกการเปลี่ยนแปลง" disabled={saving} onClick={() => { setPermissions(savedPermissions); setError(""); }} className="flex h-8 w-8 items-center justify-center text-slate-500 disabled:opacity-40"><Undo2 className="h-4 w-4" /></button>}
             <button
               type="button"
               onClick={savePermissions}
@@ -163,6 +189,7 @@ export function PermissionPanel({ staffId, canAdmin }: { staffId: string; canAdm
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               {saved ? "บันทึกแล้ว" : "บันทึก"}
             </button>
+            </div>
           )}
         </div>
       )}

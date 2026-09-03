@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Moon, Sun, LogOut } from "lucide-react";
+import { Moon, Sun, LogOut, ShieldCheck } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/components/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,7 +36,7 @@ function PillItem({ item, isActive }: { item: { name: string; href: string }; is
 export function PillNav() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, can } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -116,6 +116,11 @@ export function PillNav() {
       </nav>
 
       <div className="pill-actions">
+        {mounted && can("admin") && (
+          <Link href="/admin" aria-label="Admin / จัดการสิทธิ์" title="Admin / จัดการสิทธิ์" aria-current={pathname === "/admin" ? "page" : undefined} className={`pill-action-button flex h-10 w-10 items-center justify-center rounded-full border shadow-sm ${pathname === "/admin" ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400" : "border-slate-100 bg-white text-slate-600 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"}`}>
+            <ShieldCheck className="h-5 w-5" />
+          </Link>
+        )}
         {mounted && (
           <button 
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -190,6 +195,11 @@ export function PillNav() {
                   <hr className="border-slate-100 dark:border-white/5" />
 
                   {/* Actions Area */}
+                  {can("admin") && (
+                    <Link href="/admin" onClick={() => setIsDropdownOpen(false)} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5">
+                      <ShieldCheck className="h-4 w-4 text-emerald-600" />Admin / จัดการสิทธิ์
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       setIsDropdownOpen(false);
