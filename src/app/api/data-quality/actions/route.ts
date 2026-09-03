@@ -2,6 +2,7 @@ import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { NextResponse } from "next/server";
 import { docClient } from "@/lib/dynamodb";
 import { prisma } from "@/lib/prisma";
+import { authorizeRequest } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -84,7 +85,10 @@ const workflowInclude = {
   history: { orderBy: { changedAt: "asc" as const }, take: 30 },
 };
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authorization = await authorizeRequest(request, "view");
+  if (!authorization.ok) return authorization.response;
+
   try {
     const records = await prisma.dataQualityAction.findMany({ include: workflowInclude });
     const items = Object.fromEntries(records.map((record) => [record.issueId, mapRecord(record)]));
@@ -97,6 +101,9 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  const authorization = await authorizeRequest(request, "edit");
+  if (!authorization.ok) return authorization.response;
+
   try {
     const body = await request.json().catch(() => ({})) as Record<string, unknown>;
     const issueId = clean(body.issueId, 300);
@@ -104,10 +111,9 @@ export async function PUT(request: Request) {
     const assigneeId = clean(body.assigneeId, 80);
     const dueDate = clean(body.dueDate, 10);
     const note = clean(body.note, 1000);
-    const rawActor = body.actor && typeof body.actor === "object" ? body.actor as Record<string, unknown> : {};
     const actor = {
-      id: clean(rawActor.id || rawActor.username, 80) || "unknown",
-      name: clean(rawActor.name || rawActor.displayName, 160) || "Unknown user",
+      id: authorization.user.staffId || authorization.user.username,
+      name: authorization.user.displayName,
     };
 
     if (!issueId) return NextResponse.json({ error: "Issue ID is required" }, { status: 400 });

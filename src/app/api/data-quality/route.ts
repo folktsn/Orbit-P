@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ScanCommand, type ScanCommandInput } from "@aws-sdk/lib-dynamodb";
 import { docClient } from "@/lib/dynamodb";
+import { authorizeRequest } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -410,6 +411,9 @@ function analyze(employees: RawRecord[], organization: RawRecord[]) {
 }
 
 export async function GET(request: NextRequest) {
+  const authorization = await authorizeRequest(request, "view");
+  if (!authorization.ok) return authorization.response;
+
   try {
     const refresh = request.nextUrl.searchParams.get("refresh") === "1";
     const cached = globalWithQualityCache[QUALITY_CACHE_KEY];

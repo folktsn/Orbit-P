@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { authorizeRequest } from "@/lib/auth-session";
 
 type LineMappingsCache = {
   mappings: Record<string, string> | null;
@@ -25,7 +26,10 @@ function getCache(): LineMappingsCache {
   return globalWithCache[GLOBAL_CACHE_KEY];
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authorization = await authorizeRequest(request, "view");
+  if (!authorization.ok) return authorization.response;
+
   try {
     const cache = getCache();
     if (cache.mappings && Date.now() < cache.expiresAt) {

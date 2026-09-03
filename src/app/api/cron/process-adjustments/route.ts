@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { processAdjustments, processProbationTransitions } from '@/lib/cronService';
+import { authorizeRequest } from '@/lib/auth-session';
 
 const MIN_RUN_INTERVAL_MS = 30 * 60 * 1000;
 const CRON_STATE_KEY = '__orbit_background_service_state__';
@@ -30,7 +31,10 @@ function getBackgroundServiceState() {
   return globalWithBackgroundService[CRON_STATE_KEY];
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authorization = await authorizeRequest(request, 'admin');
+  if (!authorization.ok) return authorization.response;
+
   const state = getBackgroundServiceState();
   const now = Date.now();
 

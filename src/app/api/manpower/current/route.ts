@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient } from '@/lib/dynamodb';
 import { getCachedEmployeeValue, setCachedEmployeeValue } from '@/lib/employeesCache';
+import { authorizeRequest } from '@/lib/auth-session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -224,6 +225,9 @@ function countDepartmentRows(employees: EmployeeRecord[], department: string, to
 }
 
 export async function GET(request: NextRequest) {
+  const authorization = await authorizeRequest(request, 'view');
+  if (!authorization.ok) return authorization.response;
+
   try {
     const { searchParams } = new URL(request.url);
     const view = searchParams.get('view');

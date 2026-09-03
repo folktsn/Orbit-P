@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { authorizeRequest } from "@/lib/auth-session";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authorization = await authorizeRequest(request, "admin");
+  if (!authorization.ok) return authorization.response;
+
   try {
     // Clean existing webhooks first to ensure clean state
     await prisma.lineWebhook.deleteMany({});

@@ -2,8 +2,12 @@ import { NextResponse } from 'next/server';
 import { docClient } from '@/lib/dynamodb';
 import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { invalidateEmployeesCache } from '@/lib/employeesCache';
+import { authorizeRequest } from '@/lib/auth-session';
 
 export async function PUT(request: Request) {
+  const authorization = await authorizeRequest(request, 'edit');
+  if (!authorization.ok) return authorization.response;
+
   try {
     const data = await request.json();
     const { id, adjustment } = data;

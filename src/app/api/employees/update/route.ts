@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { docClient } from '@/lib/dynamodb';
-import { UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { uploadAttachment, prefixForField } from '@/lib/s3';
 import { buildEmployeeDocumentKey } from '@/lib/employeeDocumentStorage';
 import { invalidateEmployeesCache } from '@/lib/employeesCache';
+import { authorizeRequest } from '@/lib/auth-session';
 
 export const runtime = 'nodejs';
 
@@ -111,6 +112,9 @@ async function persistAttachmentFiles(
 }
 
 export async function PUT(request: Request) {
+  const authorization = await authorizeRequest(request, 'edit');
+  if (!authorization.ok) return authorization.response;
+
   try {
     const data = await request.json();
     
@@ -121,6 +125,21 @@ export async function PUT(request: Request) {
     
     if (!staffId) {
       return NextResponse.json({ error: "Missing employee ID" }, { status: 400 });
+    }
+
+    // An editor must not rebind an administrator's login identity.
+    if (data.lineUserId !== undefined && !authorization.user.permissions.admin) {
+      const existing = await docClient.send(new GetCommand({
+        TableName: 'fullstaff',
+        Key: { staff_id: staffId },
+        ProjectionExpression: 'line_user_id',
+        ConsistentRead: true,
+      }));
+      const normalizeLineId = (value: unknown) => String(value || '').trim().replace(/^-$/, '');
+      if (normalizeLineId(data.lineUserId) !== normalizeLineId(existing.Item?.line_user_id)) {
+        return NextResponse.json({ error: 'Admin permission is required to change a LINE account link' }, { status: 403 });
+      }
+      delete data.lineUserId;
     }
 
     data.attachmentData = await persistAttachmentFile(

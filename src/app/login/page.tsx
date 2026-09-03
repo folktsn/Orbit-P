@@ -134,13 +134,17 @@ export default function LoginPage() {
     try {
       if (!window.liff) return;
       const profile = await window.liff.getProfile();
-      console.log("LIFF Profile retrieved:", profile);
+      const accessToken = window.liff.getAccessToken();
+      if (!accessToken) throw new Error("LINE did not return an access token");
       
       const lineUserId = profile.userId;
       setCustomLineUserId(lineUserId);
 
-      // Perform a real-time DynamoDB scan/lookup for this LINE User ID
-      const response = await fetch(`/api/auth/line/lookup?lineUserId=${encodeURIComponent(lineUserId)}&lineNickname=${encodeURIComponent(profile.displayName || "")}&lineAvatarUrl=${encodeURIComponent(profile.pictureUrl || "")}`);
+      const response = await fetch("/api/auth/line/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken }),
+      });
       const result = await response.json();
       
       if (result.success && result.data) {
@@ -162,7 +166,7 @@ export default function LoginPage() {
           username: profile.userId
         });
         setLineView("prompt");
-        setCustomLineError("ไม่พบพนักงานที่เชื่อมโยงกับ LINE User ID นี้ในระบบฐานข้อมูล");
+        setCustomLineError(result.error || "ไม่พบพนักงานที่เชื่อมโยงกับ LINE User ID นี้ในระบบฐานข้อมูล");
       }
     } catch (e: any) {
       console.error("Failed to fetch LIFF profile details:", e);
@@ -259,12 +263,7 @@ export default function LoginPage() {
 
     setTimeout(async () => {
       setShowLineModal(false);
-      await loginWithLine(
-        detectedProfile.role,
-        detectedProfile.displayName,
-        detectedProfile.lineAvatarUrl || "/folk_tsn_avatar.png",
-        lineId
-      );
+      await loginWithLine();
       setLineAuthSuccess(false);
       setDetectedProfile(null);
       setCustomLineUserId("");
@@ -741,7 +740,8 @@ export default function LoginPage() {
                     </div>
                   )}
 
-                  {/* Toggle alternative custom text search input */}
+                  {/* Direct ID lookup is intentionally limited to local development. */}
+                  {isLocalDevelopment && (
                   <div className="bg-slate-900/20 rounded-2xl border border-slate-850 p-4 mb-4">
                     <button
                       type="button"
@@ -777,6 +777,7 @@ export default function LoginPage() {
                       </div>
                     )}
                   </div>
+                  )}
 
                   {/* Disconnect/Logout LIFF option if logged in */}
                   {detectedProfile && (

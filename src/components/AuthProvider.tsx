@@ -2,13 +2,16 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { hasPermission, type PermissionKey, type PermissionSet } from "@/lib/permissions";
 
 export interface UserProfile {
   username: string;
-  role: "admin" | "recruiter" | "hr";
+  role: "admin" | "recruiter" | "hr" | "employee";
   displayName: string;
   provider?: "credentials" | "line";
   lineAvatarUrl?: string;
+  staffId?: string;
+  permissions: PermissionSet;
 }
 
 interface AuthContextType {
@@ -16,12 +19,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   login: (username: string, role: "admin" | "recruiter" | "hr") => Promise<boolean>;
-  loginWithLine: (
-    role: "admin" | "recruiter" | "hr",
-    lineNickname: string,
-    lineAvatar: string,
-    lineUserId?: string
-  ) => Promise<boolean>;
+  loginWithLine: () => Promise<boolean>;
+  can: (permission: PermissionKey) => boolean;
   logout: () => void;
 }
 
@@ -34,69 +33,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check if user session exists in sessionStorage
-    const savedSession = sessionStorage.getItem("orbithire_session");
-    if (savedSession) {
-      try {
-        const sessionData = JSON.parse(savedSession);
-        setUser(sessionData);
-      } catch (e) {
-        console.error("Failed to parse auth session", e);
-        sessionStorage.removeItem("orbithire_session");
-      }
-    }
-    setLoading(false);
+    let cancelled = false;
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        const result = await response.json();
+        return result.user as UserProfile | undefined;
+      })
+      .then((sessionUser) => {
+        if (cancelled) return;
+        if (sessionUser) {
+          sessionStorage.setItem("orbithire_session", JSON.stringify(sessionUser));
+          setUser(sessionUser);
+        } else {
+          sessionStorage.removeItem("orbithire_session");
+          setUser(null);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to restore auth session", error);
+        if (!cancelled) setUser(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = async (username: string, role: "admin" | "recruiter" | "hr"): Promise<boolean> => {
     setLoading(true);
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const displayNameMap = {
-      admin: "Administrator",
-      recruiter: "Senior Recruiter",
-      hr: "HR Manager",
-    };
-
-    const newSession: UserProfile = {
-      username,
-      role,
-      displayName: displayNameMap[role] || "User",
-      provider: "credentials",
-    };
-
-    sessionStorage.setItem("orbithire_session", JSON.stringify(newSession));
-    setUser(newSession);
-    setLoading(false);
-    router.replace("/");
-    return true;
+    try {
+      const response = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, role }),
+      });
+      if (!response.ok) return false;
+      const result = await response.json();
+      const newSession = result.user as UserProfile;
+      sessionStorage.setItem("orbithire_session", JSON.stringify(newSession));
+      setUser(newSession);
+      router.replace("/");
+      return true;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const loginWithLine = async (
-    role: "admin" | "recruiter" | "hr",
-    lineNickname: string,
-    lineAvatar: string,
-    lineUserId?: string
-  ): Promise<boolean> => {
+  const loginWithLine = async (): Promise<boolean> => {
     setLoading(true);
     
     try {
-      // Query the database lookup to find the linked employee profile in SQLite or DynamoDB
-      const url = lineUserId
-        ? `/api/auth/line/lookup?lineUserId=${encodeURIComponent(lineUserId)}`
-        : `/api/auth/line/lookup?lineNickname=${encodeURIComponent(lineNickname)}`;
-        
-      const response = await fetch(url);
+      const response = await fetch("/api/auth/session", { cache: "no-store" });
       const result = await response.json();
       
-      if (result.success && result.data) {
-        // Log in using the resolved employee profile from the database connection!
-        const resolvedSession: UserProfile = result.data;
+      if (response.ok && result.authenticated && result.user) {
+        const resolvedSession: UserProfile = result.user;
         sessionStorage.setItem("orbithire_session", JSON.stringify(resolvedSession));
         setUser(resolvedSession);
       } else {
-        // LINE sessions must be backed by a verified employee profile.
         setLoading(false);
         return false;
       }
@@ -112,10 +110,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    void fetch("/api/auth/session", { method: "DELETE" });
     sessionStorage.removeItem("orbithire_session");
     setUser(null);
     router.replace("/login");
   };
+
+  const can = (permission: PermissionKey) => hasPermission(user?.permissions, permission);
 
   const isPublicRoute = pathname === "/login";
 
@@ -139,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, loginWithLine, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, loginWithLine, can, logout }}>
       {children}
     </AuthContext.Provider>
   );

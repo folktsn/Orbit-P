@@ -4,6 +4,7 @@ import { promises as fs } from "fs";
 import os from "os";
 import path from "path";
 import { ATTACHMENTS_BUCKET, s3Client } from "@/lib/s3";
+import { authorizeRequest } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -103,12 +104,18 @@ async function writeBudgetFile(file: BudgetFile) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authorization = await authorizeRequest(request, "view");
+  if (!authorization.ok) return authorization.response;
+
   const file = await readBudgetFile();
   return NextResponse.json(file, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function PUT(request: Request) {
+  const authorization = await authorizeRequest(request, "edit");
+  if (!authorization.ok) return authorization.response;
+
   try {
     const body = await request.json().catch(() => ({}));
     const incomingBudgets = normalizeBudgets(body?.budgets ?? body);

@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { getAttachmentDownloadUrl, isS3Key, isAllowedAttachmentKey } from "@/lib/s3";
+import { authorizeRequest } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 
 // Returns a short-lived presigned URL for an employee attachment stored in S3.
 // The bucket is private; this is the only way clients get at the file.
 export async function GET(request: Request) {
+  const authorization = await authorizeRequest(request, "view");
+  if (!authorization.ok) return authorization.response;
+
   try {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");

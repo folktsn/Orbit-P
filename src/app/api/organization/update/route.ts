@@ -2,8 +2,12 @@ import { NextResponse } from 'next/server';
 import { docClient } from '@/lib/dynamodb';
 import { UpdateCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import crypto from 'crypto';
+import { authorizeRequest } from '@/lib/auth-session';
 
 export async function PUT(request: Request) {
+  const authorization = await authorizeRequest(request, 'edit');
+  if (!authorization.ok) return authorization.response;
+
   try {
     const data = await request.json();
     
@@ -86,6 +90,9 @@ export async function PUT(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const authorization = await authorizeRequest(request, 'edit');
+  if (!authorization.ok) return authorization.response;
+
   try {
     const data = await request.json();
     const id = crypto.randomUUID();
@@ -127,6 +134,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const authorization = await authorizeRequest(request, 'edit');
+  if (!authorization.ok) return authorization.response;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

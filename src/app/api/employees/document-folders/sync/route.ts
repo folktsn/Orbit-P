@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient } from '@/lib/dynamodb';
 import { ensureEmployeeDocumentStructure } from '@/lib/employeeDocumentStorage';
+import { authorizeRequest } from '@/lib/auth-session';
 
 export const runtime = 'nodejs';
 
@@ -55,7 +56,10 @@ async function scanEmployeeFolderCandidates() {
   return items;
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+  const authorization = await authorizeRequest(request, 'edit');
+  if (!authorization.ok) return authorization.response;
+
   try {
     const employees = await scanEmployeeFolderCandidates();
     const results = [];

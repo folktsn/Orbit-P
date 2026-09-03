@@ -80,6 +80,19 @@ Key capabilities:
 - Resign action
 - Probation evaluation action
 
+### Permissions
+
+Permissions are stored per employee code and enforced by both the UI and API routes.
+
+- `Access Permission`: allows the employee to sign in to the system
+- `Edit Permission`: allows changes to employee, organization, manpower, recruitment, probation, and data-quality workflow data
+- `View Permission`: allows protected HR data to be viewed
+- `Admin Permission`: allows permission grants to be changed and includes every other permission
+
+Permission dependencies are normalized automatically: Admin includes Edit, View, and Access; Edit includes View and Access; View includes Access. Employees without an explicit grant receive Access and View only. Administrators manage a person's permissions from the `System Data` tab in the employee profile side sheet.
+
+Production LINE sessions use a server-verified LINE access token and a signed, HTTP-only session cookie. Direct LINE User ID login is restricted to local development.
+
 ### Employee Documents
 
 Employee document management supports upload, view, download, and delete actions.
@@ -189,6 +202,7 @@ Used for local app data such as:
 - ATS candidate workflow data
 - LINE webhook mapping data
 - Data quality workflow state and history
+- Employee permission grants and permission audit metadata
 - Local development database files
 
 Do not treat SQLite as the primary employee master database.
@@ -218,6 +232,19 @@ The production IAM identity requires these permissions:
 - S3 object access for `Employees/*`, `attachments/*`, and `evaluation/*`
 
 Other environment values may be needed depending on the module being tested locally.
+
+Authentication and permission values:
+
+```bash
+AUTH_SESSION_SECRET=replace-with-a-long-random-secret
+LINE_LOGIN_CHANNEL_ID=your-line-login-channel-id
+```
+
+`AUTH_SESSION_SECRET` signs the HTTP-only session cookie. If omitted, the existing `LINE_CHANNEL_SECRET` is used. `LINE_LOGIN_CHANNEL_ID` is the LINE Login channel used by LIFF, not the Messaging API channel. Login validates the access token with LINE and resolves only an exact LINE User ID link, never a matching display name.
+
+After the permission schema is applied, an authorized server operator can bootstrap the first Admin using `scripts/bootstrap-permission-admin.mjs --staff-id <staffId> --line-user-id <lineUserId> --line-channel-id <channelId>`. Run with `node`; the default is a read-only identity check. Add `--apply` only after verifying the requested identity. The script verifies both SQLite and DynamoDB links, creates missing session configuration without printing secrets, backs up SQLite into ignored `.backups/`, and grants all four permissions only to that employee. `--configure-only --apply` prepares authentication configuration without granting permissions before a first deployment.
+
+Admin grants live in SQLite and are not overridden by environment variables. The permission API prevents removing the last Admin. Only Admin users may change LINE account links. Other linked employees start with Access and View permissions; Edit and Admin must be granted explicitly. Existing users must sign in through LINE again after the first permission deployment.
 
 Security rules:
 
@@ -271,7 +298,7 @@ The deploy script performs:
 4. Build with Webpack
 5. Remove `.next/cache` to save disk space
 6. Restart PM2 app `orbit-p`
-7. Run health checks against `/` and `/api/employees`
+7. Check `/` responds and `/api/employees` rejects unauthenticated requests with HTTP 401
 
 Manual PM2 checks:
 

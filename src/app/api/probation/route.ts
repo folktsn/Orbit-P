@@ -2,6 +2,7 @@ import { ScanCommand, type ScanCommandInput } from "@aws-sdk/lib-dynamodb";
 import { NextRequest, NextResponse } from "next/server";
 import { docClient } from "@/lib/dynamodb";
 import { getProbationCache, setProbationCache } from "@/lib/probationCache";
+import { authorizeRequest } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 
@@ -109,6 +110,9 @@ async function scanProbationEmployees() {
 }
 
 export async function GET(request: NextRequest) {
+  const authorization = await authorizeRequest(request, "view");
+  if (!authorization.ok) return authorization.response;
+
   try {
     const shouldRefresh = request.nextUrl.searchParams.get("refresh") === "1";
     const now = Date.now();

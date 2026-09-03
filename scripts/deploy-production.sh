@@ -57,7 +57,11 @@ for attempt in {1..30}; do
   sleep 1
 done
 
-curl -fsS --max-time 30 http://127.0.0.1:3000/api/employees >/dev/null
+API_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 http://127.0.0.1:3000/api/employees)"
+if [ "$API_STATUS" != "401" ]; then
+  echo "Health check failed: unauthenticated employees API returned $API_STATUS (expected 401)" >&2
+  exit 1
+fi
 
 echo "==> Deployment complete"
 pm2 list

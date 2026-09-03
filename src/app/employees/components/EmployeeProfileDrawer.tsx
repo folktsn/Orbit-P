@@ -6,6 +6,8 @@ import { X, Edit2, MapPin, Briefcase, Calendar, User, Save, Loader2, Check, Awar
 import { cn } from "@/lib/utils";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { PassProbationModal } from "./PassProbationModal";
+import { PermissionPanel } from "./PermissionPanel";
+import { useAuth } from "@/components/AuthProvider";
 
 const MAX_DOCUMENT_FILE_SIZE_MB = 25;
 const MAX_DOCUMENT_FILE_SIZE_BYTES = MAX_DOCUMENT_FILE_SIZE_MB * 1024 * 1024;
@@ -258,6 +260,9 @@ const composeAddressFromDatabaseFields = (record: ServerEmployeeRecord) => {
   return parts.join(" ");
 };
 export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blurBackground = false }: DrawerProps) {
+  const { can } = useAuth();
+  const canEditProfile = can("edit");
+  const canAdminPermissions = can("admin");
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<EmployeeData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -1310,6 +1315,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
   }, [displayEmployee?.contractStart, displayEmployee?.resignDate]);
 
   const canPassProbation = Boolean(
+    canEditProfile &&
     displayEmployee?.empType?.toLowerCase() === "probation" &&
     (!displayEmployee.status || displayEmployee.status.toLowerCase() !== "resign") &&
     (!displayEmployee.resignDate || displayEmployee.resignDate === "-"),
@@ -1404,14 +1410,16 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                       >
                         <RefreshCw className={cn("w-3.5 h-3.5", (isRefreshingDetails || isLoadingDetails) && "animate-spin")} />
                       </button>
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="inline-flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:text-slate-900 active:scale-95 dark:text-slate-300 dark:hover:text-white"
-                        title="Edit profile"
-                        aria-label="Edit profile"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
+                      {canEditProfile && (
+                        <button
+                          onClick={() => setIsEditing(true)}
+                          className="inline-flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:text-slate-900 active:scale-95 dark:text-slate-300 dark:hover:text-white"
+                          title="Edit profile"
+                          aria-label="Edit profile"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -1837,7 +1845,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                         {/* 3. line_webhook */}
                         {isEditing ? (
                           <div className="space-y-3">
-                            {renderField("LINE User ID (สำหรับการลงทะเบียน LINE Webhook)", "lineUserId")}
+                            {renderField("LINE User ID (สำหรับการลงทะเบียน LINE Webhook)", "lineUserId", !canAdminPermissions)}
                             {renderField("LINE Avatar URL (รูปโปรไฟล์ LINE)", "lineAvatarUrl")}
                           </div>
                         ) : (
@@ -1872,22 +1880,27 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                   </div>
                 </div>
                 )}
-                {activeProfileTab === "system" && displayEmployee.databaseDetails && displayEmployee.databaseDetails.length > 0 && (
-                  <div>
-                    <h3 className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-3">Database Details</h3>
-                    <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                      <div className="p-1.5 bg-cyan-50 dark:bg-cyan-500/10 rounded-lg text-cyan-500 dark:text-cyan-400">
-                        <FileText className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2 mt-0.5">
-                        {displayEmployee.databaseDetails.map((detail) => (
-                          <div key={detail.label} className="min-w-0">
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400 block">{detail.label}</span>
-                            <span className="block text-[13px] text-slate-700 dark:text-slate-300 font-semibold break-words">{detail.value}</span>
+                {activeProfileTab === "system" && (
+                  <div className="space-y-4">
+                    <PermissionPanel staffId={displayEmployee.id} canAdmin={canAdminPermissions} />
+                    {displayEmployee.databaseDetails && displayEmployee.databaseDetails.length > 0 && (
+                      <div>
+                        <h3 className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-3">Database Details</h3>
+                        <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                          <div className="p-1.5 bg-cyan-50 dark:bg-cyan-500/10 rounded-lg text-cyan-500 dark:text-cyan-400">
+                            <FileText className="w-4 h-4" />
                           </div>
-                        ))}
+                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2 mt-0.5">
+                            {displayEmployee.databaseDetails.map((detail) => (
+                              <div key={detail.label} className="min-w-0">
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 block">{detail.label}</span>
+                                <span className="block text-[13px] text-slate-700 dark:text-slate-300 font-semibold break-words">{detail.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 

@@ -47,3 +47,4 @@ next-env.d.ts
 # Custom local scratch and zip files
 /scratch
 *.zip
+.backups/

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { docClient } from '@/lib/dynamodb';
 import { ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { authorizeRequest } from '@/lib/auth-session';
 
 // Helper to scan all positions
 async function getAllPositions() {
@@ -10,6 +11,9 @@ async function getAllPositions() {
 }
 
 export async function PUT(request: Request) {
+  const authorization = await authorizeRequest(request, 'edit');
+  if (!authorization.ok) return authorization.response;
+
   try {
     const data = await request.json();
     const { matchingFilter, updates } = data;

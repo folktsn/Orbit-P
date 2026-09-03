@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { authorizeRequest } from "@/lib/auth-session";
 
 type CandidateWithJob = {
   id: string;
@@ -11,7 +12,9 @@ type CandidateWithJob = {
   job: { title: string };
 };
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authorization = await authorizeRequest(request, "view");
+  if (!authorization.ok) return authorization.response;
   try {
     const candidates = await prisma.candidateProfile.findMany({
       include: {
@@ -45,6 +48,8 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  const authorization = await authorizeRequest(request, "edit");
+  if (!authorization.ok) return authorization.response;
   try {
     const { id, status } = await request.json();
 

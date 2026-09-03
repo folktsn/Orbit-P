@@ -6,6 +6,7 @@ import { docClient } from "@/lib/dynamodb";
 import { invalidateEmployeesCache } from "@/lib/employeesCache";
 import { invalidateProbationCache } from "@/lib/probationCache";
 import { uploadAttachment } from "@/lib/s3";
+import { authorizeRequest } from "@/lib/auth-session";
 
 export const runtime = "nodejs";
 
@@ -158,6 +159,9 @@ async function uploadFollowUpImage(params: {
 }
 
 export async function GET(request: NextRequest) {
+  const authorization = await authorizeRequest(request, "view");
+  if (!authorization.ok) return authorization.response;
+
   try {
     const employeeId = request.nextUrl.searchParams.get("employeeId")?.trim() || "";
     if (!employeeId) {
@@ -177,6 +181,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+  const authorization = await authorizeRequest(request, "edit");
+  if (!authorization.ok) return authorization.response;
+
   try {
     const body = await request.json() as FollowUpRequest;
     const employeeId = String(body.employeeId ?? "").trim();
