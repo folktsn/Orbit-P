@@ -128,7 +128,7 @@
   color: #ffffff;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1279px) {
   .pill-header {
     min-height: 7rem;
     align-items: flex-end;

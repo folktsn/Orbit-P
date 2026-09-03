@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Moon, Sun, LogOut, ShieldCheck } from "lucide-react";
+import { Moon, Sun, LogOut, ShieldCheck, ClipboardCheck } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/components/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,7 +28,7 @@ export function PillNav() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { user, logout, can, canPage } = useAuth();
-  const navItems = PAGE_DEFINITIONS.filter(({ key }) => canPage(key));
+  const navItems = PAGE_DEFINITIONS.filter(({ key }) => key !== "dataQuality" && canPage(key));
   const [mounted, setMounted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -111,6 +111,17 @@ export function PillNav() {
         {mounted && can("admin") && (
           <Link href="/admin" aria-label="Admin / จัดการสิทธิ์" title="Admin / จัดการสิทธิ์" aria-current={pathname === "/admin" ? "page" : undefined} className={`pill-action-button flex h-10 w-10 items-center justify-center rounded-full border shadow-sm ${pathname === "/admin" ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400" : "border-slate-100 bg-white text-slate-600 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"}`}>
             <ShieldCheck className="h-5 w-5" />
+          </Link>
+        )}
+        {mounted && canPage("dataQuality") && (
+          <Link
+            href="/data-quality"
+            aria-label="Quality"
+            title="Quality"
+            aria-current={pathname === "/data-quality" ? "page" : undefined}
+            className={`pill-action-button flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 ${pathname === "/data-quality" ? "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-400" : "border-slate-100 bg-white text-slate-600 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-sky-400"}`}
+          >
+            <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
           </Link>
         )}
         {mounted && (
