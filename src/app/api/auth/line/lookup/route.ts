@@ -69,7 +69,8 @@ async function verifyLineIdentity(accessToken: string): Promise<VerifiedLineIden
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin && new URL(origin).host !== new URL(request.url).host) {
+  const appOrigin = process.env.AUTH_APP_ORIGIN || new URL(request.url).origin;
+  if (origin && origin !== appOrigin) {
     return NextResponse.json({ success: false, error: "Invalid login origin" }, { status: 403 });
   }
   if (!(process.env.LINE_LOGIN_CHANNEL_ID || process.env.LINE_CHANNEL_ID)) {

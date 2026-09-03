@@ -12,6 +12,7 @@ const { values } = parseArgs({
     'staff-id': { type: 'string' },
     'line-user-id': { type: 'string' },
     'line-channel-id': { type: 'string' },
+    'app-origin': { type: 'string' },
     'configure-only': { type: 'boolean', default: false },
     apply: { type: 'boolean', default: false },
   },
@@ -19,11 +20,16 @@ const { values } = parseArgs({
 const staffId = values['staff-id'];
 const lineUserId = values['line-user-id'];
 const channelId = values['line-channel-id'];
+const appOrigin = values['app-origin'] ? new URL(values['app-origin']).origin : process.env.AUTH_APP_ORIGIN;
 if (!/^\d{5}$/.test(staffId || '') || !/^U[0-9a-f]{32}$/.test(lineUserId || '') || !/^\d+$/.test(channelId || '')) {
   throw new Error('Provide --staff-id, --line-user-id and --line-channel-id. Use --apply only after reviewing the identity.');
 }
 
 nextEnv.loadEnvConfig(process.cwd());
+const configuredOrigin = process.env.AUTH_APP_ORIGIN;
+const resolvedOrigin = appOrigin || configuredOrigin;
+if (!resolvedOrigin?.startsWith('https://')) throw new Error('Provide the HTTPS public --app-origin used by the application.');
+if (configuredOrigin && configuredOrigin !== resolvedOrigin) throw new Error('Configured application origin differs from the requested origin.');
 const databaseUrl = process.env.DATABASE_URL || 'file:./dev.db';
 if (!databaseUrl.startsWith('file:')) throw new Error('This bootstrap supports the configured SQLite database only.');
 const databasePath = path.resolve(databaseUrl.slice(5));
@@ -53,6 +59,7 @@ if (values.apply) {
   const additions = [];
   if (!process.env.AUTH_SESSION_SECRET) additions.push(`AUTH_SESSION_SECRET=${randomBytes(48).toString('base64url')}`);
   if (!process.env.LINE_LOGIN_CHANNEL_ID) additions.push(`LINE_LOGIN_CHANNEL_ID=${channelId}`);
+  if (!configuredOrigin) additions.push(`AUTH_APP_ORIGIN=${resolvedOrigin}`);
   if (additions.length) {
     const configPath = path.resolve('.env.local');
     await appendFile(configPath, `\n${additions.join('\n')}\n`, { mode: 0o600 });

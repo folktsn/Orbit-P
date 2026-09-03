@@ -238,11 +238,14 @@ Authentication and permission values:
 ```bash
 AUTH_SESSION_SECRET=replace-with-a-long-random-secret
 LINE_LOGIN_CHANNEL_ID=your-line-login-channel-id
+AUTH_APP_ORIGIN=https://your-public-app-domain
 ```
 
 `AUTH_SESSION_SECRET` signs the HTTP-only session cookie. If omitted, the existing `LINE_CHANNEL_SECRET` is used. `LINE_LOGIN_CHANNEL_ID` is the LINE Login channel used by LIFF, not the Messaging API channel. Login validates the access token with LINE and resolves only an exact LINE User ID link, never a matching display name.
 
-After the permission schema is applied, an authorized server operator can bootstrap the first Admin using `scripts/bootstrap-permission-admin.mjs --staff-id <staffId> --line-user-id <lineUserId> --line-channel-id <channelId>`. Run with `node`; the default is a read-only identity check. Add `--apply` only after verifying the requested identity. The script verifies both SQLite and DynamoDB links, creates missing session configuration without printing secrets, backs up SQLite into ignored `.backups/`, and grants all four permissions only to that employee. `--configure-only --apply` prepares authentication configuration without granting permissions before a first deployment.
+`AUTH_APP_ORIGIN` must be the public HTTPS origin, not the internal localhost address behind Nginx or another reverse proxy. Login checks the browser's Origin against this configured value.
+
+After the permission schema is applied, an authorized server operator can bootstrap the first Admin using `scripts/bootstrap-permission-admin.mjs --staff-id <staffId> --line-user-id <lineUserId> --line-channel-id <channelId> --app-origin <publicOrigin>`. Run with `node`; the default is a read-only identity check. Add `--apply` only after verifying the requested identity. The script verifies both SQLite and DynamoDB links, creates missing session configuration without printing secrets, backs up SQLite into ignored `.backups/`, and grants all four permissions only to that employee. `--configure-only --apply` prepares authentication configuration without granting permissions before a first deployment.
 
 Admin grants live in SQLite and are not overridden by environment variables. The permission API prevents removing the last Admin. Only Admin users may change LINE account links. Other linked employees start with Access and View permissions; Edit and Admin must be granted explicitly. Existing users must sign in through LINE again after the first permission deployment.
 

@@ -122,7 +122,7 @@ function lineRoute({ identity = adminLineId, items = [], mapping = null, employe
       }
       return { Item: employee };
     } } },
-  }, { LINE_LOGIN_CHANNEL_ID: '1234567890' }, async (url) => {
+  }, { LINE_LOGIN_CHANNEL_ID: '1234567890', AUTH_APP_ORIGIN: 'https://example.test' }, async (url) => {
     if (url.includes('/verify?')) return Response.json({ client_id: channel, expires_in: expires });
     return Response.json({ userId: identity, displayName: 'Same Display Name' });
   });
@@ -138,6 +138,17 @@ test('verified exact LINE account receives the configured Admin grant', async ()
   assert.equal((await route.POST(request())).status, 200);
   assert.equal(state.cookies[0].staffId, '00001');
   assert.equal(state.cookies[0].permissions.admin, true);
+});
+
+test('public login origin works behind a reverse proxy and cross-site origins are rejected', async () => {
+  const { route, state } = lineRoute({ items: [employee] });
+  for (const [origin, expected] of [['https://other.test', 403], ['null', 403], ['https://example.test', 200]]) {
+    const response = await route.POST(new Request('http://localhost:3000/api/auth/line/lookup', {
+      method: 'POST', headers: { origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ accessToken: 'test-token' }),
+    }));
+    assert.equal(response.status, expected);
+  }
+  assert.equal(state.cookies.length, 1);
 });
 
 test('a submitted LINE ID without a token cannot create a production session', async () => {
