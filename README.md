@@ -80,6 +80,12 @@ Key capabilities:
 - Resign action
 - Probation evaluation action
 
+### Login Experience
+
+The `/login` page uses a responsive two-panel layout with the OrbitHire sign-in flow on the left and a lightweight animated glass visual on the right. On phones, the visual becomes a compact header so the LINE sign-in action remains visible in the first viewport. The generated artwork is stored locally at `public/login-glass-sculpture.png` and rendered through `next/image`.
+
+The production authentication flow is unchanged: users sign in through LINE LIFF, the server verifies the LINE access token, and the resulting session is limited by the employee's current permissions. Staff Login and demo accounts remain available only on localhost for development.
+
 ### Permissions
 
 Permissions are stored per employee code and enforced by both the UI and API routes.
