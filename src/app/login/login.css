@@ -14,7 +14,7 @@
   width: 100%;
   min-height: 100dvh;
   overflow: hidden;
-  background: #e8eef0;
+  background: #b9d8ea;
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -653,15 +653,31 @@
   min-width: 0;
   min-height: 100%;
   overflow: hidden;
-  background: #e8eef0;
+  background: #b9d8ea;
   isolation: isolate;
 }
 
-.login-visual-image {
+.login-weather-layer,
+.login-weather-picture {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.login-weather-layer {
   z-index: 0;
+  overflow: hidden;
+  animation: login-aircraft-drift 14s ease-in-out infinite alternate;
+}
+
+.login-visual-image {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   object-position: center;
-  animation: login-glass-drift 14s ease-in-out infinite alternate;
 }
 
 .login-visual-caption {
@@ -688,6 +704,30 @@
   line-height: 1.35;
 }
 
+.login-visual-caption small {
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(19, 36, 49, 0.68);
+}
+
+.login-visual-caption a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.login-visual-caption--rain,
+.login-visual-caption--night {
+  color: #ffffff;
+  text-shadow: 0 1px 14px rgba(5, 15, 28, 0.72);
+}
+
+.login-visual-caption--rain small,
+.login-visual-caption--night small {
+  color: rgba(255, 255, 255, 0.78);
+}
+
 .login-visual-index {
   position: absolute;
   z-index: 2;
@@ -701,9 +741,12 @@
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(255, 255, 255, 0.86);
   border-radius: 50%;
-  font-size: 10px;
-  font-weight: 800;
   backdrop-filter: blur(8px);
+}
+
+.login-visual-index svg {
+  width: 18px;
+  height: 18px;
 }
 
 .dark .login-page {
@@ -790,7 +833,7 @@
   border-color: #35424a;
 }
 
-@keyframes login-glass-drift {
+@keyframes login-aircraft-drift {
   from {
     transform: scale(1.01) translate3d(0, -0.2%, 0);
   }
@@ -849,13 +892,16 @@
   }
 
   .login-visual-image {
-    object-position: right center;
+    object-position: center top;
   }
 
   .login-visual-caption {
     top: 18px;
-    right: 20px;
-    max-width: 190px;
+    right: auto;
+    left: 20px;
+    justify-items: start;
+    max-width: 150px;
+    text-align: left;
   }
 
   .login-visual-caption strong {
@@ -863,10 +909,7 @@
   }
 
   .login-visual-index {
-    right: 18px;
-    bottom: 14px;
-    width: 36px;
-    height: 36px;
+    display: none;
   }
 
   .login-brand-mark {
@@ -990,7 +1033,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-visual-image,
+  .login-weather-layer,
   .login-form-loading > span {
     animation: none;
   }

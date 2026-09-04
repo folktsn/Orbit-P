@@ -82,7 +82,7 @@ Key capabilities:
 
 ### Login Experience
 
-The `/login` page uses a continuous full-viewport studio background with the glass sculpture kept at the far right and the OrbitHire sign-in flow layered in a rounded white card. On phones, the card begins below a compact visual header so the artwork remains visible while the LINE sign-in action stays in the first viewport. The generated artwork is stored locally at `public/login-glass-background.png` and rendered through `next/image`.
+The `/login` page uses responsive Boeing 737-800 artwork with clear, cloudy, rainy, and night variants. The browser requests device location permission, rounds coordinates to two decimal places, and loads current conditions through a server-side proxy to MET Norway with provider-aware caching. If location access is unavailable, Bangkok is used as a graceful fallback. Desktop and mobile artwork is stored locally under `public/login-weather-*.png` and selected with an optimized responsive picture source.
 
 The production authentication flow is unchanged: users sign in through LINE LIFF, the server verifies the LINE access token, and the resulting session is limited by the employee's current permissions. Staff Login and demo accounts remain available only on localhost for development.
 

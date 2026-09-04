@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { useAuth } from "@/components/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, User, Shield, ArrowRight, Eye, EyeOff, Sparkles, LogIn, AlertCircle, MessageCircle, X, Check, Copy, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { Cloud, CloudRain, Sun, Moon } from "lucide-react";
 import "./login.css";
 
 declare global {
@@ -34,6 +34,68 @@ type DetectedProfile = {
   staffId?: string;
   provider?: string;
 };
+
+type LoginWeatherScene = "clear" | "cloudy" | "rain" | "night";
+
+type LoginWeatherResponse = {
+  scene: LoginWeatherScene;
+  condition: string;
+  temperature: number;
+};
+
+type LoginWeatherState = {
+  scene: LoginWeatherScene;
+  condition: string;
+  temperature: number | null;
+  locationSource: "checking" | "device" | "fallback";
+};
+
+const LOGIN_WEATHER_ASSETS: Record<LoginWeatherScene, { desktop: string; mobile: string }> = {
+  clear: {
+    desktop: "/login-weather-clear.png",
+    mobile: "/login-weather-clear-mobile.png",
+  },
+  cloudy: {
+    desktop: "/login-weather-cloudy.png",
+    mobile: "/login-weather-cloudy-mobile.png",
+  },
+  rain: {
+    desktop: "/login-weather-rain.png",
+    mobile: "/login-weather-rain-mobile.png",
+  },
+  night: {
+    desktop: "/login-weather-night.png",
+    mobile: "/login-weather-night-mobile.png",
+  },
+};
+
+const BANGKOK_FALLBACK = { latitude: 13.76, longitude: 100.5 };
+
+function LoginWeatherPicture({ scene }: { scene: LoginWeatherScene }) {
+  const assets = LOGIN_WEATHER_ASSETS[scene];
+  const common = { alt: "", sizes: "100vw", quality: 75, fetchPriority: "high" as const };
+  const {
+    props: { srcSet: desktopSrcSet },
+  } = getImageProps({
+    ...common,
+    src: assets.desktop,
+    width: 1672,
+    height: 941,
+  });
+  const { props: mobileProps } = getImageProps({
+    ...common,
+    src: assets.mobile,
+    width: 853,
+    height: 1844,
+  });
+
+  return (
+    <picture className="login-weather-picture">
+      <source media="(min-width: 761px)" srcSet={desktopSrcSet} />
+      <img {...mobileProps} alt="" className="login-visual-image" />
+    </picture>
+  );
+}
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -65,6 +127,12 @@ export default function LoginPage() {
   // LIFF initialization tracking
   const [liffError, setLiffError] = useState<string | null>(null);
   const [isLocalDevelopment, setIsLocalDevelopment] = useState(false);
+  const [loginWeather, setLoginWeather] = useState<LoginWeatherState>({
+    scene: "clear",
+    condition: "กำลังตรวจสอบสภาพอากาศ...",
+    temperature: null,
+    locationSource: "checking",
+  });
 
   const demoRoles = [
     {
@@ -89,6 +157,83 @@ export default function LoginPage() {
       desc: "Probation & Manpower Requests"
     }
   ];
+
+  useEffect(() => {
+    let isActive = true;
+    const controller = new AbortController();
+
+    const loadWeather = async (
+      latitude: number,
+      longitude: number,
+      locationSource: "device" | "fallback",
+    ) => {
+      try {
+        const roundedLatitude = Number(latitude.toFixed(2));
+        const roundedLongitude = Number(longitude.toFixed(2));
+        const params = new URLSearchParams({
+          latitude: String(roundedLatitude),
+          longitude: String(roundedLongitude),
+        });
+        const response = await fetch(`/api/weather/current?${params}`, {
+          signal: controller.signal,
+        });
+        const data = (await response.json()) as Partial<LoginWeatherResponse>;
+
+        if (!response.ok || !data.scene || typeof data.condition !== "string" || typeof data.temperature !== "number") {
+          throw new Error("Weather response was incomplete");
+        }
+
+        if (isActive) {
+          setLoginWeather({
+            scene: data.scene,
+            condition: data.condition,
+            temperature: data.temperature,
+            locationSource,
+          });
+        }
+      } catch (weatherError) {
+        if (!controller.signal.aborted && isActive) {
+          console.warn("Unable to load login weather", weatherError);
+          const hour = new Date().getHours();
+          setLoginWeather({
+            scene: hour >= 18 || hour < 6 ? "night" : "clear",
+            condition: "ไม่สามารถโหลดข้อมูลอากาศได้",
+            temperature: null,
+            locationSource,
+          });
+        }
+      }
+    };
+
+    const loadFallbackWeather = () => {
+      void loadWeather(BANGKOK_FALLBACK.latitude, BANGKOK_FALLBACK.longitude, "fallback");
+    };
+
+    if (!("geolocation" in navigator)) {
+      loadFallbackWeather();
+      return () => {
+        isActive = false;
+        controller.abort();
+      };
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        void loadWeather(coords.latitude, coords.longitude, "device");
+      },
+      loadFallbackWeather,
+      {
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 15 * 60 * 1000,
+      },
+    );
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, []);
 
   // Dynamic LIFF script loading and initialization
   useEffect(() => {
@@ -600,20 +745,47 @@ export default function LoginPage() {
           </footer>
         </section>
 
-        <aside className="login-visual" aria-hidden="true">
-          <Image
-            src="/login-glass-background.png"
-            alt=""
-            fill
-            preload
-            sizes="100vw"
-            className="login-visual-image"
-          />
-          <div className="login-visual-caption">
-            <span>PEOPLE OPERATIONS</span>
-            <strong>Clarity in every connection.</strong>
+        <aside className="login-visual" data-weather-scene={loginWeather.scene}>
+          <AnimatePresence initial={false} mode="sync">
+            <motion.div
+              key={loginWeather.scene}
+              className="login-weather-layer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+            >
+              <LoginWeatherPicture scene={loginWeather.scene} />
+            </motion.div>
+          </AnimatePresence>
+          <div className={`login-visual-caption login-visual-caption--${loginWeather.scene}`}>
+            <span>
+              {loginWeather.locationSource === "checking"
+                ? "CHECKING LOCAL WEATHER"
+                : loginWeather.locationSource === "device"
+                  ? "LOCAL WEATHER"
+                  : "BANGKOK WEATHER"}
+            </span>
+            <strong>
+              {loginWeather.temperature === null
+                ? loginWeather.condition
+                : `${loginWeather.temperature}°C · ${loginWeather.condition}`}
+            </strong>
+            <small>
+              Data: <a href="https://api.met.no/doc/License" target="_blank" rel="noreferrer">MET Norway</a> (adapted)
+            </small>
           </div>
-          <div className="login-visual-index">01</div>
+          <div className="login-visual-index" aria-hidden="true">
+            {loginWeather.scene === "night" ? (
+              <Moon />
+            ) : loginWeather.scene === "rain" ? (
+              <CloudRain />
+            ) : loginWeather.scene === "cloudy" ? (
+              <Cloud />
+            ) : (
+              <Sun />
+            )}
+          </div>
         </aside>
       </main>
 
