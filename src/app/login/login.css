@@ -14,19 +14,24 @@
   width: 100%;
   min-height: 100dvh;
   overflow: hidden;
-  background: #ffffff;
+  background: #e8eef0;
   border: 0;
   border-radius: 0;
   box-shadow: none;
 }
 
 .login-content {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   min-width: 0;
   padding: 34px clamp(36px, 5vw, 76px) 26px;
+  margin: 14px -28px 14px 14px;
   overflow-y: auto;
   background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 16px 0 42px rgba(24, 46, 58, 0.1);
 }
 
 .login-header {
@@ -640,6 +645,7 @@
 
 .login-visual {
   position: relative;
+  z-index: 1;
   min-width: 0;
   min-height: 560px;
   overflow: hidden;
@@ -701,10 +707,13 @@
   color: #f8fafc;
 }
 
-.dark .login-shell,
+.dark .login-shell {
+  background: #0b1014;
+  border-color: #2b363d;
+}
+
 .dark .login-content {
   background: #11181d;
-  border-color: #2b363d;
 }
 
 .dark .login-brand-copy strong,
@@ -830,7 +839,10 @@
     order: 2;
     min-height: calc(100dvh - 180px);
     padding: 22px 24px 18px;
+    margin: -24px 10px 10px;
     overflow: visible;
+    border-radius: 24px;
+    box-shadow: 0 -12px 34px rgba(24, 46, 58, 0.1);
   }
 
   .login-visual {
