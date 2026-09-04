@@ -9,8 +9,8 @@
 }
 
 .login-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 56%) minmax(0, 44%);
+  position: relative;
+  display: block;
   width: 100%;
   min-height: 100dvh;
   overflow: hidden;
@@ -25,9 +25,11 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
+  width: min(56%, 1080px);
+  min-height: calc(100dvh - 28px);
   min-width: 0;
   padding: 34px clamp(36px, 5vw, 76px) 26px;
-  margin: 14px -28px 14px 14px;
+  margin: 14px;
   overflow-y: auto;
   background: #ffffff;
   border-radius: 28px;
@@ -644,10 +646,12 @@
 }
 
 .login-visual {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
   min-width: 0;
-  min-height: 560px;
+  min-height: 100%;
   overflow: hidden;
   background: #e8eef0;
   isolation: isolate;
@@ -802,11 +806,8 @@
 }
 
 @media (max-width: 900px) {
-  .login-shell {
-    grid-template-columns: minmax(0, 60%) minmax(0, 40%);
-  }
-
   .login-content {
+    width: 60%;
     padding-right: 34px;
     padding-left: 34px;
   }
@@ -827,8 +828,6 @@
   }
 
   .login-shell {
-    grid-template-columns: 1fr;
-    grid-template-rows: 180px auto;
     min-height: 100dvh;
     border: 0;
     border-radius: 0;
@@ -836,18 +835,17 @@
   }
 
   .login-content {
-    order: 2;
-    min-height: calc(100dvh - 180px);
+    width: calc(100% - 20px);
+    min-height: calc(100dvh - 166px);
     padding: 22px 24px 18px;
-    margin: -24px 10px 10px;
+    margin: 156px 10px 10px;
     overflow: visible;
     border-radius: 24px;
     box-shadow: 0 -12px 34px rgba(24, 46, 58, 0.1);
   }
 
   .login-visual {
-    order: 1;
-    min-height: 180px;
+    min-height: 100%;
   }
 
   .login-visual-image {
@@ -968,17 +966,14 @@
 }
 
 @media (max-width: 760px) and (max-height: 650px) {
-  .login-shell {
-    grid-template-rows: 132px auto;
-  }
-
   .login-content {
-    min-height: calc(100dvh - 132px);
+    min-height: calc(100dvh - 118px);
+    margin-top: 108px;
     padding-top: 16px;
   }
 
   .login-visual {
-    min-height: 132px;
+    min-height: 100%;
   }
 
   .login-visual-caption {
