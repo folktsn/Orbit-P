@@ -217,6 +217,9 @@ async function resolveLineProfile(request: Request) {
                                   readString(employeeProfile, "name_th") ||
                                   readString(employeeProfile, "name") ||
                                   nickname;
+      const station = ["station", "station_en", "station_th", "work_location"]
+        .map((key) => readString(employeeProfile, key))
+        .find(isMeaningfulValue) || "";
 
       // Extract lineAvatarUrl query parameter if provided from client LIFF login
       const lineAvatarUrl = searchParams.get("lineAvatarUrl");
@@ -297,6 +300,7 @@ async function resolveLineProfile(request: Request) {
         provider: "line",
         lineAvatarUrl: lineAvatar,
         staffId: staffId || undefined,
+        station: station || undefined,
         permissions,
       };
       const response = NextResponse.json({

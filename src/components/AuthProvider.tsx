@@ -11,6 +11,7 @@ export interface UserProfile {
   provider?: "credentials" | "line";
   lineAvatarUrl?: string;
   staffId?: string;
+  station?: string;
   permissions: PermissionSet;
   pageAccess?: PageAccess;
 }

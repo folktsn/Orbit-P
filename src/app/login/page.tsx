@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image, { getImageProps } from "next/image";
 import { useAuth } from "@/components/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,6 +32,7 @@ type DetectedProfile = {
   displayName?: string;
   lineAvatarUrl?: string;
   staffId?: string;
+  station?: string;
   provider?: string;
 };
 
@@ -41,52 +42,57 @@ type LoginWeatherResponse = {
   scene: LoginWeatherScene;
   condition: string;
   temperature: number;
+  stationCode: string;
+  stationLabel: string;
+  stationMatched: boolean;
 };
 
 type LoginWeatherState = {
   scene: LoginWeatherScene;
   condition: string;
   temperature: number | null;
-  locationSource: "checking" | "device" | "fallback";
+  stationCode: string;
+  locationSource: "checking" | "employee" | "recent" | "fallback";
 };
 
 const LOGIN_WEATHER_ASSETS: Record<LoginWeatherScene, { desktop: string; mobile: string }> = {
   clear: {
-    desktop: "/login-weather-clear.png",
-    mobile: "/login-weather-clear-mobile.png",
+    desktop: "/login-aircraft-clear-4k.webp",
+    mobile: "/login-aircraft-clear-mobile-4k.webp",
   },
   cloudy: {
-    desktop: "/login-weather-cloudy.png",
-    mobile: "/login-weather-cloudy-mobile.png",
+    desktop: "/login-aircraft-cloudy-4k.webp",
+    mobile: "/login-aircraft-cloudy-mobile-4k.webp",
   },
   rain: {
-    desktop: "/login-weather-rain.png",
-    mobile: "/login-weather-rain-mobile.png",
+    desktop: "/login-aircraft-rain-4k.webp",
+    mobile: "/login-aircraft-rain-mobile-4k.webp",
   },
   night: {
-    desktop: "/login-weather-night.png",
-    mobile: "/login-weather-night-mobile.png",
+    desktop: "/login-aircraft-night-4k.webp",
+    mobile: "/login-aircraft-night-mobile-4k.webp",
   },
 };
 
-const BANGKOK_FALLBACK = { latitude: 13.76, longitude: 100.5 };
+const DEFAULT_LOGIN_STATION = "HDQ";
+const LAST_LOGIN_STATION_KEY = "orbithire_last_employee_station";
 
 function LoginWeatherPicture({ scene }: { scene: LoginWeatherScene }) {
   const assets = LOGIN_WEATHER_ASSETS[scene];
-  const common = { alt: "", sizes: "100vw", quality: 75, fetchPriority: "high" as const };
+  const common = { alt: "", sizes: "100vw", quality: 85, fetchPriority: "high" as const };
   const {
     props: { srcSet: desktopSrcSet },
   } = getImageProps({
     ...common,
     src: assets.desktop,
-    width: 1672,
-    height: 941,
+    width: 3840,
+    height: 2160,
   });
   const { props: mobileProps } = getImageProps({
     ...common,
     src: assets.mobile,
-    width: 853,
-    height: 1844,
+    width: 2160,
+    height: 3840,
   });
 
   return (
@@ -131,8 +137,10 @@ export default function LoginPage() {
     scene: "clear",
     condition: "กำลังตรวจสอบสภาพอากาศ...",
     temperature: null,
+    stationCode: DEFAULT_LOGIN_STATION,
     locationSource: "checking",
   });
+  const weatherControllerRef = useRef<AbortController | null>(null);
 
   const demoRoles = [
     {
@@ -158,82 +166,77 @@ export default function LoginPage() {
     }
   ];
 
-  useEffect(() => {
-    let isActive = true;
+  const loadWeatherForStation = useCallback(async (
+    station: string,
+    locationSource: "employee" | "recent" | "fallback",
+  ) => {
+    weatherControllerRef.current?.abort();
     const controller = new AbortController();
+    weatherControllerRef.current = controller;
 
-    const loadWeather = async (
-      latitude: number,
-      longitude: number,
-      locationSource: "device" | "fallback",
-    ) => {
-      try {
-        const roundedLatitude = Number(latitude.toFixed(2));
-        const roundedLongitude = Number(longitude.toFixed(2));
-        const params = new URLSearchParams({
-          latitude: String(roundedLatitude),
-          longitude: String(roundedLongitude),
-        });
-        const response = await fetch(`/api/weather/current?${params}`, {
-          signal: controller.signal,
-        });
-        const data = (await response.json()) as Partial<LoginWeatherResponse>;
+    try {
+      const params = new URLSearchParams({ station: station.trim() || DEFAULT_LOGIN_STATION });
+      const response = await fetch(`/api/weather/current?${params}`, {
+        signal: controller.signal,
+      });
+      const data = (await response.json()) as Partial<LoginWeatherResponse>;
 
-        if (!response.ok || !data.scene || typeof data.condition !== "string" || typeof data.temperature !== "number") {
-          throw new Error("Weather response was incomplete");
-        }
-
-        if (isActive) {
-          setLoginWeather({
-            scene: data.scene,
-            condition: data.condition,
-            temperature: data.temperature,
-            locationSource,
-          });
-        }
-      } catch (weatherError) {
-        if (!controller.signal.aborted && isActive) {
-          console.warn("Unable to load login weather", weatherError);
-          const hour = new Date().getHours();
-          setLoginWeather({
-            scene: hour >= 18 || hour < 6 ? "night" : "clear",
-            condition: "ไม่สามารถโหลดข้อมูลอากาศได้",
-            temperature: null,
-            locationSource,
-          });
-        }
+      if (
+        !response.ok
+        || !data.scene
+        || typeof data.condition !== "string"
+        || typeof data.temperature !== "number"
+        || typeof data.stationCode !== "string"
+      ) {
+        throw new Error("Weather response was incomplete");
       }
-    };
 
-    const loadFallbackWeather = () => {
-      void loadWeather(BANGKOK_FALLBACK.latitude, BANGKOK_FALLBACK.longitude, "fallback");
-    };
-
-    if (!("geolocation" in navigator)) {
-      loadFallbackWeather();
-      return () => {
-        isActive = false;
-        controller.abort();
-      };
+      setLoginWeather({
+        scene: data.scene,
+        condition: data.condition,
+        temperature: data.temperature,
+        stationCode: data.stationCode,
+        locationSource: data.stationMatched === false ? "fallback" : locationSource,
+      });
+    } catch (weatherError) {
+      if (controller.signal.aborted) return;
+      console.warn("Unable to load login weather", weatherError);
+      const hour = new Date().getHours();
+      setLoginWeather({
+        scene: hour >= 18 || hour < 6 ? "night" : "clear",
+        condition: "ไม่สามารถโหลดข้อมูลอากาศได้",
+        temperature: null,
+        stationCode: station.trim().toUpperCase() || DEFAULT_LOGIN_STATION,
+        locationSource,
+      });
     }
+  }, []);
 
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        void loadWeather(coords.latitude, coords.longitude, "device");
-      },
-      loadFallbackWeather,
-      {
-        enableHighAccuracy: false,
-        timeout: 8000,
-        maximumAge: 15 * 60 * 1000,
-      },
-    );
+  const applyEmployeeStation = useCallback((station?: string) => {
+    const normalizedStation = station?.trim();
+    if (!normalizedStation || ["-", "null", "undefined"].includes(normalizedStation.toLowerCase())) {
+      localStorage.removeItem(LAST_LOGIN_STATION_KEY);
+      void loadWeatherForStation(DEFAULT_LOGIN_STATION, "fallback");
+      return;
+    }
+    localStorage.setItem(LAST_LOGIN_STATION_KEY, normalizedStation);
+    void loadWeatherForStation(normalizedStation, "employee");
+  }, [loadWeatherForStation]);
+
+  useEffect(() => {
+    const recentStation = localStorage.getItem(LAST_LOGIN_STATION_KEY)?.trim();
+    const timer = window.setTimeout(() => {
+      void loadWeatherForStation(
+        recentStation || DEFAULT_LOGIN_STATION,
+        recentStation ? "recent" : "fallback",
+      );
+    }, 0);
 
     return () => {
-      isActive = false;
-      controller.abort();
+      window.clearTimeout(timer);
+      weatherControllerRef.current?.abort();
     };
-  }, []);
+  }, [loadWeatherForStation]);
 
   // Dynamic LIFF script loading and initialization
   useEffect(() => {
@@ -311,8 +314,10 @@ export default function LoginPage() {
           displayName: profile.displayName || result.data.displayName,
           lineAvatarUrl: profile.pictureUrl || result.data.lineAvatarUrl || "/folk_tsn_avatar.png",
           staffId: result.data.staffId,
+          station: result.data.station,
           provider: "line"
         });
+        applyEmployeeStation(result.data.station);
         setLineView("verified");
       } else {
         // LINE connected, but no matching employee profile in database
@@ -376,6 +381,7 @@ export default function LoginPage() {
       
       if (result.success && result.data) {
         setDetectedProfile(result.data);
+        applyEmployeeStation(result.data.station);
         setLineAuthSuccess(true);
         setTimeout(() => {
           setLineView('verified');
@@ -761,10 +767,12 @@ export default function LoginPage() {
           <div className={`login-visual-caption login-visual-caption--${loginWeather.scene}`}>
             <span>
               {loginWeather.locationSource === "checking"
-                ? "CHECKING LOCAL WEATHER"
-                : loginWeather.locationSource === "device"
-                  ? "LOCAL WEATHER"
-                  : "BANGKOK WEATHER"}
+                ? "CHECKING STATION WEATHER"
+                : loginWeather.locationSource === "employee"
+                  ? `EMPLOYEE STATION · ${loginWeather.stationCode}`
+                  : loginWeather.locationSource === "recent"
+                    ? `LAST SIGN-IN STATION · ${loginWeather.stationCode}`
+                    : `DEFAULT STATION · ${loginWeather.stationCode}`}
             </span>
             <strong>
               {loginWeather.temperature === null

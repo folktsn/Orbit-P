@@ -25,6 +25,7 @@ export type SessionUser = {
   provider: "credentials" | "line";
   lineAvatarUrl?: string;
   staffId?: string;
+  station?: string;
   permissions: PermissionSet;
   pageAccess?: PageAccess;
 };
