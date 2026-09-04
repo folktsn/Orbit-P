@@ -660,7 +660,7 @@
 .login-visual-image {
   z-index: 0;
   object-fit: cover;
-  object-position: 48% center;
+  object-position: center;
   animation: login-glass-drift 14s ease-in-out infinite alternate;
 }
 
@@ -792,10 +792,10 @@
 
 @keyframes login-glass-drift {
   from {
-    transform: scale(1.02) translate3d(-0.5%, -0.4%, 0);
+    transform: scale(1.01) translate3d(0, -0.2%, 0);
   }
   to {
-    transform: scale(1.055) translate3d(1%, 0.7%, 0);
+    transform: scale(1.01) translate3d(-0.35%, 0.2%, 0);
   }
 }
 
@@ -849,7 +849,7 @@
   }
 
   .login-visual-image {
-    object-position: center 47%;
+    object-position: right center;
   }
 
   .login-visual-caption {

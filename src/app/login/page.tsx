@@ -602,11 +602,11 @@ export default function LoginPage() {
 
         <aside className="login-visual" aria-hidden="true">
           <Image
-            src="/login-glass-sculpture.png"
+            src="/login-glass-background.png"
             alt=""
             fill
             preload
-            sizes="(max-width: 760px) 100vw, 44vw"
+            sizes="100vw"
             className="login-visual-image"
           />
           <div className="login-visual-caption">

@@ -82,7 +82,7 @@ Key capabilities:
 
 ### Login Experience
 
-The `/login` page uses a full-viewport glass background with the OrbitHire sign-in flow layered in a rounded white card. On phones, the card begins below a compact visual header so the artwork remains visible while the LINE sign-in action stays in the first viewport. The generated artwork is stored locally at `public/login-glass-sculpture.png` and rendered through `next/image`.
+The `/login` page uses a continuous full-viewport studio background with the glass sculpture kept at the far right and the OrbitHire sign-in flow layered in a rounded white card. On phones, the card begins below a compact visual header so the artwork remains visible while the LINE sign-in action stays in the first viewport. The generated artwork is stored locally at `public/login-glass-background.png` and rendered through `next/image`.
 
 The production authentication flow is unchanged: users sign in through LINE LIFF, the server verifies the LINE access token, and the resulting session is limited by the employee's current permissions. Staff Login and demo accounts remain available only on localhost for development.
 
