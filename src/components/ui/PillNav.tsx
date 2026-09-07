@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, ShieldCheck, ClipboardCheck } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import "./PillNav.css";
 import { PAGE_DEFINITIONS } from "@/lib/permissions";
@@ -91,22 +91,6 @@ export function PillNav() {
       </nav>}
 
       <div className="pill-actions">
-        {can("admin") && (
-          <Link href="/admin" aria-label="Admin / จัดการสิทธิ์" title="Admin / จัดการสิทธิ์" aria-current={pathname === "/admin" ? "page" : undefined} className={`pill-action-button flex h-10 w-10 items-center justify-center rounded-full border shadow-sm ${pathname === "/admin" ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400" : "border-slate-100 bg-white text-slate-600 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"}`}>
-            <ShieldCheck className="h-5 w-5" />
-          </Link>
-        )}
-        {canPage("dataQuality") && (
-          <Link
-            href="/data-quality"
-            aria-label="Quality"
-            title="Quality"
-            aria-current={pathname === "/data-quality" ? "page" : undefined}
-            className={`pill-action-button flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 ${pathname === "/data-quality" ? "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-400" : "border-slate-100 bg-white text-slate-600 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-sky-400"}`}
-          >
-            <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
-          </Link>
-        )}
         {user && <ControlPanel onOpen={() => setIsDropdownOpen(false)} />}
 
         {user && (

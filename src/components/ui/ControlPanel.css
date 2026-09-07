@@ -37,6 +37,13 @@
 .control-heading,
 .control-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .control-heading { padding: 1rem 1.25rem; border-bottom: 1px solid #e2e8f0; }
+.control-shortcuts { padding: 0.5rem 0.75rem; border-bottom: 1px solid #e2e8f0; }
+.control-shortcut { display: grid; grid-template-columns: 1.25rem minmax(0, 1fr) 1rem; align-items: center; gap: 0.75rem; min-height: 2.75rem; padding: 0.625rem 0.5rem; border-radius: 4px; font-weight: 600; }
+.control-shortcut:hover,
+.control-shortcut[aria-current="page"] { background: #f0f9ff; color: #0369a1; }
+.dark .control-shortcut:hover,
+.dark .control-shortcut[aria-current="page"] { background: #0c4a6e; color: #e0f2fe; }
+.control-shortcut span { overflow-wrap: anywhere; }
 .control-section { min-width: 0; margin: 0; padding: 1.25rem; }
 .control-theme-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .control-theme-fieldset legend { margin-bottom: 0.75rem; }
@@ -49,7 +56,7 @@
 .control-icon-button:hover:not(:disabled) { background: #f1f5f9; }
 .dark .control-icon-button:hover:not(:disabled) { background: #333; }
 .control-panel button:disabled { opacity: 0.35; cursor: default; }
-.control-panel :is(button, input):focus-visible,
+.control-panel :is(button, input, a):focus-visible,
 .control-trigger:focus-visible { outline: 2px solid #0284c7; outline-offset: 3px; }
 .control-preview { margin-top: 0.75rem; text-align: center; font-size: 1.25rem; line-height: 1.6; }
 .control-theme-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
@@ -66,7 +73,7 @@
 .control-footer { border-top: 1px solid #e2e8f0; padding: 1rem 1.25rem; }
 .control-reset { display: flex; gap: 0.5rem; align-items: center; justify-content: center; width: 100%; min-height: 2.5rem; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-weight: 600; }
 .control-reset:hover:not(:disabled) { color: #0284c7; border-color: #0284c7; }
-.dark :is(.control-heading, .control-section + .control-section, .control-footer, .control-theme-options, .control-theme-option + .control-theme-option, .control-reset) { border-color: #404040; }
+.dark :is(.control-heading, .control-shortcuts, .control-section + .control-section, .control-footer, .control-theme-options, .control-theme-option + .control-theme-option, .control-reset) { border-color: #404040; }
 @media (max-width: 639px) {
   .control-panel { right: 12px; top: 4.5rem; max-height: calc(100dvh - 5.5rem); }
   .control-trigger { width: 2rem; height: 2rem; }

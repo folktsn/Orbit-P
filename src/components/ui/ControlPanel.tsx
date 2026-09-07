@@ -1,15 +1,22 @@
 "use client";
 
 import { useId, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Minus, Monitor, Moon, Plus, RotateCcw, SlidersHorizontal, Sun, X } from "lucide-react";
+import { ChevronRight, ClipboardCheck, Minus, Monitor, Moon, Plus, RotateCcw, ShieldCheck, SlidersHorizontal, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/components/AuthProvider";
 import { useDisplayPreferences } from "@/components/DisplayPreferencesProvider";
 import { DEFAULT_DISPLAY_PREFERENCES, MAX_FONT_SCALE, MIN_FONT_SCALE } from "@/lib/display-preferences";
 import "./ControlPanel.css";
 
 export function ControlPanel({ onOpen }: { onOpen: () => void }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const { can, canPage } = useAuth();
+  const showAdmin = can("admin");
+  const showQuality = canPage("dataQuality");
   const { theme, setTheme } = useTheme();
   const { preferences, updatePreferences } = useDisplayPreferences();
   const sizeId = useId();
@@ -33,6 +40,25 @@ export function ControlPanel({ onOpen }: { onOpen: () => void }) {
               <button type="button" className="control-icon-button" aria-label="ปิด Control" title="ปิด Control"><X size={18} aria-hidden="true" /></button>
             </Dialog.Close>
           </div>
+
+          {(showAdmin || showQuality) && (
+            <nav className="control-shortcuts" aria-label="เมนูระบบ">
+              {showAdmin && (
+                <Link href="/admin" className="control-shortcut" aria-current={pathname === "/admin" ? "page" : undefined} onClick={() => setOpen(false)}>
+                  <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                  <span>Admin / จัดการสิทธิ์</span>
+                  <ChevronRight size={16} aria-hidden="true" />
+                </Link>
+              )}
+              {showQuality && (
+                <Link href="/data-quality" className="control-shortcut" aria-current={pathname === "/data-quality" ? "page" : undefined} onClick={() => setOpen(false)}>
+                  <ClipboardCheck className="h-5 w-5 text-sky-600 dark:text-sky-400" aria-hidden="true" />
+                  <span>Quality</span>
+                  <ChevronRight size={16} aria-hidden="true" />
+                </Link>
+              )}
+            </nav>
+          )}
 
           <section className="control-section">
             <div className="control-row">
