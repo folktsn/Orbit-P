@@ -14,6 +14,7 @@ new Function("require", "module", "exports", outputText)(require, moduleUnderTes
 const {
   compareDepartureRecords,
   getDepartureDate,
+  getDepartureState,
   isDepartureRecord,
   parseEmployeeDate,
 } = moduleUnderTest.exports;
@@ -48,4 +49,25 @@ test("departure sorting prioritizes upcoming, recent past, then missing dates", 
   ];
   rows.sort((a, b) => compareDepartureRecords(a, b, today));
   assert.deepEqual(rows.map((row) => row.id), ["1", "2", "3", "4"]);
+});
+
+test("completed resignations never show as overdue or upcoming", () => {
+  const today = new Date(2026, 8, 7);
+  for (const status of ["Resign", "Resigned", " RESIGN "]) {
+    for (const resignDate of ["2025-07-02", "2026-09-07", "2026-10-01", "-", "invalid"]) {
+      assert.equal(getDepartureState({ status, resignDate }, today).kind, "completed");
+    }
+  }
+  assert.equal(getDepartureState({ status: "Resign" }, today).date, null);
+});
+
+test("pending resignations keep countdowns, and a completed status clears the alert", () => {
+  const today = new Date(2026, 8, 7);
+  const employee = { status: "Pending", resignDate: "2025-07-02" };
+  assert.equal(getDepartureState(employee, today).kind, "overdue");
+  assert.equal(getDepartureState({ ...employee, status: "Resign" }, today).kind, "completed");
+  assert.equal(getDepartureState({ status: "Active", lastWorkingDate: "07/09/2569" }, today).kind, "today");
+  assert.equal(getDepartureState({ status: "Resigning", resignDate: "2026-09-08" }, today).kind, "upcoming");
+  assert.equal(getDepartureState({ status: "Pending" }, today).kind, "unknown-date");
+  assert.equal(getDepartureState({ status: "Failed Probation", resignDate: "2025-07-02" }, today).kind, "failed-probation");
 });

@@ -6,7 +6,7 @@ import { EmployeeProfileDrawer, EmployeeData } from "./EmployeeProfileDrawer";
 import { cn } from "@/lib/utils";
 import {
   compareDepartureRecords,
-  getDepartureDate,
+  getDepartureState,
   isDepartureRecord,
   parseEmployeeDate,
 } from "../lib/resignation";
@@ -474,18 +474,6 @@ export function EmployeeList({
       });
     } else if (activeTab === "resigned") {
       result = result.filter(isDepartureRecord);
-
-      // Calculate days remaining until resignation and store on the employee object
-      result = result.map(emp => {
-        const rDate = parseEmployeeDate(getDepartureDate(emp));
-        if (rDate) {
-          const diffTime = rDate.getTime() - today.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          (emp as any).resignDiffDays = diffDays;
-        }
-        return emp;
-      });
-
       result = [...result].sort((a, b) => compareDepartureRecords(a, b, today));
     } else if (activeTab === "retirement") {
       const currentYear = today.getFullYear();
@@ -728,61 +716,32 @@ export function EmployeeList({
                 </div>
               )}
 
-              {/* Resignation Countdown Alert Badge */}
-              {activeTab === "resigned" && (emp as any).resignDiffDays !== undefined && (
-                <div className="flex items-center shrink-0 mr-2 md:mr-4">
+              {activeTab === "resigned" && (
+                <div className="mr-2 flex max-w-[48%] shrink-0 items-center md:mr-4">
                   {(() => {
-                    const days = (emp as any).resignDiffDays;
-                    const rDateStr = (emp as any).resignDate;
-                    
-                    // Format date to local Thai format (e.g. 16 มิ.ย. 2569 or 16/06/2026)
-                    let formattedDate = rDateStr;
-                    try {
-                      const d = new Date(rDateStr);
-                      if (!isNaN(d.getTime())) {
-                        formattedDate = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-                      }
-                    } catch (e) {}
+                    const { kind, date, days } = getDepartureState(emp);
+                    const formattedDate = date?.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const label = kind === "completed" ? "ลาออกแล้ว"
+                      : kind === "failed-probation" ? "ไม่ผ่านทดลองงาน"
+                        : kind === "overdue" ? `เลยกำหนดวันลาออก ${Math.abs(days)} วัน`
+                          : kind === "today" ? "ลาออกวันนี้"
+                            : kind === "upcoming" ? `ลาออกใน ${days} วัน`
+                              : "อยู่ระหว่างลาออก";
+                    const isAlert = kind === "overdue" || kind === "failed-probation";
+                    const isNear = kind === "today" || (kind === "upcoming" && days <= 30);
+                    const BadgeIcon = isAlert ? AlertCircle : kind === "today" ? Clock : Calendar;
 
-                    const isFailedProb = emp.status && emp.status.toLowerCase() === "failed probation";
-                    if (isFailedProb) {
-                      return (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-500/20 rounded-full text-xs font-semibold transition-colors">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                          <span>ไม่ผ่านทดลองงาน ({formattedDate})</span>
-                        </div>
-                      );
-                    }
-
-                    if (days < 0) {
-                      return (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-500/20 rounded-full text-xs font-semibold transition-colors">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0 animate-bounce" />
-                          <span>เลยกำหนดวันลาออก {Math.abs(days)} วัน ({formattedDate})</span>
-                        </div>
-                      );
-                    } else if (days === 0) {
-                      return (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20 rounded-full text-xs font-semibold transition-colors animate-pulse">
-                          <Clock className="w-3.5 h-3.5 shrink-0" />
-                          <span>ลาออกวันนี้ ({formattedDate})</span>
-                        </div>
-                      );
-                    } else if (days <= 30) {
-                      return (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 hover:bg-orange-100 dark:bg-orange-500/10 dark:hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-500/20 rounded-full text-xs font-semibold transition-colors">
-                          <Calendar className="w-3.5 h-3.5 shrink-0" />
-                          <span>ลาออกใน {days} วัน ({formattedDate})</span>
-                        </div>
-                      );
-                    } else {
-                      return (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 rounded-full text-xs font-semibold transition-colors">
-                          <Calendar className="w-3.5 h-3.5 shrink-0" />
-                          <span>ลาออกใน {days} วัน ({formattedDate})</span>
-                        </div>
-                      );
-                    }
+                    return (
+                      <div className={cn(
+                        "flex min-w-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold sm:px-3 sm:text-xs",
+                        isAlert ? "border-red-100 bg-red-50 text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400"
+                          : isNear ? "border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400"
+                            : "border-slate-200 bg-slate-50 text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300",
+                      )}>
+                        <BadgeIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        <span>{label}{formattedDate ? ` (${formattedDate})` : " · ไม่ระบุวันที่"}</span>
+                      </div>
+                    );
                   })()}
                 </div>
               )}

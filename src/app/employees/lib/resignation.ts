@@ -62,6 +62,26 @@ export function parseEmployeeDate(value: unknown): Date | null {
   return null;
 }
 
+export function getDepartureState(record: DepartureRecord, referenceDate = new Date()) {
+  const status = text(record.status).toLowerCase();
+  const date = parseEmployeeDate(getDepartureDate(record));
+  const today = new Date(referenceDate);
+  today.setHours(0, 0, 0, 0);
+  const days = date ? Math.round((date.getTime() - today.getTime()) / 86_400_000) : null;
+
+  // A completed employment status takes precedence over the countdown.
+  if (status === "resign" || status === "resigned") {
+    return { kind: "completed" as const, date, days };
+  }
+  if (status === "failed probation") {
+    return { kind: "failed-probation" as const, date, days };
+  }
+  if (days === null) return { kind: "unknown-date" as const, date, days };
+  if (days < 0) return { kind: "overdue" as const, date, days };
+  if (days === 0) return { kind: "today" as const, date, days };
+  return { kind: "upcoming" as const, date, days };
+}
+
 export function compareDepartureRecords(
   first: DepartureRecord,
   second: DepartureRecord,
