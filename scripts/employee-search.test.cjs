@@ -101,10 +101,51 @@ test('text search covers names, positions, stations and organization components'
   assert.deepEqual(ids({ searchQuery: 'missing employee' }), []);
 });
 
-test('numeric search supports long employee IDs and formatted telephone/ID numbers', () => {
+test('numeric search accepts formatted numbers and preserves leading zeroes', () => {
   for (const searchQuery of ['@02622', '02622', '0812345678', '081-234 5678', '1234567890123']) assert.deepEqual(ids({ searchQuery }), ['02622']);
-  assert.deepEqual(ids({ searchQuery: '100001' }), ['100001']);
+  for (const searchQuery of ['(081) 234-5678', '1-2345-67890-12-3', '０２６２２']) assert.deepEqual(ids({ searchQuery }), ['02622']);
+  assert.deepEqual(ids({ searchQuery: '100001' }), [], 'Six-digit queries must not search employee IDs');
   assert.deepEqual(filterEmployeeRecords([{ id: '1', phone: 812345678 }], { searchQuery: '812345678' }).map((row) => row.id), ['1']);
+});
+
+test('each digit count searches only its designated field, cached or uncached', () => {
+  for (let length = 1; length <= 14; length++) {
+    const searchQuery = '01234567890123'.slice(0, length);
+    const records = [
+      { id: searchQuery, source: 'id' },
+      { id: 'phone-row', phone: searchQuery, source: 'phone' },
+      { id: 'card-row', idCard: searchQuery, source: 'idCard' },
+      { id: 'text-row', name: searchQuery, title: searchQuery, source: 'text' },
+      { id: 'missing-row', phone: null, idCard: undefined, source: 'missing' },
+    ];
+    const expected = length <= 5 ? ['id'] : length <= 10 ? ['phone'] : length <= 13 ? ['idCard'] : [];
+    const cached = createEmployeeSearch(records);
+    for (const search of [(filters) => filterEmployeeRecords(records, filters), cached]) {
+      for (const query of [searchQuery, searchQuery.split('').join(' - ')]) {
+        assert.deepEqual(search({ searchQuery: query }).map(row => row.source), expected, `${length} digits: ${query}`);
+      }
+    }
+  }
+});
+
+test('numeric routing excludes cross-field collisions and respects combined filters', () => {
+  const records = [
+    { id: '00004', phone: '0899999999', idCard: '3999999999999', station: 'HDQ', contractStart: '2026-09-07' },
+    { id: '02622', phone: '0810000400', idCard: '1081000040012', station: 'BKK(PA)', contractStart: '2026-09-08' },
+    { id: '00333', idCard: '1081000040013', station: 'BKK(PA)' },
+  ];
+  const search = createEmployeeSearch(records);
+  const find = (searchQuery, filters = {}) => search({ searchQuery, ...filters }).map(row => row.id);
+  assert.deepEqual(find('00004'), ['00004']);
+  assert.deepEqual(find('081000'), ['02622']);
+  assert.deepEqual(find('0810000400'), ['02622']);
+  assert.deepEqual(find('10810000400'), ['02622', '00333']);
+  assert.deepEqual(find('1081000040012'), ['02622']);
+  assert.deepEqual(find('00004', { stationFilter: 'BKKPA' }), []);
+  assert.deepEqual(find('081000', { stationFilter: 'BKKPA', startDateFilter: '2026-09-08', endDateFilter: '2026-09-08' }), ['02622']);
+  assert.deepEqual(find('10810000400', { stationFilter: 'HDQ' }), []);
+  assert.deepEqual(find('040013'), [], 'No fallback to an ID card when there is no phone match');
+  assert.deepEqual(find(''), ['00004', '02622', '00333']);
 });
 
 test('date filters include both boundaries, Buddhist dates and alternate resignation dates', () => {

@@ -91,13 +91,22 @@ export function getEmployeeFilterOptions(
   };
 }
 
-type SearchText = { fields: string[]; numbers: string[] };
+type NumericField = "id" | "phone" | "idCard";
+type SearchText = { fields: string[]; numbers: Record<NumericField, string> };
+
+function normalizeSearchNumber(value: unknown) {
+  return normalizeSearchText(value).replace(/\D/g, "");
+}
 
 function prepareSearchText(employee: SearchRecord): SearchText {
   return {
     fields: [employee.id, employee.name, employee.nameEn, employee.title,
       employee.department, employee.division, employee.section, employee.unit, employee.station].map(normalizeSearchText),
-    numbers: [employee.id, employee.phone, employee.idCard].map((value) => normalizeSearchText(value).replace(/\D/g, "")),
+    numbers: {
+      id: normalizeSearchNumber(employee.id),
+      phone: normalizeSearchNumber(employee.phone),
+      idCard: normalizeSearchNumber(employee.idCard),
+    },
   };
 }
 
@@ -122,6 +131,9 @@ function filterRecords<T extends SearchRecord>(records: T[], filters: SearchFilt
   const query = normalizeSearchText(filters.searchQuery).replace(/^@/, "");
   const terms = query.split(" ").filter(Boolean);
   const numericQuery = /^[\d\s()+.-]+$/.test(query) ? query.replace(/\D/g, "") : "";
+  // Select one field by digit count so unrelated numbers cannot leak into the results.
+  const numericField: NumericField | null = !numericQuery || numericQuery.length > 13 ? null
+    : numericQuery.length <= 5 ? "id" : numericQuery.length <= 10 ? "phone" : "idCard";
   const start = parseEmployeeDate(filters.startDateFilter);
   const end = parseEmployeeDate(filters.endDateFilter);
   const hasDateFilter = Boolean(filters.startDateFilter || filters.endDateFilter);
@@ -144,7 +156,7 @@ function filterRecords<T extends SearchRecord>(records: T[], filters: SearchFilt
     if (!query) return true;
 
     if (numericQuery) {
-      return searchText(employee).numbers.some((value) => value.includes(numericQuery));
+      return numericField !== null && searchText(employee).numbers[numericField].includes(numericQuery);
     }
     const { fields } = searchText(employee);
     return terms.every((term) => fields.some((field) => field.includes(term)) || matchesStation(employee.station, term));
