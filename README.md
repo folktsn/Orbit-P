@@ -96,6 +96,21 @@ Key capabilities:
 - Resign action
 - Probation evaluation action
 
+Employee search matches Thai/English name terms, employee IDs, positions,
+organization components, stations, and formatted phone/ID-card numbers.
+Station filters compare normalized complete codes (for example `BKKPA` and
+`BKK(PA)`), without treating all `BKK` stations as one. Date filters use the
+shared employee date parser, including Buddhist years and alternate departure
+date fields in the Resign tab. Empty results show a count and empty state;
+failed database requests never substitute demo employees.
+Dropdown groups come from the same employee records as the selected tab, with
+organization data used only for display labels. Groups absent from organization
+master data remain searchable, while groups without employees are excluded.
+Selections filter immediately and counts include every match before pagination.
+
+Run `node scripts/employee-search.test.cjs` and
+`node scripts/employee-resignation.test.cjs` for isolated regression tests.
+
 ### Login Experience
 
 The `/login` page uses responsive 4K Boeing 737-800 artwork with clear, cloudy, rainy, and night variants. Weather is selected from the authenticated employee's `station` field instead of device geolocation; the most recently verified station is remembered for the next sign-in, while HDQ Bangkok is used when no mapped station is available. Station codes are resolved to airport coordinates only on the server, which proxies MET Norway with provider-aware caching. Desktop and mobile WebP artwork is stored locally under `public/login-aircraft-*-4k.webp` and selected with an optimized responsive picture source.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Briefcase, ChevronRight, AlertCircle, Clock, Calendar } from "lucide-react";
+import { Briefcase, ChevronRight, AlertCircle, Clock, Calendar, SearchX } from "lucide-react";
 import { EmployeeProfileDrawer, EmployeeData } from "./EmployeeProfileDrawer";
 import { cn } from "@/lib/utils";
 import {
@@ -10,121 +10,7 @@ import {
   isDepartureRecord,
   parseEmployeeDate,
 } from "../lib/resignation";
-
-const MOCK_EMPLOYEES: EmployeeData[] = [
-  {
-    id: "00005",
-    name: "Kocharin",
-    nameEn: "Kocharin",
-    initials: "KO",
-    colorClass: "bg-emerald-500",
-    title: "Vice President",
-    department: "Procurement Department (BD)",
-    station: "-",
-    division: "Executive Office",
-    section: "-",
-    unit: "-",
-    supervisor: "Nat Boonyavichkanont",
-    status: "Active",
-    empType: "Normal",
-    contractStart: "01/01/2020",
-    contractEnd: "-",
-    probationEnd: "-",
-    gender: "Male",
-    nationality: "Thai",
-    idCard: "1234567890123",
-    email: "kocharin@example.com",
-    phone: "0812345678",
-    address: "Bangkok, Thailand",
-    emergencyContact: "-",
-    education: "-",
-    workHistory: "-",
-  },
-  {
-    id: "00008",
-    name: "Nat Boonyavichkanont",
-    nameEn: "Nat Boonyavichkanont",
-    initials: "NB",
-    colorClass: "bg-blue-500",
-    title: "Chief Executive Officer",
-    department: "HDQ(Exclusive)-สำนักงานใหญ่(พิเศษ)",
-    station: "-",
-    division: "Executive Office",
-    section: "-",
-    unit: "-",
-    supervisor: "-",
-    status: "Active",
-    empType: "Normal",
-    contractStart: "01/01/2018",
-    contractEnd: "-",
-    probationEnd: "-",
-    gender: "Male",
-    nationality: "Thai",
-    idCard: "9876543210987",
-    email: "nat.b@example.com",
-    phone: "0898765432",
-    address: "Bangkok, Thailand",
-    emergencyContact: "-",
-    education: "-",
-    workHistory: "-",
-  },
-  {
-    id: "00014",
-    name: "Pattanit Thonsang-in",
-    nameEn: "Pattanit Thonsang-in",
-    initials: "PT",
-    colorClass: "bg-pink-500",
-    title: "Station Service Manager",
-    department: "UTP-อู่ตะเภา",
-    station: "UTP",
-    division: "Ground Operation",
-    section: "-",
-    unit: "-",
-    supervisor: "Nat Boonyavichkanont",
-    status: "Active",
-    empType: "Normal",
-    contractStart: "15/03/2021",
-    contractEnd: "-",
-    probationEnd: "-",
-    gender: "Female",
-    nationality: "Thai",
-    idCard: "1111222233334",
-    email: "pattanit.t@example.com",
-    phone: "0811122233",
-    address: "Rayong, Thailand",
-    emergencyContact: "-",
-    education: "-",
-    workHistory: "-",
-  },
-  {
-    id: "00019",
-    name: "Anupong Sirikhett",
-    nameEn: "Anupong Sirikhett",
-    initials: "AS",
-    colorClass: "bg-emerald-500",
-    title: "Load Control Supervisor",
-    department: "UTP-อู่ตะเภา",
-    station: "UTP",
-    division: "Ground Operation",
-    section: "-",
-    unit: "-",
-    supervisor: "Pattanit Thonsang-in",
-    status: "Active",
-    empType: "Normal",
-    contractStart: "09/08/2021",
-    contractEnd: "-",
-    probationEnd: "-",
-    gender: "Male",
-    nationality: "Thai",
-    idCard: "5555666677778",
-    email: "anupong.s@example.com",
-    phone: "0855566677",
-    address: "Rayong, Thailand",
-    emergencyContact: "-",
-    education: "-",
-    workHistory: "-",
-  },
-];
+import { filterEmployeeRecords, type EmployeeFilterRecord } from "../lib/search";
 
 // Helper to generate initials from English first and last name.
 const getInitials = (name: string) => {
@@ -153,13 +39,17 @@ const getColorClass = (id: string) => {
 
 // Helper to combine Thai and English strings
 const getDualLanguage = (th: any, en: any, fallback: any) => {
-  const safeTh = (th || "").toString().trim();
-  const safeEn = (en || "").toString().trim();
+  const clean = (value: unknown) => {
+    const text = String(value ?? "").trim();
+    return ["-", "null", "undefined"].includes(text.toLowerCase()) ? "" : text;
+  };
+  const safeTh = clean(th);
+  const safeEn = clean(en);
   
   if (safeTh && safeEn && safeTh !== "-" && safeEn !== "-" && safeTh.toLowerCase() !== safeEn.toLowerCase()) {
     return `${safeTh} / ${safeEn}`;
   }
-  return safeTh || safeEn || fallback || "-";
+  return safeTh || safeEn || clean(fallback) || "-";
 };
 
 interface EmployeeListProps {
@@ -174,6 +64,7 @@ interface EmployeeListProps {
   endDateFilter?: string;
   refreshKey?: number;
   onRefreshStateChange?: (refreshing: boolean) => void;
+  onFilterRecordsChange?: (records: EmployeeFilterRecord[]) => void;
 }
 
 export function EmployeeList({ 
@@ -187,7 +78,8 @@ export function EmployeeList({
   startDateFilter = "",
   endDateFilter = "",
   refreshKey = 0,
-  onRefreshStateChange
+  onRefreshStateChange,
+  onFilterRecordsChange,
 }: EmployeeListProps) {
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -218,6 +110,7 @@ export function EmployeeList({
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchEmployees() {
       const isManualRefresh = refreshKey > 0;
       if (isManualRefresh) {
@@ -227,13 +120,15 @@ export function EmployeeList({
       }
 
       try {
-        const empRes = await fetch("/api/employees", { cache: "no-store" });
+        const empRes = await fetch("/api/employees", { cache: "no-store", signal: controller.signal });
 
         if (!empRes.ok) {
           throw new Error("Failed to fetch from DynamoDB");
         }
         
         const data = await empRes.json();
+        if (!Array.isArray(data)) throw new Error("Invalid employee list response");
+        if (controller.signal.aborted) return;
         
         if (data && data.length > 0) {
           // Map DynamoDB data to the EmployeeData interface
@@ -325,7 +220,7 @@ export function EmployeeList({
             // Ensure format like Mr. Chayanut (or fallback if no title)
             const displayNameEn = rawEnTitle && cleanEnName !== "-" ? `${rawEnTitle}${rawEnTitle.endsWith('.') ? '' : '.'} ${cleanEnName}` : cleanEnName;
             
-            const empId = item.emp_code || item.staff_id || item.employeeId || item.id || "N/A";
+            const empId = String(item.emp_code || item.staff_id || item.employeeId || item.id || "N/A").trim();
             const mappedTitle = getDualLanguage(item.position_th, item.position_en, item.position || item.title);
             
             const empIdStr = String(empId);
@@ -351,7 +246,7 @@ export function EmployeeList({
               colorClass: getColorClass(empId),
               title: mappedTitle,
               department: getDualLanguage(item.department_th, item.department_en, item.department),
-              station: getDualLanguage(item.station_th, item.station_en, item.station),
+              station: cleanProfileValue(item.station) || getDualLanguage(item.station_th, item.station_en, item.work_location),
               division: getDualLanguage(item.division_th, item.division_en, item.division),
               section: getDualLanguage(item.section_th, item.section_en, item.section),
               unit: getDualLanguage(item.unit_th, item.unit_en, item.unit),
@@ -423,19 +318,23 @@ export function EmployeeList({
           setEmployees(mappedData);
           setErrorMsg(null);
         } else {
-          setEmployees(MOCK_EMPLOYEES);
+          setEmployees([]);
+          setErrorMsg(null);
         }
       } catch (error) {
-        console.error("Using fallback mock data due to error:", error);
-        setEmployees(MOCK_EMPLOYEES);
-        setErrorMsg("ไม่สามารถเชื่อมต่อฐานข้อมูล Amazon ได้ กำลังแสดงข้อมูลจำลอง (Mock Data)");
+        if (controller.signal.aborted) return;
+        console.error("Failed to load employees:", error);
+        setErrorMsg("ไม่สามารถโหลดรายชื่อพนักงานล่าสุดได้ กรุณากด Refresh เพื่อลองอีกครั้ง");
       } finally {
-        setLoading(false);
-        if (isManualRefresh) onRefreshStateChange?.(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+          if (isManualRefresh) onRefreshStateChange?.(false);
+        }
       }
     }
 
     fetchEmployees();
+    return () => controller.abort();
   }, [refreshKey, onRefreshStateChange]);
 
   // Reset pagination when activeTab, search query or filters change
@@ -443,15 +342,14 @@ export function EmployeeList({
     setVisibleCount(25);
   }, [activeTab, searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter, startDateFilter, endDateFilter]);
 
-  // Smart search and organization filtering
-  const filteredEmployees = useMemo(() => {
+  const tabEmployees = useMemo(() => {
     let result = employees;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Filter by activeTab first
     if (activeTab === "active") {
-      result = result.filter(emp => emp.status && emp.status.toLowerCase() === "active");
+      result = result.filter(emp => emp.status && emp.status.trim().toLowerCase() === "active");
       
       // Calculate remaining probation days if they are on probation
       result = result.map(emp => {
@@ -513,99 +411,17 @@ export function EmployeeList({
       });
     }
 
-    // Apply organization filters
-    if (departmentFilter && departmentFilter !== "-") {
-      result = result.filter(emp => emp.department && emp.department.includes(departmentFilter.split(' (')[0]));
-    }
-    if (divisionFilter && divisionFilter !== "-") {
-      result = result.filter(emp => emp.division && emp.division.includes(divisionFilter.split(' (')[0]));
-    }
-    if (sectionFilter && sectionFilter !== "-") {
-      result = result.filter(emp => emp.section && emp.section.includes(sectionFilter.split(' (')[0]));
-    }
-    if (stationFilter && stationFilter !== "-") {
-      result = result.filter(emp => emp.station === stationFilter);
-    }
-    if (unitFilter && unitFilter !== "-") {
-      result = result.filter(emp => emp.unit && emp.unit.includes(unitFilter.split(' (')[0]));
-    }
+    return result;
+  }, [employees, activeTab]);
 
-    // Apply date range filter (start_date / contractStart)
-    if (startDateFilter || endDateFilter) {
-      const parseDate = (dateStr: string): Date | null => {
-        if (!dateStr || dateStr === "-") return null;
-        
-        // Try YYYY-MM-DD
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-          const d = new Date(dateStr);
-          if (!isNaN(d.getTime())) return d;
-        }
-        
-        // Try DD/MM/YYYY
-        if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
-          const parts = dateStr.split("/");
-          const day = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10) - 1; // 0-indexed
-          const year = parseInt(parts[2], 10);
-          const d = new Date(year, month, day);
-          if (!isNaN(d.getTime())) return d;
-        }
-        
-        const fallbackDate = new Date(dateStr);
-        if (!isNaN(fallbackDate.getTime())) return fallbackDate;
-        
-        return null;
-      };
+  useEffect(() => {
+    onFilterRecordsChange?.(tabEmployees);
+  }, [tabEmployees, onFilterRecordsChange]);
 
-      const start = startDateFilter ? new Date(startDateFilter) : null;
-      if (start) start.setHours(0, 0, 0, 0);
-      
-      const end = endDateFilter ? new Date(endDateFilter) : null;
-      if (end) end.setHours(23, 59, 59, 999);
-
-      result = result.filter(emp => {
-        const dateStr = activeTab === "resigned" ? (emp as any).resignDate : emp.contractStart;
-        if (!dateStr || dateStr === "-") return false;
-        
-        const targetDate = parseDate(dateStr);
-        if (!targetDate) return false;
-        
-        targetDate.setHours(0, 0, 0, 0);
-
-        if (start && targetDate.getTime() < start.getTime()) return false;
-        if (end && targetDate.getTime() > end.getTime()) return false;
-        
-        return true;
-      });
-    }
-
-    const query = searchQuery.trim().replace(/^@/, "");
-    if (!query) return result;
-    
-    const isNumeric = /^\d+$/.test(query);
-    
-    return result.filter(emp => {
-      if (isNumeric) {
-        if (query.length <= 5) {
-          // 1-5 digits: Search by ID
-          return emp.id.includes(query);
-        } else if (query.length <= 10) {
-          // 6-10 digits: Search by Phone
-          return emp.phone.includes(query);
-        } else {
-          // 11+ digits: Search by ID Card
-          return emp.idCard.includes(query);
-        }
-      } else {
-        // Not purely numeric: Search by Name (Thai/English)
-        const lowerQuery = query.toLowerCase();
-        return (
-          (emp.name && emp.name.toLowerCase().includes(lowerQuery)) || 
-          (emp.nameEn && emp.nameEn.toLowerCase().includes(lowerQuery))
-        );
-      }
-    });
-  }, [employees, activeTab, searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter, startDateFilter, endDateFilter]);
+  const filteredEmployees = useMemo(() => filterEmployeeRecords(tabEmployees, {
+      searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter,
+      startDateFilter, endDateFilter, dateField: activeTab === "resigned" ? "departure" : "start",
+    }), [tabEmployees, activeTab, searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter, startDateFilter, endDateFilter]);
 
   if (loading) {
     return (
@@ -619,17 +435,24 @@ export function EmployeeList({
   return (
     <div className="w-full min-w-0">
       {errorMsg && (
-        <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl flex items-center justify-between">
+        <div role="alert" className="mb-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl flex items-center justify-between">
           <p className="text-sm text-amber-700 dark:text-amber-400">{errorMsg}</p>
         </div>
       )}
 
-      {!selectedEmployee && activeTab === "resigned" && (
+      {!selectedEmployee && !errorMsg && (
         <div className="mb-3 flex items-center justify-between border-y border-slate-200/80 py-2 text-xs dark:border-white/10">
-          <span className="font-medium text-slate-600 dark:text-slate-300">พนักงานลาออกและอยู่ระหว่างลาออก</span>
-          <span className="font-semibold text-slate-900 dark:text-white">
+          <span className="font-medium text-slate-600 dark:text-slate-300">{activeTab === "resigned" ? "พนักงานลาออกและอยู่ระหว่างลาออก" : "ผลการค้นหา"}</span>
+          <span role="status" className="font-semibold text-slate-900 dark:text-white">
             {filteredEmployees.length.toLocaleString("th-TH")} คน
           </span>
+        </div>
+      )}
+
+      {!selectedEmployee && !errorMsg && filteredEmployees.length === 0 && (
+        <div className="flex flex-col items-center gap-3 py-12 text-center text-slate-500 dark:text-slate-400">
+          <SearchX className="h-7 w-7" aria-hidden="true" />
+          <p>ไม่พบพนักงานตามเงื่อนไขที่เลือก</p>
         </div>
       )}
 

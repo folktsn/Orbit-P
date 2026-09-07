@@ -6,6 +6,7 @@ import { EmployeeList } from "./components/EmployeeList";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { getEmployeeFilterOptions, type EmployeeFilterRecord } from "./lib/search";
 
 export default function EmployeesPage() {
   const [activeTab, setActiveTab] = useState<"all" | "active" | "resigned" | "retirement">("active");
@@ -13,6 +14,7 @@ export default function EmployeesPage() {
   
   // Organization Filters State
   const [orgData, setOrgData] = useState<any[]>([]);
+  const [filterRecords, setFilterRecords] = useState<EmployeeFilterRecord[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedDivision, setSelectedDivision] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
@@ -25,6 +27,7 @@ export default function EmployeesPage() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [employeeRefreshKey, setEmployeeRefreshKey] = useState(0);
   const [isRefreshingEmployees, setIsRefreshingEmployees] = useState(false);
+  const invalidDateRange = Boolean(startDate && endDate && startDate > endDate);
 
   const dateRangeText = useMemo(() => {
     if (!startDate && !endDate) {
@@ -70,44 +73,19 @@ export default function EmployeesPage() {
     return name;
   };
 
-  const sortByCode = (a: string, b: string) => {
-    const extractCode = (str: string) => {
-      const match = str.match(/\(([^)]+)\)$/);
-      return match ? match[1].trim() : str.trim();
-    };
-    return extractCode(a).localeCompare(extractCode(b), 'en');
-  };
+  const preferredLabels = useMemo(() => ({
+    department: [...new Set(orgData.map((item) => formatWithCode(item.department_en, item.department_code)))],
+    division: [...new Set(orgData.map((item) => formatWithCode(item.division_en, item.division_code)))],
+    section: [...new Set(orgData.map((item) => formatWithCode(item.section_en, item.section_code)))],
+    unit: [...new Set(orgData.map((item) => formatWithCode(item.unit_en, item.unit_code)))],
+    station: [...new Set(orgData.map((item) => String(item.station ?? "").trim()))],
+  }), [orgData]);
 
-  const departments = useMemo(() => {
-    return Array.from(new Set(orgData.map(item => formatWithCode(item.department_en, item.department_code)).filter(v => v && v !== "-"))).sort(sortByCode);
-  }, [orgData]);
-
-  const divisions = useMemo(() => {
-    let filtered = orgData;
-    if (selectedDepartment) {
-      filtered = filtered.filter(item => formatWithCode(item.department_en, item.department_code) === selectedDepartment);
-    }
-    return Array.from(new Set(filtered.map(item => formatWithCode(item.division_en, item.division_code)).filter(v => v && v !== "-"))).sort(sortByCode);
-  }, [orgData, selectedDepartment]);
-
-  const sections = useMemo(() => {
-    let filtered = orgData;
-    if (selectedDepartment) filtered = filtered.filter(item => formatWithCode(item.department_en, item.department_code) === selectedDepartment);
-    if (selectedDivision) filtered = filtered.filter(item => formatWithCode(item.division_en, item.division_code) === selectedDivision);
-    return Array.from(new Set(filtered.map(item => formatWithCode(item.section_en, item.section_code)).filter(v => v && v !== "-"))).sort(sortByCode);
-  }, [orgData, selectedDepartment, selectedDivision]);
-
-  const stations = useMemo(() => {
-    return Array.from(new Set(orgData.map(item => item.station).filter(v => v && v !== "-"))).sort((a, b) => a.localeCompare(b, 'en'));
-  }, [orgData]);
-
-  const units = useMemo(() => {
-    let filtered = orgData;
-    if (selectedDepartment) filtered = filtered.filter(item => formatWithCode(item.department_en, item.department_code) === selectedDepartment);
-    if (selectedDivision) filtered = filtered.filter(item => formatWithCode(item.division_en, item.division_code) === selectedDivision);
-    if (selectedSection) filtered = filtered.filter(item => formatWithCode(item.section_en, item.section_code) === selectedSection);
-    return Array.from(new Set(filtered.map(item => formatWithCode(item.unit_en, item.unit_code)).filter(v => v && v !== "-"))).sort(sortByCode);
-  }, [orgData, selectedDepartment, selectedDivision, selectedSection]);
+  const { departments, divisions, sections, units, stations } = useMemo(() => getEmployeeFilterOptions(
+    filterRecords,
+    { departmentFilter: selectedDepartment, divisionFilter: selectedDivision, sectionFilter: selectedSection },
+    preferredLabels,
+  ), [filterRecords, selectedDepartment, selectedDivision, selectedSection, preferredLabels]);
   const hasActiveFilters = Boolean(selectedDepartment || selectedDivision || selectedSection || selectedStation || selectedUnit || searchQuery || startDate || endDate);
 
   const handleRefreshEmployees = useCallback(() => {
@@ -229,18 +207,22 @@ export default function EmployeesPage() {
               <div className="fixed inset-0 z-50" onClick={() => setIsDatePickerOpen(false)} />
               <div className="absolute top-full left-0 mt-2 w-[min(18rem,calc(100vw-1.5rem))] bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl z-50 p-4 space-y-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">จากวันที่ (Start Date)</label>
+                  <label htmlFor="employees-filter-start" className="text-xs font-semibold text-slate-500 dark:text-slate-400">จากวันที่ (Start Date)</label>
                   <input
+                    id="employees-filter-start"
                     type="date"
+                    max={endDate || undefined}
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">ถึงวันที่ (End Date)</label>
+                  <label htmlFor="employees-filter-end" className="text-xs font-semibold text-slate-500 dark:text-slate-400">ถึงวันที่ (End Date)</label>
                   <input
+                    id="employees-filter-end"
                     type="date"
+                    min={startDate || undefined}
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -277,6 +259,7 @@ export default function EmployeesPage() {
           <input 
             type="text" 
             placeholder="Search by name, ID, or component..." 
+            aria-label="ค้นหาพนักงาน"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-full pl-10 pr-10 py-2.5 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:focus:ring-white/20"
@@ -284,6 +267,9 @@ export default function EmployeesPage() {
           {searchQuery && (
             <button 
               onClick={() => setSearchQuery("")}
+              type="button"
+              aria-label="ล้างคำค้นหา"
+              title="ล้างคำค้นหา"
               className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
               <X className="h-4 w-4" />
@@ -316,6 +302,7 @@ export default function EmployeesPage() {
                 setSearchQuery("");
                 setStartDate("");
                 setEndDate("");
+                setIsDatePickerOpen(false);
               }}
               className="flex flex-1 items-center justify-center gap-2 h-full min-h-[40px] bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-500/20 rounded-full px-4 text-sm font-medium transition-colors"
             >
@@ -325,6 +312,8 @@ export default function EmployeesPage() {
           )}
         </div>
       </motion.div>
+
+      {invalidDateRange && <p role="alert" className="text-sm text-red-600 dark:text-red-400">วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด</p>}
 
       {/* List */}
       <EmployeeList 
@@ -339,6 +328,7 @@ export default function EmployeesPage() {
         endDateFilter={endDate}
         refreshKey={employeeRefreshKey}
         onRefreshStateChange={handleEmployeeRefreshStateChange}
+        onFilterRecordsChange={setFilterRecords}
       />
     </div>
   );

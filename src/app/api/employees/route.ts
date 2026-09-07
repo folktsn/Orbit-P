@@ -51,6 +51,7 @@ const EMPLOYEE_DETAIL_FIELDS = [
 const EMPLOYEE_LIST_FIELDS = [
   'emp_code', 'staff_id', 'employeeId', 'id',
   'title_th', 'title_en', 'name_th', 'name_en', 'name',
+  'first_name_th', 'last_name_th', 'first_name_en', 'last_name_en',
   'position_th', 'position_en', 'position', 'title',
   'department_th', 'department_en', 'department', 'department_code', 'dept_code',
   'division_th', 'division_en', 'division',
