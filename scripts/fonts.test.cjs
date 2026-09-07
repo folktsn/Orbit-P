@@ -42,3 +42,9 @@ test("login and attachment placeholders do not fall back to an explicit system f
   assert.equal((drawer.match(/\$\{previewFontStyle\}/g) || []).length, 2);
   assert.doesNotMatch(read("src/components/ui/DigitalSignature.tsx"), /font-\[signature\]/);
 });
+
+test("primary navigation uses the bold font weight for every menu item", () => {
+  const css = read("src/components/ui/PillNav.css");
+  assert.match(css, /\.pill-nav \.nav-item\.pill\s*\{[^}]*font-weight:\s*700\s*;/);
+  assert.doesNotMatch(css, /font-weight:\s*(?:[1-6]00|normal|lighter)\s*;/);
+});
