@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
-import { Briefcase, ChevronRight, AlertCircle, Clock, Calendar, SearchX } from "lucide-react";
+import { useState, useEffect, useMemo, useRef, type CSSProperties } from "react";
+import { Briefcase, Building2, MapPin, ChevronRight, AlertCircle, Clock, Calendar, SearchX } from "lucide-react";
 import { EmployeeProfileDrawer, EmployeeData } from "./EmployeeProfileDrawer";
 import { cn } from "@/lib/utils";
 import {
@@ -11,6 +11,44 @@ import {
   parseEmployeeDate,
 } from "../lib/resignation";
 import { filterEmployeeRecords, type EmployeeFilterRecord } from "../lib/search";
+import styles from "../EmployeesWorkspace.module.css";
+
+function EmployeeStatus({ employee, activeTab }: { employee: EmployeeData & { diffDays?: number }; activeTab: EmployeeListProps["activeTab"] }) {
+  let label = employee.status?.trim() || "Unknown";
+  let tone = label.toLowerCase() === "active" ? "active" : "neutral";
+  let Icon = Calendar;
+
+  if (activeTab === "resigned") {
+    const { kind, date, days } = getDepartureState(employee);
+    const formattedDate = date?.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+    label = kind === "completed" ? "ลาออกแล้ว"
+      : kind === "failed-probation" ? "ไม่ผ่านทดลองงาน"
+        : kind === "overdue" ? `เลยกำหนดวันลาออก ${Math.abs(days)} วัน`
+          : kind === "today" ? "ลาออกวันนี้"
+            : kind === "upcoming" ? `ลาออกใน ${days} วัน` : "อยู่ระหว่างลาออก";
+    label += formattedDate ? ` (${formattedDate})` : " · ไม่ระบุวันที่";
+    tone = kind === "overdue" || kind === "failed-probation" ? "danger"
+      : kind === "today" || (kind === "upcoming" && days <= 30) ? "warning" : "neutral";
+    Icon = tone === "danger" ? AlertCircle : kind === "today" ? Clock : Calendar;
+  } else if (activeTab === "retirement" && employee.retirementAge !== undefined) {
+    label = employee.turnsSixtyThisYear ? "ครบ 60 ปีในปีนี้" : `อายุ ${employee.retirementAge} ปี`;
+    tone = "warning";
+  } else if (activeTab === "active" && employee.diffDays !== undefined) {
+    const days = employee.diffDays;
+    label = days < 0 ? `เลยกำหนด ${Math.abs(days)} วัน`
+      : days === 0 ? "ครบกำหนดวันนี้"
+        : days <= 30 ? `เหลืออีก ${days} วัน (วิกฤต)` : `เหลืออีก ${days} วัน`;
+    tone = days < 0 ? "danger" : days <= 30 ? "warning" : "info";
+    Icon = days < 0 ? AlertCircle : days === 0 ? Clock : Calendar;
+  }
+
+  return (
+    <span className={styles.employeeStatus} data-tone={tone}>
+      {tone === "active" ? <span className={styles.statusDot} /> : <Icon size={13} aria-hidden="true" />}
+      <span>{label}</span>
+    </span>
+  );
+}
 
 // Helper to generate initials from English first and last name.
 const getInitials = (name: string) => {
@@ -423,184 +461,89 @@ export function EmployeeList({
       startDateFilter, endDateFilter, dateField: activeTab === "resigned" ? "departure" : "start",
     }), [tabEmployees, activeTab, searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter, startDateFilter, endDateFilter]);
 
-  if (loading) {
-    return (
-      <div className="w-full py-12 flex justify-center items-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 dark:border-white"></div>
-        <span className="ml-3 text-slate-500 dark:text-slate-400">Loading employees from DynamoDB...</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full min-w-0">
-      {errorMsg && (
-        <div role="alert" className="mb-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl flex items-center justify-between">
-          <p className="text-sm text-amber-700 dark:text-amber-400">{errorMsg}</p>
+    <div className={styles.directory}>
+      <header className={styles.resultsHeading}>
+        <div>
+          <span className={styles.eyebrow}>EMPLOYEES / {activeTab.toUpperCase()}</span>
+          <h2>{activeTab === "resigned" ? "พนักงานลาออกและอยู่ระหว่างลาออก" : activeTab === "retirement" ? "พนักงานเกษียณอายุ" : "รายชื่อพนักงาน"}</h2>
         </div>
-      )}
-
-      {!selectedEmployee && !errorMsg && (
-        <div className="mb-3 flex items-center justify-between border-y border-slate-200/80 py-2 text-xs dark:border-white/10">
-          <span className="font-medium text-slate-600 dark:text-slate-300">{activeTab === "resigned" ? "พนักงานลาออกและอยู่ระหว่างลาออก" : "ผลการค้นหา"}</span>
-          <span role="status" className="font-semibold text-slate-900 dark:text-white">
+        {!loading && !errorMsg && (
+          <span role="status" className={styles.resultCount}>
             {filteredEmployees.length.toLocaleString("th-TH")} คน
           </span>
+        )}
+      </header>
+
+      {errorMsg && <div role="alert" className={styles.errorState}><AlertCircle size={20} aria-hidden="true" /><p>{errorMsg}</p></div>}
+
+      {loading ? (
+        <div className={styles.loadingState} role="status" aria-label="กำลังโหลดข้อมูลพนักงาน">
+          <p>กำลังโหลดข้อมูลพนักงาน...</p>
+          {Array.from({ length: 5 }, (_, index) => (
+            <div key={index} className={styles.skeletonCard} aria-hidden="true">
+              <span /><div><i /><i /><i /></div>
+            </div>
+          ))}
         </div>
+      ) : !errorMsg && filteredEmployees.length === 0 ? (
+        <div className={styles.emptyState}>
+          <SearchX size={32} aria-hidden="true" />
+          <h3>ไม่พบพนักงานตามเงื่อนไขที่เลือก</h3>
+        </div>
+      ) : !errorMsg && (
+        <ul className={styles.employeeStack} aria-label="ผลการค้นหาพนักงาน">
+          {filteredEmployees.slice(0, visibleCount).map((emp, index) => (
+            <li
+              key={emp.id}
+              className={styles.employeeItem}
+              style={{ "--entry-delay": `${Math.min(index, 8) * 25}ms` } as CSSProperties}
+            >
+              <article className={styles.employeeCard}>
+                <button
+                  type="button"
+                  className={styles.openEmployee}
+                  onClick={() => openEmployee(emp)}
+                  aria-label={`เปิดข้อมูลพนักงาน ${emp.nameEn !== "-" ? emp.nameEn : emp.name} (${emp.id})`}
+                />
+                <div className={styles.employeeIdentity}>
+                  <div className={cn(styles.avatar, emp.colorClass)} aria-hidden="true">{emp.initials}</div>
+                  <div className={styles.employeeName}>
+                    <p className={styles.employeeId}>ID: {emp.id}</p>
+                    <h3 title={emp.nameEn !== "-" ? emp.nameEn : emp.name}>{emp.nameEn !== "-" ? emp.nameEn : emp.name}</h3>
+                    {emp.nameEn !== "-" && <p className={styles.thaiName} title={emp.name}>{emp.name}</p>}
+                  </div>
+                </div>
+                <div className={styles.employeeWork}>
+                  <p title={emp.title}><Briefcase size={15} aria-hidden="true" /><span>{emp.title}</span></p>
+                  <p title={emp.department}><Building2 size={15} aria-hidden="true" /><span>{emp.department}</span></p>
+                </div>
+                <ChevronRight className={styles.cardArrow} size={18} aria-hidden="true" />
+                <footer className={styles.employeeFooter}>
+                  <span className={styles.station}><MapPin size={13} aria-hidden="true" /><span>{emp.station || "-"}</span></span>
+                  <div className={styles.employeeBadges}>
+                    {emp.empType && emp.empType !== "-" && <span className={styles.employeeType}>{emp.empType}</span>}
+                    <EmployeeStatus employee={emp} activeTab={activeTab} />
+                  </div>
+                </footer>
+              </article>
+            </li>
+          ))}
+        </ul>
       )}
 
-      {!selectedEmployee && !errorMsg && filteredEmployees.length === 0 && (
-        <div className="flex flex-col items-center gap-3 py-12 text-center text-slate-500 dark:text-slate-400">
-          <SearchX className="h-7 w-7" aria-hidden="true" />
-          <p>ไม่พบพนักงานตามเงื่อนไขที่เลือก</p>
-        </div>
-      )}
-
-      <div className="min-w-0 space-y-3 sm:space-y-4">
-        {!selectedEmployee && filteredEmployees.slice(0, visibleCount).map((emp, idx) => (
-          <div
-            key={emp.id}
-            onClick={() => openEmployee(emp)}
-            className="group flex min-w-0 items-center justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white p-3 shadow-sm transition-all duration-300 hover:shadow-md dark:border-white/5 dark:bg-[#121212] sm:p-4"
-          >
-            <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-              <div className={cn("relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-100 bg-slate-100 text-base font-bold text-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900 sm:h-12 sm:w-12 sm:text-lg", emp.colorClass)}>
-                {emp.initials}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-sky-700 dark:text-sky-300 leading-tight truncate">ID: {emp.id}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <h3 className="font-bold text-slate-900 dark:text-slate-100 truncate">{emp.nameEn !== "-" ? emp.nameEn : emp.name}</h3>
-                </div>
-                {emp.nameEn !== "-" && <p className="text-sm text-slate-600 dark:text-slate-400 font-normal truncate">{emp.name}</p>}
-              </div>
-
-              {activeTab === "all" && (
-                <div className="hidden sm:flex items-center justify-center shrink-0 w-24 md:w-28 mr-2 md:mr-4">
-                  <span className={cn(
-                    "inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all",
-                    emp.status && emp.status.toLowerCase() === "active"
-                      ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20"
-                      : emp.status && emp.status.toLowerCase().includes("resign")
-                        ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-500/20"
-                        : "bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-white/10"
-                  )}>
-                    {emp.status || "Unknown"}
-                  </span>
-                </div>
-              )}
-              
-              {/* Probation Countdown Alert Badge */}
-              {activeTab === "active" && (emp as any).diffDays !== undefined && (
-                <div className="flex items-center shrink-0 mr-2 md:mr-4">
-                  {(() => {
-                    const days = (emp as any).diffDays;
-                    if (days < 0) {
-                      return (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-500/20 rounded-full text-xs font-semibold transition-colors">
-                          <AlertCircle className="w-3.5 h-3.5 animate-bounce shrink-0" />
-                          <span>เลยกำหนด {Math.abs(days)} วัน</span>
-                        </div>
-                      );
-                    } else if (days === 0) {
-                      return (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20 rounded-full text-xs font-semibold transition-colors animate-pulse">
-                          <Clock className="w-3.5 h-3.5 shrink-0" />
-                          <span>ครบกำหนดวันนี้</span>
-                        </div>
-                      );
-                    } else if (days <= 30) {
-                      return (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 hover:bg-orange-100 dark:bg-orange-500/10 dark:hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-500/20 rounded-full text-xs font-semibold transition-colors">
-                          <Calendar className="w-3.5 h-3.5 shrink-0" />
-                          <span>เหลืออีก {days} วัน (วิกฤต)</span>
-                        </div>
-                      );
-                    } else {
-                      return (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 rounded-full text-xs font-semibold transition-colors">
-                          <Calendar className="w-3.5 h-3.5 shrink-0" />
-                          <span>เหลืออีก {days} วัน</span>
-                        </div>
-                      );
-                    }
-                  })()}
-                </div>
-              )}
-
-              {activeTab === "retirement" && emp.retirementAge !== undefined && (
-                <div className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300 sm:gap-1.5 sm:px-3 sm:text-xs">
-                  <Calendar className="h-3.5 w-3.5 shrink-0" />
-                  <span>
-                    {emp.turnsSixtyThisYear
-                      ? "ครบ 60 ปีในปีนี้"
-                      : `อายุ ${emp.retirementAge} ปี`}
-                  </span>
-                </div>
-              )}
-
-              {activeTab === "resigned" && (
-                <div className="mr-2 flex max-w-[48%] shrink-0 items-center md:mr-4">
-                  {(() => {
-                    const { kind, date, days } = getDepartureState(emp);
-                    const formattedDate = date?.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-                    const label = kind === "completed" ? "ลาออกแล้ว"
-                      : kind === "failed-probation" ? "ไม่ผ่านทดลองงาน"
-                        : kind === "overdue" ? `เลยกำหนดวันลาออก ${Math.abs(days)} วัน`
-                          : kind === "today" ? "ลาออกวันนี้"
-                            : kind === "upcoming" ? `ลาออกใน ${days} วัน`
-                              : "อยู่ระหว่างลาออก";
-                    const isAlert = kind === "overdue" || kind === "failed-probation";
-                    const isNear = kind === "today" || (kind === "upcoming" && days <= 30);
-                    const BadgeIcon = isAlert ? AlertCircle : kind === "today" ? Clock : Calendar;
-
-                    return (
-                      <div className={cn(
-                        "flex min-w-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold sm:px-3 sm:text-xs",
-                        isAlert ? "border-red-100 bg-red-50 text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400"
-                          : isNear ? "border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400"
-                            : "border-slate-200 bg-slate-50 text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300",
-                      )}>
-                        <BadgeIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        <span>{label}{formattedDate ? ` (${formattedDate})` : " · ไม่ระบุวันที่"}</span>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              <div className="hidden md:flex flex-1 items-center gap-2 text-slate-500 dark:text-slate-400 min-w-0">
-                <Briefcase className="w-4 h-4 opacity-50 shrink-0" />
-                <span className="text-sm truncate">{emp.title}</span>
-              </div>
-              <div className="hidden lg:flex flex-1 items-center justify-end pr-8 min-w-0">
-                <span className="px-3 py-1 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-full text-xs text-slate-500 dark:text-slate-400 truncate max-w-full">
-                  {emp.department}
-                </span>
-              </div>
-            </div>
-            <div className="shrink-0 text-slate-300 transition-colors group-hover:text-slate-900 dark:text-slate-600 dark:group-hover:text-slate-300">
-              <ChevronRight className="w-5 h-5" />
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {!selectedEmployee && visibleCount < filteredEmployees.length && (
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={() => setVisibleCount(prev => prev + 25)}
-            className="px-6 py-2.5 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-full text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:shadow-md hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
-          >
+      {!loading && !errorMsg && visibleCount < filteredEmployees.length && (
+        <div className={styles.pagination}>
+          <button type="button" onClick={() => setVisibleCount(prev => prev + 25)}>
             Load More ({filteredEmployees.length - visibleCount} remaining)
           </button>
         </div>
       )}
 
-      <EmployeeProfileDrawer 
-        isOpen={isDrawerOpen} 
-        onClose={closeEmployeeDrawer} 
-        employee={selectedEmployee} 
+      <EmployeeProfileDrawer
+        isOpen={isDrawerOpen}
+        onClose={closeEmployeeDrawer}
+        employee={selectedEmployee}
         onUpdate={(updatedData) => {
           setEmployees(prev => prev.map(e => e.id === updatedData.id ? updatedData : e));
           setSelectedEmployee(updatedData);
