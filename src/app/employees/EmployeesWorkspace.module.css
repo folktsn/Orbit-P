@@ -96,7 +96,7 @@
 .employeeCard {
   position: relative; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 18px;
   column-gap: 1.5rem; row-gap: 1rem; padding: 1.3rem 1.4rem 1rem;
-  border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 1.5rem; background: var(--surface);
   box-shadow: 0 2px 3px #15252c04, 0 6px 18px #15252c03;
   transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
@@ -142,7 +142,7 @@
 :global(.dark) .errorState { background: #322918; color: #eac781; border-color: #71603a; }
 .loadingState { display: grid; gap: 1rem; }
 .loadingState > p { color: var(--muted); font-size: .9rem; }
-.skeletonCard { display: flex; align-items: center; gap: 1rem; padding: 2rem 1.5rem; min-height: 9rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.skeletonCard { display: flex; align-items: center; gap: 1rem; padding: 2rem 1.5rem; min-height: 9rem; border: 1px solid var(--line); border-radius: 1.5rem; background: var(--surface); }
 .skeletonCard > span { width: 3.2rem; height: 3.2rem; border-radius: 50%; background: var(--subtle); }
 .skeletonCard div { display: grid; gap: .7rem; flex: 1; }
 .skeletonCard i { display: block; height: .7rem; width: 70%; background: var(--subtle); border-radius: 3px; }
