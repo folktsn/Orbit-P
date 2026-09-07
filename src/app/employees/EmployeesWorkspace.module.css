@@ -105,7 +105,7 @@
 .employeeIdentity { display: flex; align-items: center; gap: .95rem; min-width: 0; }
 .avatar { display: grid; place-items: center; width: 3.2rem; height: 3.2rem; flex-shrink: 0; border-radius: 50%; color: white; font-size: 1.05rem; font-weight: 700; }
 .employeeName { min-width: 0; }
-.employeeId { color: var(--accent); font-size: .79rem; font-weight: 700; line-height: 1.5; }
+.employeeId { color: var(--accent); font-size: 1.25rem; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
 .employeeName h3 { margin: .2rem 0; font-size: 1.08rem; font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; }
 .thaiName { color: var(--muted); font-size: .87rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .employeeWork { display: flex; flex-direction: column; justify-content: center; gap: .65rem; min-width: 0; }
