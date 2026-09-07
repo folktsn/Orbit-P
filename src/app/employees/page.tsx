@@ -3,7 +3,7 @@
 import { Search, X, RefreshCw, CalendarDays, SlidersHorizontal, ChevronDown, UsersRound } from "lucide-react";
 import { EmployeeList } from "./components/EmployeeList";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { getEmployeeFilterOptions, type EmployeeFilterRecord } from "./lib/search";
 import styles from "./EmployeesWorkspace.module.css";
@@ -28,7 +28,12 @@ export default function EmployeesPage() {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [employeeRefreshKey, setEmployeeRefreshKey] = useState(0);
   const [isRefreshingEmployees, setIsRefreshingEmployees] = useState(false);
+  const resultsRef = useRef<HTMLElement>(null);
   const invalidDateRange = Boolean(startDate && endDate && startDate > endDate);
+
+  useEffect(() => {
+    resultsRef.current?.scrollTo({ top: 0, behavior: "instant" });
+  }, [activeTab, searchQuery, selectedDepartment, selectedDivision, selectedSection, selectedStation, selectedUnit, startDate, endDate]);
 
   const dateRangeText = useMemo(() => {
     if (!startDate && !endDate) {
@@ -135,23 +140,23 @@ export default function EmployeesPage() {
           <div className={styles.filterFields}>
             <div className={styles.filterField}>
               <span className="sr-only">ฝ่าย / Department</span>
-              <CustomSelect value={selectedDepartment} onChange={(v) => { setSelectedDepartment(v); setSelectedDivision(""); setSelectedSection(""); setSelectedUnit(""); }} options={departments} placeholder="All Departments" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedDepartment} onChange={(v) => { setSelectedDepartment(v); setSelectedDivision(""); setSelectedSection(""); setSelectedUnit(""); }} options={departments} placeholder="All Departments" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">แผนก / Division</span>
-              <CustomSelect value={selectedDivision} onChange={(v) => { setSelectedDivision(v); setSelectedSection(""); setSelectedUnit(""); }} options={divisions} placeholder="All Divisions" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedDivision} onChange={(v) => { setSelectedDivision(v); setSelectedSection(""); setSelectedUnit(""); }} options={divisions} placeholder="All Divisions" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">ส่วนงาน / Section</span>
-              <CustomSelect value={selectedSection} onChange={(v) => { setSelectedSection(v); setSelectedUnit(""); }} options={sections} placeholder="All Sections" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedSection} onChange={(v) => { setSelectedSection(v); setSelectedUnit(""); }} options={sections} placeholder="All Sections" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">หน่วยงาน / Unit</span>
-              <CustomSelect value={selectedUnit} onChange={setSelectedUnit} options={units} placeholder="All Units" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedUnit} onChange={setSelectedUnit} options={units} placeholder="All Units" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">สถานี / Station</span>
-              <CustomSelect value={selectedStation} onChange={setSelectedStation} options={stations} placeholder="All Stations" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedStation} onChange={setSelectedStation} options={stations} placeholder="All Stations" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">{activeTab === "resigned" ? "วันที่ลาออก" : "วันที่เริ่มงาน"}</span>
@@ -219,7 +224,7 @@ export default function EmployeesPage() {
         </div>
       </aside>
 
-      <section className={styles.results} aria-label="รายชื่อพนักงาน">
+      <section ref={resultsRef} tabIndex={0} className={styles.results} aria-label="รายชื่อพนักงาน">
         <EmployeeList
           activeTab={activeTab}
           searchQuery={searchQuery}

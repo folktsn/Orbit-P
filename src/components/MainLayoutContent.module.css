@@ -1,0 +1,7 @@
+.workspaceLayout { display: contents; }
+
+@media (min-width: 768px) {
+  .workspaceLayout { display: flex; flex-direction: column; width: 100%; height: 100dvh; min-height: 0; }
+  .workspaceLayout > header { flex-shrink: 0; }
+  .workspaceLayout > .workspaceContent { min-height: 0; overflow: hidden; }
+}

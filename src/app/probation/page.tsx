@@ -1058,6 +1058,11 @@ export default function ProbationPage() {
   const [followUpRecord, setFollowUpRecord] = useState<ProbationRecord | null>(null);
   const [selectedFollowUpIds, setSelectedFollowUpIds] = useState<Set<string>>(() => new Set());
   const [isBulkFollowUpOpen, setIsBulkFollowUpOpen] = useState(false);
+  const resultsRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    resultsRef.current?.scrollTo({ top: 0, behavior: "instant" });
+  }, [search, department, division, section, unit, station, startDate, endDate, listFilter]);
 
   const fetchProbation = useCallback(async (forceRefresh = false) => {
     try {
@@ -1291,6 +1296,7 @@ export default function ProbationPage() {
             }}
             options={departments}
             placeholder="All Departments"
+            portal
             triggerClassName={styles.selectTrigger}
           />
           </div>
@@ -1306,6 +1312,7 @@ export default function ProbationPage() {
             }}
             options={divisions}
             placeholder="All Divisions"
+            portal
             triggerClassName={styles.selectTrigger}
           />
           </div>
@@ -1320,6 +1327,7 @@ export default function ProbationPage() {
             }}
             options={sections}
             placeholder="All Sections"
+            portal
             triggerClassName={styles.selectTrigger}
           />
           </div>
@@ -1333,6 +1341,7 @@ export default function ProbationPage() {
             }}
             options={units}
             placeholder="All Units"
+            portal
             triggerClassName={styles.selectTrigger}
           />
           </div>
@@ -1346,6 +1355,7 @@ export default function ProbationPage() {
             }}
             options={stations}
             placeholder="All Stations"
+            portal
             triggerClassName={styles.selectTrigger}
           />
           </div>
@@ -1423,6 +1433,7 @@ export default function ProbationPage() {
             }}
             options={EVALUATION_PERIOD_OPTIONS.map((option) => option.label)}
             placeholder="ช่วงการประเมิน"
+            portal
             triggerClassName={styles.selectTrigger}
           />
           </div>
@@ -1437,6 +1448,7 @@ export default function ProbationPage() {
             }}
             options={FOLLOW_UP_FILTER_OPTIONS.map((option) => option.label)}
             placeholder="สถานะการติดตาม"
+            portal
             triggerClassName={styles.selectTrigger}
           />
           </div>
@@ -1503,7 +1515,7 @@ export default function ProbationPage() {
           </div>
       </aside>
 
-      <section className={styles.results} aria-label="รายชื่อพนักงานทดลองงาน" aria-busy={isLoading || isRefreshing}>
+      <section ref={resultsRef} tabIndex={0} className={styles.results} aria-label="รายชื่อพนักงานทดลองงาน" aria-busy={isLoading || isRefreshing}>
         <header className={styles.resultsHeading}>
           <div>
             <span className={styles.eyebrow}><Users size={14} /> PROBATION MANAGEMENT</span>

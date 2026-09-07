@@ -7,6 +7,7 @@ import { ShieldAlert } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { PillNav } from "@/components/ui/PillNav";
 import { PAGE_DEFINITIONS, pageKeyForPath } from "@/lib/permissions";
+import styles from "./MainLayoutContent.module.css";
 
 export function MainLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,6 +15,8 @@ export function MainLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, can, canPage } = useAuth();
   const pageKey = pageKeyForPath(pathname);
   const deniedPage = pageKey && !canPage(pageKey);
+  const isDirectoryWorkspace = (pathname === "/employees" || pathname === "/probation")
+    && !deniedPage && (!user || can("view"));
 
   const content = !isLoginPage && user && !can("view") ? (
     <section className="mx-auto flex min-h-[70dvh] w-full max-w-xl items-center justify-center px-5 py-12">
@@ -37,11 +40,11 @@ export function MainLayoutContent({ children }: { children: React.ReactNode }) {
   ) : children;
 
   return (
-    <>
+    <div className={isDirectoryWorkspace ? styles.workspaceLayout : "contents"}>
       {!isLoginPage && <PillNav />}
-      <main className="flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto">
+      <main className={`flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto ${isDirectoryWorkspace ? styles.workspaceContent : ""}`}>
         {content}
       </main>
-    </>
+    </div>
   );
 }
