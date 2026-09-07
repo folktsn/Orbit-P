@@ -3,7 +3,7 @@
 import { Search, X, RefreshCw, CalendarDays, SlidersHorizontal, ChevronDown, UsersRound } from "lucide-react";
 import { EmployeeList } from "./components/EmployeeList";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, useDeferredValue } from "react";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { getEmployeeFilterOptions, type EmployeeFilterRecord } from "./lib/search";
 import styles from "./EmployeesWorkspace.module.css";
@@ -11,6 +11,7 @@ import styles from "./EmployeesWorkspace.module.css";
 export default function EmployeesPage() {
   const [activeTab, setActiveTab] = useState<"all" | "active" | "resigned" | "retirement">("active");
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   
   // Organization Filters State
   const [orgData, setOrgData] = useState<any[]>([]);
@@ -32,8 +33,8 @@ export default function EmployeesPage() {
   const invalidDateRange = Boolean(startDate && endDate && startDate > endDate);
 
   useEffect(() => {
-    resultsRef.current?.scrollTo({ top: 0, behavior: "instant" });
-  }, [activeTab, searchQuery, selectedDepartment, selectedDivision, selectedSection, selectedStation, selectedUnit, startDate, endDate]);
+    if (resultsRef.current?.scrollTop) resultsRef.current.scrollTo({ top: 0, behavior: "instant" });
+  }, [activeTab, deferredSearchQuery, selectedDepartment, selectedDivision, selectedSection, selectedStation, selectedUnit, startDate, endDate]);
 
   const dateRangeText = useMemo(() => {
     if (!startDate && !endDate) {
@@ -224,10 +225,11 @@ export default function EmployeesPage() {
         </div>
       </aside>
 
-      <section ref={resultsRef} tabIndex={0} className={styles.results} aria-label="รายชื่อพนักงาน">
+      <section ref={resultsRef} tabIndex={0} className={styles.results} aria-label="รายชื่อพนักงาน"
+        aria-busy={searchQuery !== deferredSearchQuery} inert={searchQuery !== deferredSearchQuery}>
         <EmployeeList
           activeTab={activeTab}
-          searchQuery={searchQuery}
+          searchQuery={deferredSearchQuery}
           departmentFilter={selectedDepartment}
           divisionFilter={selectedDivision}
           sectionFilter={selectedSection}

@@ -28,6 +28,7 @@ type SearchFilters = {
 
 type GroupField = "department" | "division" | "section" | "unit" | "station";
 export type EmployeeFilterRecord = Pick<SearchRecord, GroupField>;
+const optionCollator = new Intl.Collator("th", { numeric: true, sensitivity: "base" });
 
 export function normalizeSearchText(value: unknown): string {
   const text = String(value ?? "").normalize("NFKC")
@@ -76,7 +77,7 @@ export function getEmployeeFilterOptions(
       const key = field === "station" ? normalizeSearchText(label).replace(/[\s()[\]._-]/g, "") : normalizeSearchText(label);
       if (!values.has(key)) values.set(key, label);
     }
-    return [...values.values()].sort((a, b) => a.localeCompare(b, "th", { numeric: true, sensitivity: "base" }));
+    return [...values.values()].sort(optionCollator.compare);
   };
   const divisionRows = records.filter((row) => matchesOrganization(row.department, filters.departmentFilter));
   const sectionRows = divisionRows.filter((row) => matchesOrganization(row.division, filters.divisionFilter));
@@ -90,7 +91,34 @@ export function getEmployeeFilterOptions(
   };
 }
 
+type SearchText = { fields: string[]; numbers: string[] };
+
+function prepareSearchText(employee: SearchRecord): SearchText {
+  return {
+    fields: [employee.id, employee.name, employee.nameEn, employee.title,
+      employee.department, employee.division, employee.section, employee.unit, employee.station].map(normalizeSearchText),
+    numbers: [employee.id, employee.phone, employee.idCard].map((value) => normalizeSearchText(value).replace(/\D/g, "")),
+  };
+}
+
+// Keep normalized text for this data snapshot, not for a user session or across updates.
+export function createEmployeeSearch<T extends SearchRecord>(records: T[]) {
+  const textCache = new Map<T, SearchText>();
+  return (filters: SearchFilters) => filterRecords(records, filters, (employee) => {
+    let text = textCache.get(employee);
+    if (!text) {
+      text = prepareSearchText(employee);
+      textCache.set(employee, text);
+    }
+    return text;
+  });
+}
+
 export function filterEmployeeRecords<T extends SearchRecord>(records: T[], filters: SearchFilters): T[] {
+  return filterRecords(records, filters, prepareSearchText);
+}
+
+function filterRecords<T extends SearchRecord>(records: T[], filters: SearchFilters, searchText: (employee: T) => SearchText): T[] {
   const query = normalizeSearchText(filters.searchQuery).replace(/^@/, "");
   const terms = query.split(" ").filter(Boolean);
   const numericQuery = /^[\d\s()+.-]+$/.test(query) ? query.replace(/\D/g, "") : "";
@@ -99,12 +127,15 @@ export function filterEmployeeRecords<T extends SearchRecord>(records: T[], filt
   const hasDateFilter = Boolean(filters.startDateFilter || filters.endDateFilter);
   if ((filters.startDateFilter && !start) || (filters.endDateFilter && !end) || (start && end && start > end)) return [];
 
+  const groupFilters = ([
+    ["department", filters.departmentFilter], ["division", filters.divisionFilter],
+    ["section", filters.sectionFilter], ["unit", filters.unitFilter],
+  ] as const).filter(([, value]) => normalizeSearchText(value));
+  const stationFilter = normalizeSearchText(filters.stationFilter);
+
   return records.filter((employee) => {
-    if (!matchesOrganization(employee.department, filters.departmentFilter)
-      || !matchesOrganization(employee.division, filters.divisionFilter)
-      || !matchesOrganization(employee.section, filters.sectionFilter)
-      || !matchesOrganization(employee.unit, filters.unitFilter)
-      || !matchesStation(employee.station, filters.stationFilter)) return false;
+    if (groupFilters.some(([field, value]) => !matchesOrganization(employee[field], value))
+      || (stationFilter && !matchesStation(employee.station, stationFilter))) return false;
 
     if (hasDateFilter) {
       const date = parseEmployeeDate(filters.dateField === "departure" ? getDepartureDate(employee) : employee.contractStart);
@@ -113,11 +144,9 @@ export function filterEmployeeRecords<T extends SearchRecord>(records: T[], filt
     if (!query) return true;
 
     if (numericQuery) {
-      return [employee.id, employee.phone, employee.idCard].some((value) =>
-        normalizeSearchText(value).replace(/\D/g, "").includes(numericQuery));
+      return searchText(employee).numbers.some((value) => value.includes(numericQuery));
     }
-    const fields = [employee.id, employee.name, employee.nameEn, employee.title,
-      employee.department, employee.division, employee.section, employee.unit, employee.station].map(normalizeSearchText);
+    const { fields } = searchText(employee);
     return terms.every((term) => fields.some((field) => field.includes(term)) || matchesStation(employee.station, term));
   });
 }

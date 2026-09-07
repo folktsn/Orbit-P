@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   BriefcaseBusiness,
@@ -58,6 +58,7 @@ type FollowUpEntries = [FollowUpEntry, FollowUpEntry, FollowUpEntry];
 type ProbationRecord = {
   raw: RawEmployee;
   employee: EmployeeData;
+  searchText: string;
   endDate: Date | null;
   startDate: Date | null;
   daysRemaining: number | null;
@@ -157,13 +158,12 @@ function dateDifferenceInDays(target: Date) {
   return Math.round((target.getTime() - today.getTime()) / 86_400_000);
 }
 
+const dateFormatter = new Intl.DateTimeFormat("th-TH", { day: "2-digit", month: "short", year: "numeric" });
+const updatedAtFormatter = new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" });
+
 function formatDate(date: Date | null) {
   if (!date) return "-";
-  return new Intl.DateTimeFormat("th-TH", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+  return dateFormatter.format(date);
 }
 
 function todayDateOnly() {
@@ -313,6 +313,8 @@ function buildProbationRecord(item: RawEmployee): ProbationRecord {
   return {
     raw: item,
     employee,
+    searchText: [employee.id, employee.name, employee.nameEn, employee.title, employee.department,
+      employee.division, employee.section, employee.unit, employee.station].join(" ").toLowerCase(),
     endDate,
     startDate,
     daysRemaining,
@@ -1036,6 +1038,57 @@ function KpiCard({
   );
 }
 
+const ProbationCard = memo(function ProbationCard({ record, selected, onOpen, onFollowUp, onToggle }: {
+  record: ProbationRecord;
+  selected: boolean;
+  onOpen: (employee: EmployeeData) => void;
+  onFollowUp: (record: ProbationRecord) => void;
+  onToggle: (employeeId: string) => void;
+}) {
+  const name = record.employee.nameEn !== "-" ? record.employee.nameEn : record.employee.name;
+  const completedCount = record.followUps.filter((entry) => hasValue(entry.date)).length;
+  return (
+    <li className={styles.employeeItem}>
+      <article className={cn(styles.employeeCard, selected && probationStyles.selectedCard)}>
+        <button type="button" className={styles.openEmployee} onClick={() => onOpen(record.employee)}
+          aria-label={`เปิดข้อมูลพนักงาน ${name} (${record.employee.id})`} />
+        <div className={styles.employeeIdentity}>
+          <span className={cn(styles.avatar, record.employee.colorClass)}>{record.employee.initials}</span>
+          <div className={styles.employeeName}>
+            <p className={styles.employeeId}>ID: {record.employee.id}</p>
+            <h3>{name}</h3>
+            {record.employee.nameEn !== "-" && <p className={styles.thaiName}>{record.employee.name}</p>}
+          </div>
+        </div>
+        <div className={styles.employeeWork}>
+          <p><BriefcaseBusiness size={15} /><span title={record.employee.title}>{record.employee.title}</span></p>
+          <p><Building2 size={15} /><span title={record.employee.department}>{record.employee.department}</span></p>
+        </div>
+        <ChevronRight size={18} className={styles.cardArrow} />
+        <div className={styles.employeeFooter}>
+          <div className={styles.station}><MapPin size={13} /><span>{record.employee.station}</span></div>
+          <span className={styles.employeeStatus}
+            data-tone={record.urgency === "overdue" ? "danger" : record.urgency === "due30" ? "warning" : record.urgency === "due60" ? "info" : record.urgency === "later" ? "active" : undefined}
+            title={`เริ่ม ${formatDate(record.startDate)} · ครบกำหนด ${formatDate(record.endDate)}${record.inferredEndDate ? " (คำนวณ)" : ""}`}>
+            <Clock3 size={13} /><span>{urgencyLabel(record)}</span>
+          </span>
+          <div className={probationStyles.followUpActions}>
+            <label className={probationStyles.selectionLabel}>
+              <input type="checkbox" checked={selected} onChange={() => onToggle(record.employee.id)} aria-label={`เลือก ${name} สำหรับติดตาม`} />
+              เลือกติดตาม
+            </label>
+            <span className={probationStyles.followUpCount}>ติดตามแล้ว {completedCount}/3</span>
+            <button type="button" onClick={() => onFollowUp(record)} className={probationStyles.followUpButton}
+              title="บันทึกการติดตาม" aria-label={`บันทึกการติดตาม ${name}`}>
+              <CalendarCheck2 size={15} /><span>บันทึกการติดตาม</span>
+            </button>
+          </div>
+        </div>
+      </article>
+    </li>
+  );
+});
+
 export default function ProbationPage() {
   const [rawEmployees, setRawEmployees] = useState<RawEmployee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1043,6 +1096,7 @@ export default function ProbationPage() {
   const [error, setError] = useState("");
   const [fetchedAt, setFetchedAt] = useState("");
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [department, setDepartment] = useState("");
   const [division, setDivision] = useState("");
   const [section, setSection] = useState("");
@@ -1061,8 +1115,8 @@ export default function ProbationPage() {
   const resultsRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    resultsRef.current?.scrollTo({ top: 0, behavior: "instant" });
-  }, [search, department, division, section, unit, station, startDate, endDate, listFilter]);
+    if (resultsRef.current?.scrollTop) resultsRef.current.scrollTo({ top: 0, behavior: "instant" });
+  }, [deferredSearch, department, division, section, unit, station, startDate, endDate, listFilter]);
 
   const fetchProbation = useCallback(async (forceRefresh = false) => {
     try {
@@ -1127,8 +1181,7 @@ export default function ProbationPage() {
   const evaluationPeriod = EVALUATION_PERIOD_OPTIONS.find((option) => option.value === listFilter)?.label ?? "";
   const followUpStatus = FOLLOW_UP_FILTER_OPTIONS.find((option) => option.value === listFilter)?.label ?? "";
 
-  const filteredRecords = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+  const orderedRecords = useMemo(() => {
     const urgencyRank: Record<ProbationRecord["urgency"], number> = {
       overdue: 0,
       due30: 1,
@@ -1137,26 +1190,27 @@ export default function ProbationPage() {
       missing: 4,
     };
 
-    return records
+    return [...records].sort((left, right) => {
+      const rankDifference = urgencyRank[left.urgency] - urgencyRank[right.urgency];
+      if (rankDifference !== 0) return rankDifference;
+      if (left.daysRemaining === null && right.daysRemaining === null) return 0;
+      if (left.daysRemaining === null) return 1;
+      if (right.daysRemaining === null) return -1;
+      return left.daysRemaining - right.daysRemaining;
+    });
+  }, [records]);
+
+  const filteredRecords = useMemo(() => {
+    const normalizedSearch = deferredSearch.trim().toLowerCase();
+    const filterStartDate = startDate ? parseDateOnly(startDate) : null;
+    const filterEndDate = endDate ? parseDateOnly(endDate) : null;
+    return orderedRecords
       .filter((record) => {
-        const searchable = [
-          record.employee.id,
-          record.employee.name,
-          record.employee.nameEn,
-          record.employee.title,
-          record.employee.department,
-          record.employee.division,
-          record.employee.section,
-          record.employee.unit,
-          record.employee.station,
-        ].join(" ").toLowerCase();
-        const filterStartDate = startDate ? parseDateOnly(startDate) : null;
-        const filterEndDate = endDate ? parseDateOnly(endDate) : null;
         const matchesStartDate = !filterStartDate
           || Boolean(record.startDate && record.startDate >= filterStartDate);
         const matchesEndDate = !filterEndDate
           || Boolean(record.startDate && record.startDate <= filterEndDate);
-        return (!normalizedSearch || searchable.includes(normalizedSearch))
+        return (!normalizedSearch || record.searchText.includes(normalizedSearch))
           && (!department || record.employee.department === department)
           && (!division || record.employee.division === division)
           && (!section || record.employee.section === section)
@@ -1168,15 +1222,8 @@ export default function ProbationPage() {
             || (listFilter.startsWith("followUp")
               ? hasCompletedFollowUp(record, listFilter as FollowUpFilter)
               : record.urgency === listFilter));
-      })
-      .sort((left, right) => {
-        const rankDifference = urgencyRank[left.urgency] - urgencyRank[right.urgency];
-        if (rankDifference !== 0) return rankDifference;
-        if (left.daysRemaining === null) return 1;
-        if (right.daysRemaining === null) return -1;
-        return left.daysRemaining - right.daysRemaining;
       });
-  }, [department, division, endDate, listFilter, records, search, section, startDate, station, unit]);
+  }, [department, division, endDate, listFilter, orderedRecords, deferredSearch, section, startDate, station, unit]);
 
   const displayedRecords = useMemo(
     () => filteredRecords.slice(0, visibleCount),
@@ -1224,14 +1271,14 @@ export default function ProbationPage() {
     setFetchedAt(new Date().toISOString());
   };
 
-  const toggleFollowUpSelection = (employeeId: string) => {
+  const toggleFollowUpSelection = useCallback((employeeId: string) => {
     setSelectedFollowUpIds((current) => {
       const next = new Set(current);
       if (next.has(employeeId)) next.delete(employeeId);
       else next.add(employeeId);
       return next;
     });
-  };
+  }, []);
 
   const toggleDisplayedSelection = () => {
     setSelectedFollowUpIds((current) => {
@@ -1515,13 +1562,14 @@ export default function ProbationPage() {
           </div>
       </aside>
 
-      <section ref={resultsRef} tabIndex={0} className={styles.results} aria-label="รายชื่อพนักงานทดลองงาน" aria-busy={isLoading || isRefreshing}>
+      <section ref={resultsRef} tabIndex={0} className={styles.results} aria-label="รายชื่อพนักงานทดลองงาน"
+        aria-busy={isLoading || isRefreshing || search !== deferredSearch} inert={search !== deferredSearch}>
         <header className={styles.resultsHeading}>
           <div>
             <span className={styles.eyebrow}><Users size={14} /> PROBATION MANAGEMENT</span>
             <h2>รายการที่ต้องติดตาม</h2>
             {fetchedAt && <p className={probationStyles.updatedAt}>
-              อัปเดตล่าสุด {new Date(fetchedAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}
+              อัปเดตล่าสุด {updatedAtFormatter.format(new Date(fetchedAt))}
             </p>}
           </div>
           {!isLoading && !error && <span className={styles.resultCount} role="status">{filteredRecords.length.toLocaleString()} คน</span>}
@@ -1599,54 +1647,10 @@ export default function ProbationPage() {
             </div>
           ) : (
             <ul className={styles.employeeStack} aria-label="ผลการค้นหาพนักงานทดลองงาน">
-              {displayedRecords.map((record, index) => {
-                const name = record.employee.nameEn !== "-" ? record.employee.nameEn : record.employee.name;
-                const completedCount = record.followUps.filter((entry) => hasValue(entry.date)).length;
-                return (
-                  <li key={record.employee.id} className={styles.employeeItem}
-                    style={{ "--entry-delay": `${Math.min(index, 8) * 25}ms` } as CSSProperties}>
-                  <article className={cn(styles.employeeCard, selectedFollowUpIds.has(record.employee.id) && probationStyles.selectedCard)}>
-                    <button type="button" className={styles.openEmployee} onClick={() => setSelectedEmployee(record.employee)}
-                      aria-label={`เปิดข้อมูลพนักงาน ${name} (${record.employee.id})`} />
-                    <div className={styles.employeeIdentity}>
-                      <span className={cn(styles.avatar, record.employee.colorClass)}>
-                        {record.employee.initials}
-                      </span>
-                      <div className={styles.employeeName}>
-                        <p className={styles.employeeId}>ID: {record.employee.id}</p>
-                        <h3>{name}</h3>
-                        {record.employee.nameEn !== "-" && <p className={styles.thaiName}>{record.employee.name}</p>}
-                      </div>
-                    </div>
-                    <div className={styles.employeeWork}>
-                      <p><BriefcaseBusiness size={15} /><span title={record.employee.title}>{record.employee.title}</span></p>
-                      <p><Building2 size={15} /><span title={record.employee.department}>{record.employee.department}</span></p>
-                    </div>
-                    <ChevronRight size={18} className={styles.cardArrow} />
-                    <div className={styles.employeeFooter}>
-                      <div className={styles.station}><MapPin size={13} /><span>{record.employee.station}</span></div>
-                      <span className={styles.employeeStatus}
-                        data-tone={record.urgency === "overdue" ? "danger" : record.urgency === "due30" ? "warning" : record.urgency === "due60" ? "info" : record.urgency === "later" ? "active" : undefined}
-                        title={`เริ่ม ${formatDate(record.startDate)} · ครบกำหนด ${formatDate(record.endDate)}${record.inferredEndDate ? " (คำนวณ)" : ""}`}>
-                        <Clock3 size={13} /><span>{urgencyLabel(record)}</span>
-                      </span>
-                      <div className={probationStyles.followUpActions}>
-                        <label className={probationStyles.selectionLabel}>
-                          <input type="checkbox" checked={selectedFollowUpIds.has(record.employee.id)}
-                            onChange={() => toggleFollowUpSelection(record.employee.id)} aria-label={`เลือก ${name} สำหรับติดตาม`} />
-                          เลือกติดตาม
-                        </label>
-                        <span className={probationStyles.followUpCount}>ติดตามแล้ว {completedCount}/3</span>
-                        <button type="button" onClick={() => setFollowUpRecord(record)} className={probationStyles.followUpButton}
-                          title="บันทึกการติดตาม" aria-label={`บันทึกการติดตาม ${name}`}>
-                          <CalendarCheck2 size={15} /><span>บันทึกการติดตาม</span>
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                  </li>
-                );
-              })}
+              {displayedRecords.map((record) => (
+                <ProbationCard key={record.employee.id} record={record} selected={selectedFollowUpIds.has(record.employee.id)}
+                  onOpen={setSelectedEmployee} onFollowUp={setFollowUpRecord} onToggle={toggleFollowUpSelection} />
+              ))}
             </ul>
           )}
 

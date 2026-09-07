@@ -92,13 +92,14 @@
 .resultsHeading h2 { font-size: 1.65rem; font-weight: 700; margin-top: .5rem; line-height: 1.5; overflow-wrap: anywhere; }
 .resultCount { font-size: .9rem; font-weight: 600; color: var(--accent); white-space: nowrap; padding: .5rem .75rem; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
 .employeeStack { display: grid; gap: 1rem; padding: 0; margin: 0; list-style: none; }
-.employeeItem { min-width: 0; animation: card-enter .38s ease-out both; animation-delay: var(--entry-delay, 0ms); }
+.employeeItem { min-width: 0; animation: card-enter .2s ease-out backwards; }
+.employeeItem:nth-child(n + 9) { animation: none; }
 .employeeCard {
   position: relative; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 18px;
   column-gap: 1.5rem; row-gap: 1rem; padding: 1.3rem 1.4rem 1rem;
-  border: 1px solid var(--line); border-radius: 1.5rem; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 2.25rem; background: var(--surface);
   box-shadow: 0 2px 3px #15252c04, 0 6px 18px #15252c03;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  transition: transform .15s ease, border-color .15s ease;
 }
 .openEmployee { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; border-radius: inherit; cursor: pointer; }
 .openEmployee:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
@@ -142,7 +143,7 @@
 :global(.dark) .errorState { background: #322918; color: #eac781; border-color: #71603a; }
 .loadingState { display: grid; gap: 1rem; }
 .loadingState > p { color: var(--muted); font-size: .9rem; }
-.skeletonCard { display: flex; align-items: center; gap: 1rem; padding: 2rem 1.5rem; min-height: 9rem; border: 1px solid var(--line); border-radius: 1.5rem; background: var(--surface); }
+.skeletonCard { display: flex; align-items: center; gap: 1rem; padding: 2rem 1.5rem; min-height: 9rem; border: 1px solid var(--line); border-radius: 2.25rem; background: var(--surface); }
 .skeletonCard > span { width: 3.2rem; height: 3.2rem; border-radius: 50%; background: var(--subtle); }
 .skeletonCard div { display: grid; gap: .7rem; flex: 1; }
 .skeletonCard i { display: block; height: .7rem; width: 70%; background: var(--subtle); border-radius: 3px; }
@@ -151,7 +152,7 @@
 .workspace button:focus-visible, .dateRange input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 @keyframes card-enter {
-  from { opacity: 0; transform: translateY(14px) scale(.99); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
 
@@ -164,7 +165,7 @@
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .employeeCard:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); box-shadow: 0 8px 22px #15252c0c; }
+  .employeeCard:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
   .employeeCard:hover .cardArrow { transform: translateX(3px); color: var(--accent); }
 }
 

@@ -18,13 +18,30 @@ function loadTs(file, mocks = {}) {
   return loaded.exports;
 }
 const resignation = loadTs('src/app/employees/lib/resignation.ts');
-const { filterEmployeeRecords, getEmployeeFilterOptions, matchesStation, matchesOrganization } = loadTs('src/app/employees/lib/search.ts', { './resignation': resignation });
+const { createEmployeeSearch, filterEmployeeRecords, getEmployeeFilterOptions, matchesStation, matchesOrganization } = loadTs('src/app/employees/lib/search.ts', { './resignation': resignation });
 const rows = [
   { id: '02622', name: 'นายทดสอบ ใจดี', nameEn: 'Mr. Test Employee', title: 'เจ้าหน้าที่ภาคพื้น / Ground Service Agent', department: 'ฝ่ายปฏิบัติการ / Ground Operation Department', division: 'Passenger Services', section: 'Station Service', unit: 'Ramp Service', station: 'กรุงเทพ / BKK(PA)', phone: '081-234-5678', idCard: '1-2345-67890-12-3', contractStart: '07/09/2569', resignDate: '08/09/2569' },
   { id: '100001', name: 'นางสาวพนักงาน ทดสอบ', nameEn: 'Second Employee', title: 'HR Officer', department: 'Ground Operation Department Support', station: 'BKK(GC)', phone: '0890000000', contractStart: '2026-09-08', separationDate: '2026-09-09' },
   { id: '00333', name: 'Unrelated', nameEn: '', station: 'BKK', contractStart: '31/02/2569' },
 ];
 const ids = (filters) => filterEmployeeRecords(rows, filters).map((row) => row.id);
+
+test('cached search preserves every search mode across repeated queries and refreshed data', () => {
+  const search = createEmployeeSearch(rows);
+  const filters = [{}, {searchQuery:'test employee'}, {searchQuery:'02622'}, {searchQuery:'0812345678'},
+    {searchQuery:'BKKPA'}, {searchQuery:'ทดสอบ ใจดี'}, {stationFilter:'BKKGC'},
+    {departmentFilter:'Ground Operation Department (GF)'}, {dateField:'departure',startDateFilter:'2026-09-09'},
+    {searchQuery:'missing'}, {searchQuery:'TEST',stationFilter:'BKKPA'}];
+  for(let repeat=0;repeat<3;repeat++)for(const filter of filters)assert.deepEqual(search(filter),filterEmployeeRecords(rows,filter));
+  assert.equal(search({}).length,rows.length);
+  const refreshed=rows.map((row,i)=>i?row:{...row,name:'Updated Person',nameEn:'Updated Person'});
+  assert.deepEqual(createEmployeeSearch(refreshed)({searchQuery:'Updated Person'}).map(row=>row.id),['02622']);
+  assert.deepEqual(search({searchQuery:'Updated Person'}),[]);
+  let normalizations=0;
+  const measured=createEmployeeSearch([{id:'1',name:{toString(){normalizations++;return 'Measured Person';}}}]);
+  for(const searchQuery of ['measured','person','missing','1'])measured({searchQuery});
+  assert.equal(normalizations,1,'Repeated searches reuse normalized names');
+});
 
 test('station filters accept formatting and language variants without mixing stations', () => {
   for (const stationFilter of ['BKKPA', ' bkk(pa) ', 'BKK PA', 'กรุงเทพ / BKKPA']) assert.deepEqual(ids({ stationFilter }), ['02622']);

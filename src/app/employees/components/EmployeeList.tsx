@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, type CSSProperties } from "react";
+import { memo, useCallback, useState, useEffect, useMemo, useRef } from "react";
 import { Briefcase, Building2, MapPin, ChevronRight, AlertCircle, Clock, Calendar, SearchX } from "lucide-react";
 import { EmployeeProfileDrawer, EmployeeData } from "./EmployeeProfileDrawer";
 import { cn } from "@/lib/utils";
@@ -10,8 +10,11 @@ import {
   isDepartureRecord,
   parseEmployeeDate,
 } from "../lib/resignation";
-import { filterEmployeeRecords, type EmployeeFilterRecord } from "../lib/search";
+import { createEmployeeSearch, type EmployeeFilterRecord } from "../lib/search";
 import styles from "../EmployeesWorkspace.module.css";
+
+const employeeIdCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+const statusDateFormatter = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "numeric" });
 
 function EmployeeStatus({ employee, activeTab }: { employee: EmployeeData & { diffDays?: number }; activeTab: EmployeeListProps["activeTab"] }) {
   let label = employee.status?.trim() || "Unknown";
@@ -20,7 +23,7 @@ function EmployeeStatus({ employee, activeTab }: { employee: EmployeeData & { di
 
   if (activeTab === "resigned") {
     const { kind, date, days } = getDepartureState(employee);
-    const formattedDate = date?.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+    const formattedDate = date ? statusDateFormatter.format(date) : undefined;
     label = kind === "completed" ? "ลาออกแล้ว"
       : kind === "failed-probation" ? "ไม่ผ่านทดลองงาน"
         : kind === "overdue" ? `เลยกำหนดวันลาออก ${Math.abs(days)} วัน`
@@ -105,7 +108,7 @@ interface EmployeeListProps {
   onFilterRecordsChange?: (records: EmployeeFilterRecord[]) => void;
 }
 
-export function EmployeeList({ 
+export const EmployeeList = memo(function EmployeeList({
   activeTab,
   searchQuery = "",
   departmentFilter = "",
@@ -127,11 +130,11 @@ export function EmployeeList({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const closeTimerRef = useRef<number | null>(null);
 
-  const openEmployee = (employee: EmployeeData) => {
+  const openEmployee = useCallback((employee: EmployeeData) => {
     if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
     setSelectedEmployee(employee);
     setIsDrawerOpen(true);
-  };
+  }, []);
 
   const closeEmployeeDrawer = () => {
     setIsDrawerOpen(false);
@@ -351,7 +354,7 @@ export function EmployeeList({
           });
           
           // Sort employees by ID (ascending)
-          mappedData.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' }));
+          mappedData.sort((a, b) => employeeIdCollator.compare(a.id, b.id));
           
           setEmployees(mappedData);
           setErrorMsg(null);
@@ -445,7 +448,7 @@ export function EmployeeList({
       result = [...result].sort((a, b) => {
         const retirementYearDiff = (b.retirementYear ?? 0) - (a.retirementYear ?? 0);
         if (retirementYearDiff !== 0) return retirementYearDiff;
-        return a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: "base" });
+        return employeeIdCollator.compare(a.id, b.id);
       });
     }
 
@@ -456,10 +459,11 @@ export function EmployeeList({
     onFilterRecordsChange?.(tabEmployees);
   }, [tabEmployees, onFilterRecordsChange]);
 
-  const filteredEmployees = useMemo(() => filterEmployeeRecords(tabEmployees, {
+  const searchEmployees = useMemo(() => createEmployeeSearch(tabEmployees), [tabEmployees]);
+  const filteredEmployees = useMemo(() => searchEmployees({
       searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter,
       startDateFilter, endDateFilter, dateField: activeTab === "resigned" ? "departure" : "start",
-    }), [tabEmployees, activeTab, searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter, startDateFilter, endDateFilter]);
+    }), [searchEmployees, activeTab, searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter, startDateFilter, endDateFilter]);
 
   return (
     <div className={styles.directory}>
@@ -493,41 +497,8 @@ export function EmployeeList({
         </div>
       ) : !errorMsg && (
         <ul className={styles.employeeStack} aria-label="ผลการค้นหาพนักงาน">
-          {filteredEmployees.slice(0, visibleCount).map((emp, index) => (
-            <li
-              key={emp.id}
-              className={styles.employeeItem}
-              style={{ "--entry-delay": `${Math.min(index, 8) * 25}ms` } as CSSProperties}
-            >
-              <article className={styles.employeeCard}>
-                <button
-                  type="button"
-                  className={styles.openEmployee}
-                  onClick={() => openEmployee(emp)}
-                  aria-label={`เปิดข้อมูลพนักงาน ${emp.nameEn !== "-" ? emp.nameEn : emp.name} (${emp.id})`}
-                />
-                <div className={styles.employeeIdentity}>
-                  <div className={cn(styles.avatar, emp.colorClass)} aria-hidden="true">{emp.initials}</div>
-                  <div className={styles.employeeName}>
-                    <p className={styles.employeeId}>ID: {emp.id}</p>
-                    <h3 title={emp.nameEn !== "-" ? emp.nameEn : emp.name}>{emp.nameEn !== "-" ? emp.nameEn : emp.name}</h3>
-                    {emp.nameEn !== "-" && <p className={styles.thaiName} title={emp.name}>{emp.name}</p>}
-                  </div>
-                </div>
-                <div className={styles.employeeWork}>
-                  <p title={emp.title}><Briefcase size={15} aria-hidden="true" /><span>{emp.title}</span></p>
-                  <p title={emp.department}><Building2 size={15} aria-hidden="true" /><span>{emp.department}</span></p>
-                </div>
-                <ChevronRight className={styles.cardArrow} size={18} aria-hidden="true" />
-                <footer className={styles.employeeFooter}>
-                  <span className={styles.station}><MapPin size={13} aria-hidden="true" /><span>{emp.station || "-"}</span></span>
-                  <div className={styles.employeeBadges}>
-                    {emp.empType && emp.empType !== "-" && <span className={styles.employeeType}>{emp.empType}</span>}
-                    <EmployeeStatus employee={emp} activeTab={activeTab} />
-                  </div>
-                </footer>
-              </article>
-            </li>
+          {filteredEmployees.slice(0, visibleCount).map((emp) => (
+            <EmployeeCard key={emp.id} employee={emp} activeTab={activeTab} onOpen={openEmployee} />
           ))}
         </ul>
       )}
@@ -552,4 +523,40 @@ export function EmployeeList({
       />
     </div>
   );
-}
+});
+
+const EmployeeCard = memo(function EmployeeCard({ employee: emp, activeTab, onOpen }: {
+  employee: EmployeeData;
+  activeTab: EmployeeListProps["activeTab"];
+  onOpen: (employee: EmployeeData) => void;
+}) {
+  const name = emp.nameEn !== "-" ? emp.nameEn : emp.name;
+  return (
+    <li className={styles.employeeItem}>
+      <article className={styles.employeeCard}>
+        <button type="button" className={styles.openEmployee} onClick={() => onOpen(emp)}
+          aria-label={`เปิดข้อมูลพนักงาน ${name} (${emp.id})`} />
+        <div className={styles.employeeIdentity}>
+          <div className={cn(styles.avatar, emp.colorClass)} aria-hidden="true">{emp.initials}</div>
+          <div className={styles.employeeName}>
+            <p className={styles.employeeId}>ID: {emp.id}</p>
+            <h3 title={name}>{name}</h3>
+            {emp.nameEn !== "-" && <p className={styles.thaiName} title={emp.name}>{emp.name}</p>}
+          </div>
+        </div>
+        <div className={styles.employeeWork}>
+          <p title={emp.title}><Briefcase size={15} aria-hidden="true" /><span>{emp.title}</span></p>
+          <p title={emp.department}><Building2 size={15} aria-hidden="true" /><span>{emp.department}</span></p>
+        </div>
+        <ChevronRight className={styles.cardArrow} size={18} aria-hidden="true" />
+        <footer className={styles.employeeFooter}>
+          <span className={styles.station}><MapPin size={13} aria-hidden="true" /><span>{emp.station || "-"}</span></span>
+          <div className={styles.employeeBadges}>
+            {emp.empType && emp.empType !== "-" && <span className={styles.employeeType}>{emp.empType}</span>}
+            <EmployeeStatus employee={emp} activeTab={activeTab} />
+          </div>
+        </footer>
+      </article>
+    </li>
+  );
+});
