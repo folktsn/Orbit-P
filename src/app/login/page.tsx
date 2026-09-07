@@ -850,7 +850,6 @@ export default function LoginPage() {
                   <div className="text-center mb-5 pb-3 border-b border-slate-800/80">
                     <h1 
                       className="text-4xl font-extrabold tracking-wider text-[#00C300] mb-2 select-none" 
-                      style={{ fontFamily: 'system-ui, sans-serif' }}
                     >
                       LINE
                     </h1>
@@ -973,7 +972,6 @@ export default function LoginPage() {
                 <div className="py-4 flex flex-col items-center justify-center">
                   <h1 
                     className="text-4xl font-extrabold tracking-wider text-[#00C300] mb-6 select-none" 
-                    style={{ fontFamily: 'system-ui, sans-serif' }}
                   >
                     LINE
                   </h1>

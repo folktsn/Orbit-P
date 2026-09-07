@@ -1178,8 +1178,12 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
     // blocker allows it, then fill it once the presigned URL resolves.
     const previewWindow = window.open();
     if (!previewWindow) return;
+    const previewFontStyle = `<style>
+      @font-face { font-family: 'Sukhumvit Set'; src: url('/fonts/sukhumvit/SukhumvitSet-Text.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+      body { font-family: 'Sukhumvit Set', Tahoma, sans-serif; padding: 24px; }
+    </style>`;
     previewWindow.document.write(
-      "<!doctype html><title>Loading…</title><body style='font-family:sans-serif;padding:24px;color:#334155'>กำลังโหลดเอกสาร / Loading document…</body>"
+      `<!doctype html><title>Loading…</title>${previewFontStyle}<body style='color:#334155'>กำลังโหลดเอกสาร / Loading document…</body>`
     );
 
     const safeTitle = (name || "Attached document").replace(/[&<>"']/g, (char) => ({
@@ -1197,7 +1201,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
     if (!attachmentUrl) {
       previewWindow.document.open();
       previewWindow.document.write(
-        "<!doctype html><title>Error</title><body style='font-family:sans-serif;padding:24px;color:#b91c1c'>ไม่สามารถเปิดเอกสารได้ / Unable to open document</body>"
+        `<!doctype html><title>Error</title>${previewFontStyle}<body style='color:#b91c1c'>ไม่สามารถเปิดเอกสารได้ / Unable to open document</body>`
       );
       previewWindow.document.close();
       return;

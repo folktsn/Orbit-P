@@ -28,6 +28,22 @@ GitHub repository: https://github.com/folktsn/Orbit-P
 
 ## Main Modules
 
+### Typography
+
+All application text uses self-hosted Sukhumvit Set, including Thai, Latin,
+form controls, and the existing sans/serif/mono utility classes. Font files are
+in `public/fonts/sukhumvit/` and registered once in `src/app/layout.tsx` through
+`next/font/local`. Windows and Android do not need the font installed locally.
+
+The six user-supplied TTF faces were losslessly compressed to WOFF2, retaining
+their complete glyph sets: Thin (CSS 100), Light (300), Text (400), Medium (500),
+SemiBold (600), and Bold (700). They total about 165 KiB. `font-display: swap`
+keeps text visible while loading; preloading is disabled so unused weights do
+not compete with page assets. Do not reintroduce Google font imports or local
+system-font overrides. Uploaded PDF/image document contents are unchanged.
+
+Run `node --test scripts/fonts.test.cjs` to check font assets and global wiring.
+
 ### Dashboard
 
 Control tower overview for HR and recruitment metrics.

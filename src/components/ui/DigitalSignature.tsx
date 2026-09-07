@@ -28,7 +28,7 @@ export function DigitalSignature() {
       ) : (
         <div className="py-4">
           <p className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold mb-2">ลงนามสำเร็จ</p>
-          <div className="font-[signature] text-4xl text-slate-900 dark:text-slate-100 opacity-80">
+          <div className="font-sans text-4xl text-slate-900 dark:text-slate-100 opacity-80">
             อนุมัติโดยผู้อำนวยการ
           </div>
           <p className="text-xs text-slate-500 mt-2">เวลา: {new Date().toLocaleString()}</p>
