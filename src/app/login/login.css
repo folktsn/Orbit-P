@@ -669,7 +669,6 @@
 .login-weather-layer {
   z-index: 0;
   overflow: hidden;
-  animation: login-aircraft-drift 14s ease-in-out infinite alternate;
 }
 
 .login-visual-image {

@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/Card";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 const pieData = [
@@ -12,12 +11,8 @@ const pieData = [
 ];
 
 export function SidePanel() {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  const isDark = mounted && theme === "dark";
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const COLORS = ["#8B5CF6", isDark ? "#334155" : "#F1F5F9"];
 
   return (
@@ -40,6 +35,7 @@ export function SidePanel() {
                 startAngle={180}
                 endAngle={0}
                 dataKey="value"
+                isAnimationActive={false}
                 stroke="none"
               >
                 {pieData.map((entry, index) => (

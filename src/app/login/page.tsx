@@ -752,18 +752,9 @@ export default function LoginPage() {
         </section>
 
         <aside className="login-visual" data-weather-scene={loginWeather.scene}>
-          <AnimatePresence initial={false} mode="sync">
-            <motion.div
-              key={loginWeather.scene}
-              className="login-weather-layer"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-            >
-              <LoginWeatherPicture scene={loginWeather.scene} />
-            </motion.div>
-          </AnimatePresence>
+          <div className="login-weather-layer">
+            <LoginWeatherPicture scene={loginWeather.scene} />
+          </div>
           <div className={`login-visual-caption login-visual-caption--${loginWeather.scene}`}>
             <span>
               {loginWeather.locationSource === "checking"

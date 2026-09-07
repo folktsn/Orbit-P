@@ -32,7 +32,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [verifiedPath, setVerifiedPath] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -65,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!cancelled) setUser(null);
       })
       .finally(() => {
-        if (!cancelled && !current.signal.aborted) { setLoading(false); setVerifiedPath(pathname); }
+        if (!cancelled && !current.signal.aborted) setLoading(false);
       });
     };
     restoreSession();
@@ -76,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       controller?.abort();
       window.removeEventListener("focus", restoreSession);
     };
-  }, [pathname]);
+  }, []);
 
   const login = async (username: string, role: "admin" | "recruiter" | "hr"): Promise<boolean> => {
     setLoading(true);
@@ -146,17 +145,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isPublicRoute = pathname === "/login";
 
   useEffect(() => {
-    if (loading || verifiedPath !== pathname) return;
+    if (loading) return;
 
     if (!user && !isPublicRoute) {
       router.replace("/login");
     } else if (user && isPublicRoute) {
       router.replace(homePageForUser(user));
     }
-  }, [user, loading, pathname, router, isPublicRoute, verifiedPath]);
+  }, [user, loading, pathname, router, isPublicRoute]);
 
   // Prevent flashing of protected content while loading or redirecting
-  if (loading || verifiedPath !== pathname) {
+  if (loading) {
     return <LoadingScreen />;
   }
 

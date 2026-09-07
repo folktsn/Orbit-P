@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Moon, Sun, LogOut, ShieldCheck, ClipboardCheck } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/components/AuthProvider";
-import { motion, AnimatePresence } from "framer-motion";
 import "./PillNav.css";
-import MetallicPaint from "@/components/ui/MetallicPaint";
 import { PAGE_DEFINITIONS } from "@/lib/permissions";
 
 function PillItem({ item, isActive }: { item: { name: string; href: string }; isActive: boolean }) {
@@ -29,14 +28,11 @@ export function PillNav() {
   const { theme, setTheme } = useTheme();
   const { user, logout, can, canPage } = useAuth();
   const navItems = PAGE_DEFINITIONS.filter(({ key }) => key !== "dataQuality" && canPage(key));
-  const [mounted, setMounted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setMounted(true);
-
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
@@ -67,28 +63,14 @@ export function PillNav() {
       {/* Absolute Left Branding Logo & Name */}
       <div className="pill-brand">
         <div className="pill-brand-mark">
-          <MetallicPaint
-            imageSrc="/logo.png"
-            seed={42}
-            scale={4}
-            patternSharpness={1.2}
-            noiseScale={0.5}
-            speed={0.3}
-            liquid={0.6}
-            mouseAnimation={false}
-            brightness={2.0}
-            contrast={0.8}
-            refraction={0.012}
-            blur={0.01}
-            chromaticSpread={2.0}
-            fresnel={1}
-            angle={0}
-            waveAmplitude={1}
-            distortion={0.4}
-            contour={0.2}
-            lightColor="#ffffff"
-            darkColor="#111111"
-            tintColor="#2b82ff"
+          <Image
+            src="/logo.png"
+            alt=""
+            width={80}
+            height={80}
+            sizes="(max-width: 639px) 36px, (max-width: 1279px) 56px, 80px"
+            className="pill-brand-image"
+            priority
           />
         </div>
         <div className="hidden md:flex flex-col leading-none">
@@ -108,12 +90,12 @@ export function PillNav() {
       </nav>}
 
       <div className="pill-actions">
-        {mounted && can("admin") && (
+        {can("admin") && (
           <Link href="/admin" aria-label="Admin / จัดการสิทธิ์" title="Admin / จัดการสิทธิ์" aria-current={pathname === "/admin" ? "page" : undefined} className={`pill-action-button flex h-10 w-10 items-center justify-center rounded-full border shadow-sm ${pathname === "/admin" ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400" : "border-slate-100 bg-white text-slate-600 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"}`}>
             <ShieldCheck className="h-5 w-5" />
           </Link>
         )}
-        {mounted && canPage("dataQuality") && (
+        {canPage("dataQuality") && (
           <Link
             href="/data-quality"
             aria-label="Quality"
@@ -124,17 +106,15 @@ export function PillNav() {
             <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
           </Link>
         )}
-        {mounted && (
-          <button 
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="pill-action-button w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 duration-200 transition-all cursor-pointer"
-            title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {theme === "dark" ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" />}
-          </button>
-        )}
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="pill-action-button w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 duration-200 transition-all cursor-pointer"
+          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {theme === "dark" ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" />}
+        </button>
 
-        {mounted && user && (
+        {user && (
           <div ref={dropdownRef} className="relative">
             {/* Clickable Profile Avatar (Shows ONLY the photo) */}
             <button
@@ -160,15 +140,8 @@ export function PillNav() {
             </button>
 
             {/* Dropdown Menu */}
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                  className="absolute right-0 mt-2.5 w-60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-xl z-50 overflow-hidden p-4 space-y-3.5"
-                >
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2.5 w-60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-xl z-50 overflow-hidden p-4 space-y-3.5">
                   {/* User Profile Summary Header */}
                   <div className="flex items-center gap-3">
                     {user.lineAvatarUrl ? (
@@ -213,9 +186,8 @@ export function PillNav() {
                     <LogOut className="w-4 h-4" />
                     <span>ออกจากระบบ / Logout</span>
                   </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              </div>
+            )}
           </div>
         )}
       </div>

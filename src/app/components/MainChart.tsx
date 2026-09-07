@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/Card";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -24,12 +23,8 @@ const data = [
 ];
 
 export function MainChart() {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  const isDark = mounted && theme === "dark";
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   return (
     <motion.div
@@ -64,6 +59,7 @@ export function MainChart() {
               <Area
                 type="monotone"
                 dataKey="applications"
+                isAnimationActive={false}
                 stroke="#8B5CF6"
                 strokeWidth={3}
                 fillOpacity={1}
