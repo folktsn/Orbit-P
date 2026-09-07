@@ -119,22 +119,6 @@ export default function EmployeesPage() {
           ))}
         </div>
 
-        <div className={styles.searchField}>
-          <Search size={18} aria-hidden="true" />
-          <input
-            type="text"
-            placeholder="ชื่อ รหัส หรือหน่วยงาน..."
-            aria-label="ค้นหาพนักงาน"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")} type="button" aria-label="ล้างคำค้นหา" title="ล้างคำค้นหา">
-              <X size={16} aria-hidden="true" />
-            </button>
-          )}
-        </div>
-
         <button
           type="button"
           className={styles.filterToggle}
@@ -148,34 +132,29 @@ export default function EmployeesPage() {
         </button>
 
         <div id="employee-advanced-filters" className={styles.advancedFilters} data-expanded={filtersExpanded}>
-          <div className={styles.filterSectionHeading}>
-            <SlidersHorizontal size={15} aria-hidden="true" />
-            <h2>ตัวกรอง</h2>
-            {filterCount > 0 && <span className={styles.filterCount}>{filterCount}</span>}
-          </div>
           <div className={styles.filterFields}>
             <div className={styles.filterField}>
-              <span>ฝ่าย / Department</span>
+              <span className="sr-only">ฝ่าย / Department</span>
               <CustomSelect value={selectedDepartment} onChange={(v) => { setSelectedDepartment(v); setSelectedDivision(""); setSelectedSection(""); setSelectedUnit(""); }} options={departments} placeholder="All Departments" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
-              <span>แผนก / Division</span>
+              <span className="sr-only">แผนก / Division</span>
               <CustomSelect value={selectedDivision} onChange={(v) => { setSelectedDivision(v); setSelectedSection(""); setSelectedUnit(""); }} options={divisions} placeholder="All Divisions" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
-              <span>ส่วนงาน / Section</span>
+              <span className="sr-only">ส่วนงาน / Section</span>
               <CustomSelect value={selectedSection} onChange={(v) => { setSelectedSection(v); setSelectedUnit(""); }} options={sections} placeholder="All Sections" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
-              <span>หน่วยงาน / Unit</span>
+              <span className="sr-only">หน่วยงาน / Unit</span>
               <CustomSelect value={selectedUnit} onChange={setSelectedUnit} options={units} placeholder="All Units" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
-              <span>สถานี / Station</span>
+              <span className="sr-only">สถานี / Station</span>
               <CustomSelect value={selectedStation} onChange={setSelectedStation} options={stations} placeholder="All Stations" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
-              <span>{activeTab === "resigned" ? "วันที่ลาออก" : "วันที่เริ่มงาน"}</span>
+              <span className="sr-only">{activeTab === "resigned" ? "วันที่ลาออก" : "วันที่เริ่มงาน"}</span>
               <button
                 type="button"
                 className={styles.dateTrigger}
@@ -201,6 +180,22 @@ export default function EmployeesPage() {
             </div>
           </div>
           {invalidDateRange && <p role="alert" className={styles.filterError}>วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด</p>}
+        </div>
+
+        <div className={styles.searchField}>
+          <Search size={18} aria-hidden="true" />
+          <input
+            type="text"
+            placeholder="Search by name, ID, or component..."
+            aria-label="ค้นหาพนักงาน"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} type="button" aria-label="ล้างคำค้นหา" title="ล้างคำค้นหา">
+              <X size={16} aria-hidden="true" />
+            </button>
+          )}
         </div>
 
         <div className={styles.filterActions}>
