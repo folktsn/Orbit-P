@@ -38,6 +38,10 @@ export interface EmployeeData {
   probationEnd: string;
   probationDays?: string | number;
   resignDate?: string;
+  resignStatus?: string;
+  separationType?: string;
+  separationDate?: string;
+  lastWorkDate?: string;
   gender: string;
   nationality: string;
   idCard: string;

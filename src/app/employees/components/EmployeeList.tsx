@@ -4,6 +4,12 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Briefcase, ChevronRight, AlertCircle, Clock, Calendar } from "lucide-react";
 import { EmployeeProfileDrawer, EmployeeData } from "./EmployeeProfileDrawer";
 import { cn } from "@/lib/utils";
+import {
+  compareDepartureRecords,
+  getDepartureDate,
+  isDepartureRecord,
+  parseEmployeeDate,
+} from "../lib/resignation";
 
 const MOCK_EMPLOYEES: EmployeeData[] = [
   {
@@ -154,38 +160,6 @@ const getDualLanguage = (th: any, en: any, fallback: any) => {
     return `${safeTh} / ${safeEn}`;
   }
   return safeTh || safeEn || fallback || "-";
-};
-
-const parseEmployeeBirthDate = (value: unknown): Date | null => {
-  if (value === undefined || value === null) return null;
-  const raw = String(value).trim();
-  if (!raw || raw === "-") return null;
-
-  const createDate = (yearValue: number, month: number, day: number) => {
-    const year = yearValue > 2400 ? yearValue - 543 : yearValue;
-    const date = new Date(year, month - 1, day);
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
-      return null;
-    }
-    date.setHours(0, 0, 0, 0);
-    return date;
-  };
-
-  const yearFirst = raw.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
-  if (yearFirst) {
-    return createDate(Number(yearFirst[1]), Number(yearFirst[2]), Number(yearFirst[3]));
-  }
-
-  const dayFirst = raw.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
-  if (dayFirst) {
-    return createDate(Number(dayFirst[3]), Number(dayFirst[2]), Number(dayFirst[1]));
-  }
-
-  return null;
 };
 
 interface EmployeeListProps {
@@ -416,9 +390,13 @@ export function EmployeeList({
               emergencyContactPhone: cleanProfileValue(item.emergency_contact_phone) || cleanProfileValue(item.emergency_phone) || cleanProfileValue(item.contact_phone),
               education: item.education || "-",
               workHistory: item.work_history || "-",
-              resignDate: item.resign_date || "-",
+              resignDate: item.resign_date || item.last_working_date || item.separation_date || item.last_work_date || "-",
+              resignStatus: item.resign_status || "-",
+              separationType: item.separation_type || "-",
+              separationDate: item.separation_date || "-",
+              lastWorkDate: item.last_work_date || "-",
               probationOutcome: item.probation_outcome || "-",
-              lastWorkingDate: item.last_working_date || "-",
+              lastWorkingDate: item.last_working_date || item.last_work_date || "-",
               probationExtensionDays: item.probation_extension_days || "-",
               probationPassOperatorId: item.probation_pass_operator_id || "-",
               probationPassOperatorName: item.probation_pass_operator_name || "-",
@@ -495,31 +473,12 @@ export function EmployeeList({
         return emp;
       });
     } else if (activeTab === "resigned") {
-      result = result.filter(emp => {
-        const hasResignDate = (emp as any).resignDate && (emp as any).resignDate !== "-";
-        const isFailedProbation = emp.status && emp.status.toLowerCase() === "failed probation";
-        if (!hasResignDate && !isFailedProbation) return false;
-
-        const status = (emp.status || "").toLowerCase();
-        const isActive = status === "active" || status === "failed probation";
-        
-        const rDate = new Date((emp as any).resignDate);
-        const isFutureOrToday = !isNaN(rDate.getTime()) && (() => {
-          rDate.setHours(0, 0, 0, 0);
-          return rDate.getTime() >= today.getTime();
-        })();
-
-        // Show if:
-        // 1. They are currently "Active" or "Failed Probation" and have a resignation date.
-        // 2. OR their resignation date is in the future (regardless of status).
-        return isActive || isFutureOrToday;
-      });
+      result = result.filter(isDepartureRecord);
 
       // Calculate days remaining until resignation and store on the employee object
       result = result.map(emp => {
-        const rDate = new Date((emp as any).resignDate);
-        if (!isNaN(rDate.getTime())) {
-          rDate.setHours(0, 0, 0, 0);
+        const rDate = parseEmployeeDate(getDepartureDate(emp));
+        if (rDate) {
           const diffTime = rDate.getTime() - today.getTime();
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           (emp as any).resignDiffDays = diffDays;
@@ -527,19 +486,14 @@ export function EmployeeList({
         return emp;
       });
 
-      // Sort by resignation date ascending (closest to furthest)
-      result = [...result].sort((a, b) => {
-        const aDays = (a as any).resignDiffDays ?? 999999;
-        const bDays = (b as any).resignDiffDays ?? 999999;
-        return aDays - bDays;
-      });
+      result = [...result].sort((a, b) => compareDepartureRecords(a, b, today));
     } else if (activeTab === "retirement") {
       const currentYear = today.getFullYear();
 
       result = result.filter(emp => {
         if ((emp.status || "").trim().toLowerCase() !== "active") return false;
 
-        const birthDate = parseEmployeeBirthDate(emp.birthDate);
+        const birthDate = parseEmployeeDate(emp.birthDate);
         if (birthDate) {
           const retirementYear = birthDate.getFullYear() + 60;
           if (retirementYear > currentYear) return false;
@@ -679,6 +633,15 @@ export function EmployeeList({
       {errorMsg && (
         <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl flex items-center justify-between">
           <p className="text-sm text-amber-700 dark:text-amber-400">{errorMsg}</p>
+        </div>
+      )}
+
+      {!selectedEmployee && activeTab === "resigned" && (
+        <div className="mb-3 flex items-center justify-between border-y border-slate-200/80 py-2 text-xs dark:border-white/10">
+          <span className="font-medium text-slate-600 dark:text-slate-300">พนักงานลาออกและอยู่ระหว่างลาออก</span>
+          <span className="font-semibold text-slate-900 dark:text-white">
+            {filteredEmployees.length.toLocaleString("th-TH")} คน
+          </span>
         </div>
       )}
 

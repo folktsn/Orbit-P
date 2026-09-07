@@ -165,7 +165,7 @@ export default function EmployeesPage() {
                 : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             )}
           >
-            Resigning
+            Resign
           </button>
         </div>
       </div>
