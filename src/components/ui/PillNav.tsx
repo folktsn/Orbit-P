@@ -9,6 +9,8 @@ import { useTheme } from "next-themes";
 import { useAuth } from "@/components/AuthProvider";
 import "./PillNav.css";
 import { PAGE_DEFINITIONS } from "@/lib/permissions";
+import { ControlPanel } from "./ControlPanel";
+import { useDisplayPreferences } from "@/components/DisplayPreferencesProvider";
 
 function PillItem({ item, isActive }: { item: { name: string; href: string }; isActive: boolean }) {
   return (
@@ -25,7 +27,8 @@ function PillItem({ item, isActive }: { item: { name: string; href: string }; is
 
 export function PillNav() {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const { preferences } = useDisplayPreferences();
   const { user, logout, can, canPage } = useAuth();
   const navItems = PAGE_DEFINITIONS.filter(({ key }) => key !== "dataQuality" && canPage(key));
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -56,7 +59,7 @@ export function PillNav() {
     });
 
     return () => cancelAnimationFrame(frame);
-  }, [pathname]);
+  }, [pathname, preferences.fontScale]);
 
   return (
     <header className="pill-header">
@@ -107,12 +110,14 @@ export function PillNav() {
           </Link>
         )}
         <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
           className="pill-action-button w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 duration-200 transition-all cursor-pointer"
-          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          title={resolvedTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
-          {theme === "dark" ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" />}
+          {resolvedTheme === "dark" ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" />}
         </button>
+
+        {user && <ControlPanel onOpen={() => setIsDropdownOpen(false)} />}
 
         {user && (
           <div ref={dropdownRef} className="relative">

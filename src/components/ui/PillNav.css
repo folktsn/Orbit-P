@@ -264,3 +264,23 @@
     font-size: var(--nav-mobile-font-size, 0.5rem);
   }
 }
+
+@media (max-width: 1279px) {
+  html[data-font-scale="110"] .pill-nav,
+  html[data-font-scale="120"] .pill-nav,
+  html[data-font-scale="130"] .pill-nav {
+    display: flex;
+    height: auto;
+    min-height: 36px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  html:is([data-font-scale="110"], [data-font-scale="120"], [data-font-scale="130"]) .pill-nav .nav-item.pill {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 30px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { MainLayoutContent } from "@/components/MainLayoutContent";
+import { DisplayPreferencesProvider } from "@/components/DisplayPreferencesProvider";
 
 const sukhumvit = localFont({
   src: [
@@ -35,11 +36,13 @@ export default function RootLayout({
     <html lang="en" className={`${sukhumvit.variable} h-full font-sans antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col text-slate-900 bg-slate-50 dark:bg-black dark:text-slate-100 selection:bg-slate-200 selection:text-slate-900 transition-colors duration-300">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>
-            <MainLayoutContent>
-              {children}
-            </MainLayoutContent>
-          </AuthProvider>
+          <DisplayPreferencesProvider>
+            <AuthProvider>
+              <MainLayoutContent>
+                {children}
+              </MainLayoutContent>
+            </AuthProvider>
+          </DisplayPreferencesProvider>
         </ThemeProvider>
       </body>
     </html>
