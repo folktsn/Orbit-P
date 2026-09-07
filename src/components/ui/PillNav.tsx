@@ -4,8 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Moon, Sun, LogOut, ShieldCheck, ClipboardCheck } from "lucide-react";
-import { useTheme } from "next-themes";
+import { LogOut, ShieldCheck, ClipboardCheck } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import "./PillNav.css";
 import { PAGE_DEFINITIONS } from "@/lib/permissions";
@@ -27,7 +26,6 @@ function PillItem({ item, isActive }: { item: { name: string; href: string }; is
 
 export function PillNav() {
   const pathname = usePathname();
-  const { resolvedTheme, setTheme } = useTheme();
   const { preferences } = useDisplayPreferences();
   const { user, logout, can, canPage } = useAuth();
   const navItems = PAGE_DEFINITIONS.filter(({ key }) => key !== "dataQuality" && canPage(key));
@@ -109,14 +107,6 @@ export function PillNav() {
             <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
           </Link>
         )}
-        <button
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          className="pill-action-button w-10 h-10 bg-white dark:bg-slate-800 rounded-full shadow-sm flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-100 dark:border-slate-700 hover:scale-105 active:scale-95 duration-200 transition-all cursor-pointer"
-          title={resolvedTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          {resolvedTheme === "dark" ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" />}
-        </button>
-
         {user && <ControlPanel onOpen={() => setIsDropdownOpen(false)} />}
 
         {user && (
