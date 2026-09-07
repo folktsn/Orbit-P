@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   BriefcaseBusiness,
@@ -8,6 +8,7 @@ import {
   CalendarCheck2,
   CalendarClock,
   Check,
+  ChevronDown,
   ChevronRight,
   CircleAlert,
   Clock3,
@@ -16,6 +17,7 @@ import {
   MapPin,
   RefreshCw,
   Search,
+  SlidersHorizontal,
   Users,
   X,
 } from "lucide-react";
@@ -26,6 +28,8 @@ import {
   EmployeeProfileDrawer,
   type EmployeeData,
 } from "@/app/employees/components/EmployeeProfileDrawer";
+import styles from "@/app/employees/EmployeesWorkspace.module.css";
+import probationStyles from "./ProbationWorkspace.module.css";
 
 type RawEmployee = Record<string, unknown>;
 type Urgency = "all" | "overdue" | "due30" | "due60" | "later" | "missing";
@@ -1019,14 +1023,14 @@ function KpiCard({
   tone: string;
 }) {
   return (
-    <div className="flex min-h-[58px] items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 py-2 shadow-sm dark:border-white/10 dark:bg-[#121212]">
+    <div className={probationStyles.metric}>
       <div className={cn("flex size-7 shrink-0 items-center justify-center rounded-md", tone)}>
         <Icon className="size-4" />
       </div>
       <div className="min-w-0">
-        <p className="truncate text-[11px] font-semibold uppercase leading-3.5 text-slate-500 dark:text-slate-400">{label}</p>
-        <p className="text-2xl font-bold leading-6 text-slate-950 dark:text-white">{value.toLocaleString()}</p>
-        <p className="truncate text-[11px] leading-3.5 text-slate-500 dark:text-slate-400">{helper}</p>
+        <p className={probationStyles.metricLabel}>{label}</p>
+        <p className={probationStyles.metricValue}>{value.toLocaleString()}</p>
+        <p className={probationStyles.metricHelper}>{helper}</p>
       </div>
     </div>
   );
@@ -1047,6 +1051,7 @@ export default function ProbationPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [listFilter, setListFilter] = useState<ListFilter>("all");
   const [visibleCount, setVisibleCount] = useState(30);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
@@ -1111,6 +1116,8 @@ export default function ProbationPage() {
   const hasActiveFilters = Boolean(
     search || department || division || section || unit || station || startDate || endDate || listFilter !== "all",
   );
+  const activeFilterCount = [department, division, section, unit, station, startDate || endDate,
+    listFilter !== "all" ? listFilter : ""].filter(Boolean).length;
 
   const evaluationPeriod = EVALUATION_PERIOD_OPTIONS.find((option) => option.value === listFilter)?.label ?? "";
   const followUpStatus = FOLLOW_UP_FILTER_OPTIONS.find((option) => option.value === listFilter)?.label ?? "";
@@ -1245,37 +1252,34 @@ export default function ProbationPage() {
   };
 
   return (
-    <main className="mx-auto w-full min-w-0 max-w-5xl px-3 py-4 sm:p-8">
-      <section className="border-b border-slate-200 pb-4 dark:border-white/10">
-        <div>
-          <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-sky-600 dark:text-sky-400">
+    <main className={styles.workspace}>
+      <aside className={styles.sidebar} aria-label="ค้นหาและกรองพนักงานทดลองงาน">
+        <header className={styles.sidebarHeading}>
+          <div className={styles.eyebrow}>
             <CalendarClock className="size-4" />
-            Probation Management
+            PEOPLE DIRECTORY
           </div>
-          <h1 className="text-2xl font-bold text-slate-950 dark:text-white sm:text-3xl">ติดตามช่วงทดลองงาน</h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
-            ข้อมูลพนักงานทดลองงานปัจจุบันจากระบบ เรียงตามวันที่ต้องดำเนินการก่อน
-          </p>
-          {fetchedAt && (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-500">
-              อัปเดตล่าสุด {new Date(fetchedAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}
-            </p>
-          )}
+          <h1>Probation</h1>
+          <p>ติดตามช่วงทดลองงาน</p>
+        </header>
+        <div className={cn(styles.statusTabs, probationStyles.statusTabs)} role="group" aria-label="สถานะทดลองงาน">
+          {QUICK_FILTER_OPTIONS.map((option) => (
+            <button key={option.value} type="button" aria-pressed={listFilter === option.value}
+              onClick={() => { setListFilter(option.value); setVisibleCount(30); }}>
+              {option.label}
+            </button>
+          ))}
         </div>
-      </section>
-
-      {!isLoading && !error && (
-        <section className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-5">
-          <KpiCard label="พนักงานทดลองงาน" value={counts.total} helper="Active & Probation" icon={Users} tone="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" />
-          <KpiCard label="เลยกำหนด" value={counts.overdue} helper="ต้องติดตามทันที" icon={AlertTriangle} tone="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" />
-          <KpiCard label="ภายใน 30 วัน" value={counts.due30} helper="ใกล้ครบกำหนด" icon={Clock3} tone="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" />
-          <KpiCard label="31-60 วัน" value={counts.due60} helper="เตรียมการประเมิน" icon={CalendarClock} tone="bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300" />
-          <KpiCard label="ข้อมูลไม่ครบ" value={counts.missing} helper="ไม่มีวันที่ใช้อ้างอิง" icon={CircleAlert} tone="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300" />
-        </section>
-      )}
-
-      <section className="mt-4 border-y border-slate-200 py-3 dark:border-white/10">
-        <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-5">
+        <button type="button" className={styles.filterToggle} aria-expanded={filtersExpanded}
+          aria-controls="probation-advanced-filters" onClick={() => setFiltersExpanded((expanded) => !expanded)}>
+          <SlidersHorizontal size={16} /> ตัวกรอง
+          {activeFilterCount > 0 && <span className={styles.filterCount}>{activeFilterCount}</span>}
+          <ChevronDown size={16} />
+        </button>
+        <div id="probation-advanced-filters" className={styles.advancedFilters} data-expanded={filtersExpanded}>
+        <div className={styles.filterFields}>
+          <div className={styles.filterField}>
+          <span className="sr-only">Department</span>
           <CustomSelect
             value={department}
             onChange={(value) => {
@@ -1287,8 +1291,11 @@ export default function ProbationPage() {
             }}
             options={departments}
             placeholder="All Departments"
-            triggerClassName="rounded-full px-4 py-2.5"
+            triggerClassName={styles.selectTrigger}
           />
+          </div>
+          <div className={styles.filterField}>
+          <span className="sr-only">Division</span>
           <CustomSelect
             value={division}
             onChange={(value) => {
@@ -1299,8 +1306,11 @@ export default function ProbationPage() {
             }}
             options={divisions}
             placeholder="All Divisions"
-            triggerClassName="rounded-full px-4 py-2.5"
+            triggerClassName={styles.selectTrigger}
           />
+          </div>
+          <div className={styles.filterField}>
+          <span className="sr-only">Section</span>
           <CustomSelect
             value={section}
             onChange={(value) => {
@@ -1310,8 +1320,11 @@ export default function ProbationPage() {
             }}
             options={sections}
             placeholder="All Sections"
-            triggerClassName="rounded-full px-4 py-2.5"
+            triggerClassName={styles.selectTrigger}
           />
+          </div>
+          <div className={styles.filterField}>
+          <span className="sr-only">Unit</span>
           <CustomSelect
             value={unit}
             onChange={(value) => {
@@ -1320,8 +1333,11 @@ export default function ProbationPage() {
             }}
             options={units}
             placeholder="All Units"
-            triggerClassName="rounded-full px-4 py-2.5"
+            triggerClassName={styles.selectTrigger}
           />
+          </div>
+          <div className={styles.filterField}>
+          <span className="sr-only">Station</span>
           <CustomSelect
             value={station}
             onChange={(value) => {
@@ -1330,49 +1346,50 @@ export default function ProbationPage() {
             }}
             options={stations}
             placeholder="All Stations"
-            triggerClassName="rounded-full px-4 py-2.5"
+            triggerClassName={styles.selectTrigger}
           />
-        </div>
-
-        <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 md:grid-cols-6">
-          <div className="relative md:col-span-1">
+          </div>
+          <div className={styles.filterField}>
             <button
               type="button"
               onClick={() => setIsDatePickerOpen((open) => !open)}
-              className="flex w-full cursor-pointer items-center justify-between rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm text-slate-600 outline-none focus:ring-2 focus:ring-slate-200 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300 dark:focus:ring-white/20"
+              className={styles.dateTrigger}
+              aria-expanded={isDatePickerOpen}
+              aria-controls="probation-date-range"
             >
               <span className="truncate pr-2">{dateRangeText}</span>
               <CalendarClock className="size-4 shrink-0 text-slate-400" />
             </button>
             {isDatePickerOpen && (
-              <>
-                <div className="fixed inset-0 z-50" onClick={() => setIsDatePickerOpen(false)} />
-                <div className="absolute left-0 top-full z-[70] mt-2 w-[min(18rem,calc(100vw-1.5rem))] space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-white/10 dark:bg-[#1a1a1a]">
+                <div id="probation-date-range" className={styles.dateRange}
+                  onKeyDown={(event) => { if (event.key === "Escape") setIsDatePickerOpen(false); }}>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">จากวันที่ (Start Date)</label>
+                    <label htmlFor="probation-start-date">จากวันที่ (Start Date)</label>
                     <input
+                      id="probation-start-date"
                       type="date"
                       value={startDate}
                       onChange={(event) => {
                         setStartDate(event.target.value);
                         setVisibleCount(30);
                       }}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none focus:ring-1 focus:ring-blue-500 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300"
+                      max={endDate || undefined}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">ถึงวันที่ (End Date)</label>
+                    <label htmlFor="probation-end-date">ถึงวันที่ (End Date)</label>
                     <input
+                      id="probation-end-date"
                       type="date"
                       value={endDate}
                       onChange={(event) => {
                         setEndDate(event.target.value);
                         setVisibleCount(30);
                       }}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none focus:ring-1 focus:ring-blue-500 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300"
+                      min={startDate || undefined}
                     />
                   </div>
-                  <div className="flex gap-2 pt-2">
+                  <div className={styles.dateActions}>
                     <button
                       type="button"
                       onClick={() => {
@@ -1381,23 +1398,22 @@ export default function ProbationPage() {
                         setIsDatePickerOpen(false);
                         setVisibleCount(30);
                       }}
-                      className="flex-1 rounded-full border border-slate-200 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5"
                     >
                       ล้างค่า
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsDatePickerOpen(false)}
-                      className="flex-1 rounded-full bg-slate-950 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-slate-950"
                     >
                       ตกลง
                     </button>
                   </div>
                 </div>
-              </>
             )}
           </div>
 
+          <div className={styles.filterField}>
+          <span className="sr-only">ช่วงการประเมิน</span>
           <CustomSelect
             value={evaluationPeriod}
             onChange={(value) => {
@@ -1407,9 +1423,11 @@ export default function ProbationPage() {
             }}
             options={EVALUATION_PERIOD_OPTIONS.map((option) => option.label)}
             placeholder="ช่วงการประเมิน"
-            triggerClassName="rounded-full px-4 py-2.5"
+            triggerClassName={styles.selectTrigger}
           />
-
+          </div>
+          <div className={styles.filterField}>
+          <span className="sr-only">สถานะการติดตาม</span>
           <CustomSelect
             value={followUpStatus}
             onChange={(value) => {
@@ -1419,19 +1437,21 @@ export default function ProbationPage() {
             }}
             options={FOLLOW_UP_FILTER_OPTIONS.map((option) => option.label)}
             placeholder="สถานะการติดตาม"
-            triggerClassName="rounded-full px-4 py-2.5"
+            triggerClassName={styles.selectTrigger}
           />
-
-          <label className="relative block md:col-span-2">
-            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          </div>
+        </div>
+        </div>
+          <div className={styles.searchField}>
+            <Search size={16} />
             <input
+              aria-label="ค้นหาพนักงานทดลองงาน"
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value);
                 setVisibleCount(30);
               }}
               placeholder="Search by name, ID, or component..."
-              className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-slate-200 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300 dark:focus:ring-white/20"
             />
             {search && (
               <button
@@ -1440,23 +1460,20 @@ export default function ProbationPage() {
                   setSearch("");
                   setVisibleCount(30);
                 }}
-                className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 aria-label="Clear search"
+                title="Clear search"
               >
                 <X className="size-4" />
               </button>
             )}
-          </label>
+          </div>
 
-          <div className="flex items-center gap-2 md:col-span-1">
+          <div className={styles.filterActions}>
             <button
               type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className={cn(
-                "flex min-h-10 items-center justify-center gap-2 rounded-full border border-sky-100 bg-sky-50 px-4 text-sm font-semibold text-sky-600 transition-colors hover:bg-sky-100 disabled:cursor-wait disabled:opacity-70 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20",
-                hasActiveFilters ? "flex-1" : "w-full",
-              )}
+              className={styles.refreshButton}
             >
               <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
               {isRefreshing ? "กำลังอัปเดต" : "Refresh"}
@@ -1474,47 +1491,50 @@ export default function ProbationPage() {
                   setStartDate("");
                   setEndDate("");
                   setListFilter("all");
+                  setIsDatePickerOpen(false);
                   setVisibleCount(30);
                 }}
-                className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full border border-red-100 bg-red-50 px-4 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+                className={styles.clearButton}
               >
                 <X className="size-4" />
                 Clear
               </button>
             )}
           </div>
-        </div>
-        <div className="mt-2.5 flex gap-2 overflow-x-auto pb-1">
-          {QUICK_FILTER_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => {
-                setListFilter(option.value);
-                setVisibleCount(30);
-              }}
-              className={cn(
-                "h-9 shrink-0 rounded-lg border px-3 text-xs font-semibold transition-colors",
-                listFilter === option.value
-                  ? "border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-400 dark:border-white/10 dark:bg-[#121212] dark:text-slate-300 dark:hover:border-white/30",
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </section>
+      </aside>
+
+      <section className={styles.results} aria-label="รายชื่อพนักงานทดลองงาน" aria-busy={isLoading || isRefreshing}>
+        <header className={styles.resultsHeading}>
+          <div>
+            <span className={styles.eyebrow}><Users size={14} /> PROBATION MANAGEMENT</span>
+            <h2>รายการที่ต้องติดตาม</h2>
+            {fetchedAt && <p className={probationStyles.updatedAt}>
+              อัปเดตล่าสุด {new Date(fetchedAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}
+            </p>}
+          </div>
+          {!isLoading && !error && <span className={styles.resultCount} role="status">{filteredRecords.length.toLocaleString()} คน</span>}
+        </header>
+        {!isLoading && !error && (
+          <section className={probationStyles.metrics} aria-label="ภาพรวมทดลองงาน">
+            <KpiCard label="ทดลองงานทั้งหมด" value={counts.total} helper="Active & Probation" icon={Users} tone="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" />
+            <KpiCard label="เลยกำหนด" value={counts.overdue} helper="ต้องติดตามทันที" icon={AlertTriangle} tone="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" />
+            <KpiCard label="30 วัน" value={counts.due30} helper="ใกล้ครบกำหนด" icon={Clock3} tone="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" />
+            <KpiCard label="60 วัน" value={counts.due60} helper="เตรียมการประเมิน" icon={CalendarClock} tone="bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300" />
+            <KpiCard label="ข้อมูลไม่ครบ" value={counts.missing} helper="ไม่มีวันที่ใช้อ้างอิง" icon={CircleAlert} tone="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300" />
+          </section>
+        )}
 
       {isLoading && (
-        <div className="flex min-h-80 flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400">
-          <RefreshCw className="size-7 animate-spin text-sky-500" />
-          <p className="text-sm font-medium">กำลังดึงข้อมูลพนักงานทดลองงาน...</p>
+        <div className={styles.loadingState} role="status">
+          <p>กำลังดึงข้อมูลพนักงานทดลองงาน...</p>
+          {Array.from({ length: 5 }, (_, index) => <div key={index} className={styles.skeletonCard} aria-hidden="true">
+            <span /><div><i /><i /><i /></div>
+          </div>)}
         </div>
       )}
 
       {!isLoading && error && (
-        <div className="my-8 flex min-h-72 flex-col items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-5 text-center dark:border-rose-900/60 dark:bg-rose-950/20">
+        <div role="alert" className="my-8 flex min-h-72 flex-col items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-5 text-center dark:border-rose-900/60 dark:bg-rose-950/20">
           <Database className="mb-3 size-8 text-rose-500" />
           <h2 className="font-semibold text-rose-800 dark:text-rose-200">เชื่อมต่อข้อมูลไม่สำเร็จ</h2>
           <p className="mt-1 max-w-lg text-sm text-rose-700 dark:text-rose-300">{error}</p>
@@ -1525,40 +1545,33 @@ export default function ProbationPage() {
       )}
 
       {!isLoading && !error && (
-        <section className="mt-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="font-semibold text-slate-950 dark:text-white">รายการที่ต้องติดตาม</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">พบ {filteredRecords.length.toLocaleString()} คน</p>
-            </div>
-            {displayedRecords.length > 0 && (
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={toggleDisplayedSelection}
-                  className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-600 hover:border-sky-400 hover:text-sky-700 dark:border-white/15 dark:bg-[#121212] dark:text-slate-300"
-                >
-                  {allDisplayedSelected ? "ยกเลิกที่แสดง" : "เลือกที่แสดง"}
-                </button>
+        <div>
+            {(displayedRecords.length > 0 || selectedFollowUpRecords.length > 0) && (
+              <div className={probationStyles.selectionToolbar} aria-label="ติดตามหลายคน">
+                {displayedRecords.length > 0 && <label className={probationStyles.selectionLabel}>
+                  <input type="checkbox" checked={allDisplayedSelected} onChange={toggleDisplayedSelection}
+                    ref={(input) => { if (input) input.indeterminate = !allDisplayedSelected && displayedRecords.some((record) => selectedFollowUpIds.has(record.employee.id)); }} />
+                  เลือกที่แสดง ({displayedRecords.length})
+                </label>}
                 {selectedFollowUpRecords.length > 0 && (
                   <>
-                    <span className="text-xs font-semibold text-sky-700 dark:text-sky-300">
+                    <span className={probationStyles.selectedCount} role="status">
                       เลือก {selectedFollowUpRecords.length.toLocaleString()} คน
                     </span>
                     <button
                       type="button"
                       onClick={() => setIsBulkFollowUpOpen(true)}
-                      className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-sky-600 px-3 text-xs font-semibold text-white shadow-sm hover:bg-sky-700"
+                      className={probationStyles.bulkButton}
                     >
                       <CalendarCheck2 className="size-4" />
-                      บันทึกการติดตาม
+                      ติดตามที่เลือก
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedFollowUpIds(new Set())}
                       title="ล้างรายการที่เลือก"
                       aria-label="ล้างรายการที่เลือก"
-                      className="flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-white/10"
+                      className={probationStyles.clearSelection}
                     >
                       <X className="size-4" />
                     </button>
@@ -1566,113 +1579,78 @@ export default function ProbationPage() {
                 )}
               </div>
             )}
-          </div>
 
           {filteredRecords.length === 0 ? (
-            <div className="flex min-h-56 flex-col items-center justify-center border-y border-slate-200 text-center dark:border-white/10">
+            <div className={styles.emptyState} role="status">
               <Users className="mb-2 size-7 text-slate-400" />
               <p className="text-sm font-medium text-slate-700 dark:text-slate-300">ไม่พบพนักงานตามเงื่อนไขที่เลือก</p>
             </div>
           ) : (
-            <div className="min-w-0 space-y-3 sm:space-y-4">
-              {displayedRecords.map((record) => {
+            <ul className={styles.employeeStack} aria-label="ผลการค้นหาพนักงานทดลองงาน">
+              {displayedRecords.map((record, index) => {
+                const name = record.employee.nameEn !== "-" ? record.employee.nameEn : record.employee.name;
+                const completedCount = record.followUps.filter((entry) => hasValue(entry.date)).length;
                 return (
-                  <article
-                    key={record.employee.id}
-                    className="group min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-md dark:border-white/5 dark:bg-[#121212]"
-                  >
-                    <div className="flex min-w-0 items-center">
-                      <label
-                        title="เลือกสำหรับติดตามหลายคน"
-                        className="flex shrink-0 cursor-pointer items-center self-stretch pl-3 sm:pl-4"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedFollowUpIds.has(record.employee.id)}
-                          onChange={() => toggleFollowUpSelection(record.employee.id)}
-                          aria-label={`เลือก ${record.employee.nameEn} สำหรับติดตาม`}
-                          className="size-4 cursor-pointer rounded border-slate-300 accent-sky-600"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedEmployee(record.employee)}
-                        className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left sm:p-4"
-                      >
-                      <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-100 text-sm font-bold text-white shadow-sm dark:border-slate-800/80 sm:size-12 sm:text-base", record.employee.colorClass)}>
+                  <li key={record.employee.id} className={styles.employeeItem}
+                    style={{ "--entry-delay": `${Math.min(index, 8) * 25}ms` } as CSSProperties}>
+                  <article className={cn(styles.employeeCard, selectedFollowUpIds.has(record.employee.id) && probationStyles.selectedCard)}>
+                    <button type="button" className={styles.openEmployee} onClick={() => setSelectedEmployee(record.employee)}
+                      aria-label={`เปิดข้อมูลพนักงาน ${name} (${record.employee.id})`} />
+                    <div className={styles.employeeIdentity}>
+                      <span className={cn(styles.avatar, record.employee.colorClass)}>
                         {record.employee.initials}
                       </span>
-                      <span className="min-w-0 flex-1 md:w-[210px] md:flex-none">
-                        <span className="flex min-w-0 items-center gap-2">
-                          <span className="truncate text-sm font-bold leading-tight text-sky-700 dark:text-sky-300">ID: {record.employee.id}</span>
-                          <span className={cn("shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold sm:hidden", urgencyStyle(record.urgency))}>
-                            {urgencyLabel(record)}
-                          </span>
-                        </span>
-                        <span className="mt-0.5 block truncate text-sm font-bold text-slate-900 dark:text-slate-100 sm:text-base">{record.employee.nameEn !== "-" ? record.employee.nameEn : record.employee.name}</span>
-                        {record.employee.nameEn !== "-" && <span className="block truncate text-xs font-normal text-slate-600 dark:text-slate-400 sm:text-sm">{record.employee.name}</span>}
+                      <div className={styles.employeeName}>
+                        <p className={styles.employeeId}>ID: {record.employee.id}</p>
+                        <h3>{name}</h3>
+                        {record.employee.nameEn !== "-" && <p className={styles.thaiName}>{record.employee.name}</p>}
+                      </div>
+                    </div>
+                    <div className={styles.employeeWork}>
+                      <p><BriefcaseBusiness size={15} /><span title={record.employee.title}>{record.employee.title}</span></p>
+                      <p><Building2 size={15} /><span title={record.employee.department}>{record.employee.department}</span></p>
+                    </div>
+                    <ChevronRight size={18} className={styles.cardArrow} />
+                    <div className={styles.employeeFooter}>
+                      <div className={styles.station}><MapPin size={13} /><span>{record.employee.station}</span></div>
+                      <span className={styles.employeeStatus}
+                        data-tone={record.urgency === "overdue" ? "danger" : record.urgency === "due30" ? "warning" : record.urgency === "due60" ? "info" : record.urgency === "later" ? "active" : undefined}
+                        title={`เริ่ม ${formatDate(record.startDate)} · ครบกำหนด ${formatDate(record.endDate)}${record.inferredEndDate ? " (คำนวณ)" : ""}`}>
+                        <Clock3 size={13} /><span>{urgencyLabel(record)}</span>
                       </span>
-
-                      <span className="hidden w-32 shrink-0 items-center justify-center sm:flex md:w-36">
-                        <span
-                          title={`เริ่ม ${formatDate(record.startDate)} · ครบกำหนด ${formatDate(record.endDate)}${record.inferredEndDate ? " (คำนวณ)" : ""}`}
-                          className={cn("rounded-full border px-2.5 py-1 text-[10px] font-semibold", urgencyStyle(record.urgency))}
-                        >
-                          {urgencyLabel(record)}
-                        </span>
-                      </span>
-
-                      <span className="hidden min-w-0 flex-1 items-center gap-2 text-slate-500 dark:text-slate-400 md:flex">
-                        <BriefcaseBusiness className="size-4 shrink-0 opacity-50" />
-                        <span className="truncate text-sm">{record.employee.title}</span>
-                      </span>
-
-                      <span className="hidden w-40 min-w-0 shrink-0 items-center justify-end gap-2 min-[860px]:flex">
-                        <span className="max-w-full truncate rounded-full border border-slate-100 bg-slate-50 px-3 py-1 text-xs text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
-                          {record.employee.department}
-                        </span>
-                        {hasValue(record.employee.station) && (
-                          <span className="hidden shrink-0 items-center gap-1 text-xs text-slate-500 dark:text-slate-400 xl:inline-flex">
-                            <MapPin className="size-3.5" />
-                            {record.employee.station}
-                          </span>
-                        )}
-                      </span>
-
-                      <span className="shrink-0 text-slate-300 transition-colors group-hover:text-slate-900 dark:text-slate-600 dark:group-hover:text-slate-300">
-                        <ChevronRight className="size-5" />
-                      </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFollowUpRecord(record)}
-                        title="บันทึกการติดตาม"
-                        aria-label={`บันทึกการติดตาม ${record.employee.nameEn}`}
-                        className="mr-3 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-sky-200 text-sky-700 transition-colors hover:bg-sky-50 dark:border-sky-500/30 dark:text-sky-300 dark:hover:bg-sky-950/30 sm:mr-4 xl:h-9 xl:w-auto xl:gap-1.5 xl:px-3"
-                      >
-                        <CalendarCheck2 className="size-4" />
-                        <span className="hidden text-xs font-semibold xl:inline">บันทึกการติดตาม</span>
-                      </button>
+                      <div className={probationStyles.followUpActions}>
+                        <label className={probationStyles.selectionLabel}>
+                          <input type="checkbox" checked={selectedFollowUpIds.has(record.employee.id)}
+                            onChange={() => toggleFollowUpSelection(record.employee.id)} aria-label={`เลือก ${name} สำหรับติดตาม`} />
+                          เลือกติดตาม
+                        </label>
+                        <span className={probationStyles.followUpCount}>ติดตามแล้ว {completedCount}/3</span>
+                        <button type="button" onClick={() => setFollowUpRecord(record)} className={probationStyles.followUpButton}
+                          title="บันทึกการติดตาม" aria-label={`บันทึกการติดตาม ${name}`}>
+                          <CalendarCheck2 size={15} /><span>บันทึกการติดตาม</span>
+                        </button>
+                      </div>
                     </div>
                   </article>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
 
           {visibleCount < filteredRecords.length && (
-            <div className="mt-5 flex justify-center">
+            <div className={styles.pagination}>
               <button
                 type="button"
                 onClick={() => setVisibleCount((count) => count + 30)}
-                className="h-10 rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 hover:border-slate-500 dark:border-white/15 dark:bg-[#121212] dark:text-slate-200"
               >
                 แสดงเพิ่มอีก {Math.min(30, filteredRecords.length - visibleCount)} คน
               </button>
             </div>
           )}
-        </section>
+        </div>
       )}
+      </section>
 
       <EmployeeProfileDrawer
         isOpen={Boolean(selectedEmployee)}

@@ -1,0 +1,33 @@
+.statusTabs.statusTabs { grid-template-columns: .8fr 1fr 1.2fr; }
+.updatedAt { margin-top: .4rem; font-size: .8rem; color: var(--muted); }
+.metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 1.5rem; margin-bottom: 1.25rem; }
+.metric { display: flex; align-items: flex-start; gap: .55rem; min-width: 0; }
+.metricLabel, .metricHelper { font-size: .76rem; line-height: 1.5; color: var(--muted); overflow-wrap: anywhere; }
+.metricLabel { font-weight: 600; }
+.metricValue { font-size: 1.65rem; font-weight: 700; line-height: 1.2; margin: .2rem 0; }
+.selectionToolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.25rem; min-height: 2.75rem; }
+.selectionLabel { display: inline-flex; align-items: center; gap: .55rem; min-height: 2.75rem; font-size: .82rem; color: var(--muted); cursor: pointer; }
+.selectionLabel input { width: 1.05rem; height: 1.05rem; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
+.selectionLabel input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.selectedCount { font-size: .85rem; color: var(--accent); font-weight: 600; }
+.bulkButton, .followUpButton { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid var(--line); border-radius: 6px; font-size: .82rem; font-weight: 600; cursor: pointer; }
+.bulkButton { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.clearSelection { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; color: var(--muted); cursor: pointer; }
+.selectedCard.selectedCard { border-color: var(--accent); }
+/* Keep tracking controls above the profile-opening button without nesting buttons. */
+.followUpActions { position: relative; z-index: 2; flex: 1 1 22rem; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; }
+.followUpCount { font-size: .78rem; color: var(--muted); }
+.followUpButton { margin-left: auto; color: var(--accent); background: var(--surface); }
+.followUpButton:hover { border-color: var(--accent); background: var(--subtle); }
+@media (max-width: 1280px) {
+  .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .metrics { gap: 1rem .75rem; }
+  .metric { flex-direction: column; }
+}
+@media (max-width: 420px) {
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric { flex-direction: row; }
+  .followUpButton { width: 100%; margin-left: 0; }
+}
