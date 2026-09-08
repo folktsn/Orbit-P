@@ -6,7 +6,8 @@ import { EmployeeProfileDrawer, EmployeeData } from "./EmployeeProfileDrawer";
 import { EmployeeAge } from "./EmployeeAge";
 import { getEmployeeAge } from "../lib/age";
 import { useEmployeeToday } from "../lib/useEmployeeToday";
-import { getCurrentPayrollPeriod, getNewJoinEmployees } from "../lib/payroll";
+import { getPayrollSheets, getNewJoinEmployees, type PayrollOffset } from "../lib/payroll";
+import { NewJoinSheets } from "./NewJoinSheets";
 import { cn } from "@/lib/utils";
 import {
   compareDepartureRecords,
@@ -127,7 +128,9 @@ export const EmployeeList = memo(function EmployeeList({
   onFilterRecordsChange,
 }: EmployeeListProps) {
   const todayDate = useEmployeeToday();
-  const payrollPeriod = useMemo(() => getCurrentPayrollPeriod(todayDate), [todayDate]);
+  const [selectedPayrollOffset, setSelectedPayrollOffset] = useState<PayrollOffset>(0);
+  const payrollSheets = useMemo(() => getPayrollSheets(todayDate), [todayDate]);
+  const payrollPeriod = payrollSheets.find((sheet) => sheet.offset === selectedPayrollOffset) ?? null;
   const newJoinPeriodStart = activeTab === "new-join" ? payrollPeriod?.start.getTime() : undefined;
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -487,8 +490,15 @@ export const EmployeeList = memo(function EmployeeList({
             {filteredEmployees.length.toLocaleString("th-TH")} คน
           </span>
         )}
+        {activeTab === "new-join" && (
+          <NewJoinSheets sheets={payrollSheets} selected={selectedPayrollOffset} onSelect={setSelectedPayrollOffset} />
+        )}
       </header>
 
+      <div role={activeTab === "new-join" ? "tabpanel" : undefined}
+        id={activeTab === "new-join" ? "new-join-sheet-panel" : undefined}
+        aria-labelledby={activeTab === "new-join" ? `new-join-sheet-${selectedPayrollOffset + 1}` : undefined}
+        tabIndex={activeTab === "new-join" ? 0 : undefined}>
       {errorMsg && <div role="alert" className={styles.errorState}><AlertCircle size={20} aria-hidden="true" /><p>{errorMsg}</p></div>}
 
       {loading ? (
@@ -520,6 +530,7 @@ export const EmployeeList = memo(function EmployeeList({
           </button>
         </div>
       )}
+      </div>
 
       <EmployeeProfileDrawer
         isOpen={isDrawerOpen}

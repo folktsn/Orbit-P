@@ -1,6 +1,8 @@
 import { parseEmployeeDate } from "./resignation";
 
 export type PayrollPeriod = { start: Date; end: Date };
+export type PayrollOffset = -1 | 0 | 1;
+export type PayrollSheet = PayrollPeriod & { offset: PayrollOffset };
 
 export function getCurrentPayrollPeriod(today: string): PayrollPeriod | null {
   const date = parseEmployeeDate(today);
@@ -10,6 +12,16 @@ export function getCurrentPayrollPeriod(today: string): PayrollPeriod | null {
     start: new Date(date.getFullYear(), endMonth - 1, 21),
     end: new Date(date.getFullYear(), endMonth, 20),
   };
+}
+
+export function getPayrollSheets(today: string): PayrollSheet[] {
+  const current = getCurrentPayrollPeriod(today);
+  if (!current) return [];
+  return ([-1, 0, 1] as const).map((offset) => ({
+    offset,
+    start: new Date(current.start.getFullYear(), current.start.getMonth() + offset, 21),
+    end: new Date(current.end.getFullYear(), current.end.getMonth() + offset, 20),
+  }));
 }
 
 export function getNewJoinEmployees<T extends { id: string; contractStart?: string }>(

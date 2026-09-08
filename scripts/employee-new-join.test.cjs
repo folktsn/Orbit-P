@@ -16,7 +16,7 @@ function loadTs(file, mocks = {}) {
   return loaded.exports;
 }
 const resignation = loadTs('src/app/employees/lib/resignation.ts');
-const { getCurrentPayrollPeriod, getNewJoinEmployees } = loadTs('src/app/employees/lib/payroll.ts', { './resignation': resignation });
+const { getCurrentPayrollPeriod, getPayrollSheets, getNewJoinEmployees } = loadTs('src/app/employees/lib/payroll.ts', { './resignation': resignation });
 const { getEmployeeToday } = loadTs('src/app/employees/lib/age.ts', { './resignation': resignation });
 const { createEmployeeSearch, getEmployeeFilterOptions } = loadTs('src/app/employees/lib/search.ts', { './resignation': resignation });
 const iso = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
@@ -90,4 +90,40 @@ test('Thailand midnight on the 21st changes the payroll cycle even outside Thail
   const after=getEmployeeToday(new Date('2026-09-20T17:00:00.000Z'));
   assert.deepEqual(bounds(before),['2026-08-21','2026-09-20']);
   assert.deepEqual(bounds(after),['2026-09-21','2026-10-20']);
+});
+
+test('New Join provides exactly the previous, current and next payroll sheets', () => {
+  const sheets=getPayrollSheets('2026-09-08');
+  assert.deepEqual(sheets.map(s=>[s.offset,iso(s.start),iso(s.end)]),[
+    [-1,'2026-07-21','2026-08-20'],[0,'2026-08-21','2026-09-20'],[1,'2026-09-21','2026-10-20'],
+  ]);
+  const rows=['2026-07-20','2026-07-21','2026-08-20','2026-08-21','2026-09-20','2026-09-21','2026-10-20','2026-10-21']
+    .map((contractStart,i)=>({id:String(i),contractStart}));
+  assert.deepEqual(sheets.map(s=>getNewJoinEmployees(rows,s).map(e=>e.id)),[['1','2'],['3','4'],['5','6']]);
+  assert.deepEqual(getPayrollSheets(''),[]);
+});
+
+test('sheet boundaries stay adjacent and label the closing month across leap years and year changes', () => {
+  for(const today of ['2026-01-01','2026-12-21','2027-02-20','2028-02-29','2028-03-21']) {
+    const sheets=getPayrollSheets(today);
+    for(const [i,sheet] of sheets.entries()) {
+      assert.equal(sheet.start.getDate(),21);
+      assert.equal(sheet.end.getDate(),20);
+      if(i){
+        const next=new Date(sheets[i-1].end);next.setDate(next.getDate()+1);
+        assert.equal(iso(next),iso(sheet.start));
+      }
+    }
+    assert.deepEqual([iso(sheets[1].start),iso(sheets[1].end)],bounds(today));
+  }
+  assert.deepEqual(getPayrollSheets('2026-12-21').map(s=>iso(s.end)),['2026-12-20','2027-01-20','2027-02-20']);
+});
+
+test('all three sheets advance together on Thailand payroll rollover', () => {
+  const before=getPayrollSheets(getEmployeeToday(new Date('2026-09-20T16:59:59.999Z')));
+  const after=getPayrollSheets(getEmployeeToday(new Date('2026-09-20T17:00:00.000Z')));
+  assert.equal(iso(before[1].start),iso(after[0].start));
+  assert.equal(iso(before[2].start),iso(after[1].start));
+  assert.equal(iso(after[2].end),'2026-11-20');
+  assert.deepEqual(after.map(s=>s.offset),[-1,0,1]);
 });
