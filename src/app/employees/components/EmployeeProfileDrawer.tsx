@@ -1190,8 +1190,9 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
     const previewWindow = window.open();
     if (!previewWindow) return;
     const previewFontStyle = `<style>
+      @font-face { font-family: 'Inter'; src: url('/fonts/inter/Inter-Variable-Latin.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
       @font-face { font-family: 'Sukhumvit Set'; src: url('/fonts/sukhumvit/SukhumvitSet-Text.woff2') format('woff2'); font-weight: 400; font-display: swap; }
-      body { font-family: 'Sukhumvit Set', Tahoma, sans-serif; padding: 24px; }
+      body { font-family: 'Inter', 'Sukhumvit Set', Tahoma, sans-serif; padding: 24px; }
     </style>`;
     previewWindow.document.write(
       `<!doctype html><title>Loading…</title>${previewFontStyle}<body style='color:#334155'>กำลังโหลดเอกสาร / Loading document…</body>`

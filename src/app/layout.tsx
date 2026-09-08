@@ -22,6 +22,23 @@ const sukhumvit = localFont({
   fallback: ["Tahoma", "Arial", "sans-serif"],
 });
 
+const inter = localFont({
+  src: "../../public/fonts/inter/Inter-Variable-Latin.woff2",
+  weight: "100 900",
+  style: "normal",
+  variable: "--font-inter",
+  display: "swap",
+  preload: false,
+  adjustFontFallback: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0000-024F, U+1D00-1DBF, U+1E00-1EFF, U+2000-206F, U+20A0-20CF, U+2100-214F, U+2190-21FF, U+2212, U+2215, U+25A0-25FF, U+A720-A7FF, U+FEFF, U+FFFD",
+    },
+  ],
+});
+
 export const metadata: Metadata = {
   title: "HO-Recruitment",
   description: "Aviation-inspired Enterprise Resource Planning Interface",
@@ -33,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sukhumvit.variable} h-full font-sans antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${sukhumvit.variable} h-full font-sans antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col text-slate-900 bg-slate-50 dark:bg-black dark:text-slate-100 selection:bg-slate-200 selection:text-slate-900 transition-colors duration-300">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <DisplayPreferencesProvider>
