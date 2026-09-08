@@ -146,6 +146,9 @@
 :global(.dark) .employeeStatus[data-tone="danger"] { color: #ffa4b4; background: #3d242b; }
 :global(.dark) .employeeStatus[data-tone="warning"] { color: #eac781; background: #39311e; }
 :global(.dark) .employeeStatus[data-tone="info"] { color: #91bdef; background: #213244; }
+.plainIndicators .resultCount { padding: 0; border: 0; border-radius: 0; background: transparent; }
+.plainIndicators .employeeStatus,
+:global(.dark) .plainIndicators .employeeStatus { padding: 0; border: 0; border-radius: 0; background: transparent; }
 .pagination { display: flex; justify-content: center; margin-top: 2rem; }
 .pagination button { padding: .8rem 1.4rem; min-height: 3rem; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: .92rem; font-weight: 600; cursor: pointer; }
 .pagination button:hover { border-color: var(--accent); }
