@@ -52,7 +52,7 @@
 .employeeStatusTabs { grid-template-columns: repeat(6, minmax(0, 1fr)); border-radius: 1.75rem; }
 .employeeStatusTabs button { grid-column: span 2; }
 .employeeStatusTabs button:nth-child(n + 4) { grid-column: span 3; }
-.searchField { display: flex; align-items: center; gap: .6rem; min-height: 3rem; margin-top: .85rem; border: 1px solid var(--filter-line); border-radius: 999px; padding: 0 1rem; background: var(--surface); color: var(--filter-icon); }
+.searchField { display: flex; align-items: center; gap: .6rem; min-height: 3rem; margin-bottom: .85rem; border: 1px solid var(--filter-line); border-radius: 999px; padding: 0 1rem; background: var(--surface); color: var(--filter-icon); }
 .searchField > svg { flex-shrink: 0; }
 .searchField input { width: 100%; min-width: 0; padding: .65rem 0; font-size: .88rem; outline: none; color: var(--filter-text); background: transparent; }
 .searchField input::placeholder { color: var(--filter-icon); }
@@ -200,6 +200,7 @@
   .sidebarHeading h1 { font-size: 1.85rem; }
   .sidebarHeading p { display: none; }
   .statusTabs { margin-bottom: .9rem; }
+  .searchField { margin-bottom: .25rem; }
   .filterToggle { display: flex; width: 100%; align-items: center; gap: .6rem; min-height: 3.2rem; color: var(--muted); margin-top: .5rem; font-size: .9rem; cursor: pointer; }
   .filterToggle > svg:last-child { margin-left: auto; transition: transform .2s; }
   .filterToggle[aria-expanded="true"] > svg:last-child { transform: rotate(180deg); }

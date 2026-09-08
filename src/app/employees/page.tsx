@@ -125,6 +125,22 @@ export default function EmployeesPage() {
           ))}
         </div>
 
+        <div className={styles.searchField}>
+          <Search size={18} aria-hidden="true" />
+          <input
+            type="text"
+            placeholder="Search by name, ID, or component..."
+            aria-label="ค้นหาพนักงาน"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} type="button" aria-label="ล้างคำค้นหา" title="ล้างคำค้นหา">
+              <X size={16} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
         <button
           type="button"
           className={styles.filterToggle}
@@ -186,22 +202,6 @@ export default function EmployeesPage() {
             </div>
           </div>
           {invalidDateRange && <p role="alert" className={styles.filterError}>วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด</p>}
-        </div>
-
-        <div className={styles.searchField}>
-          <Search size={18} aria-hidden="true" />
-          <input
-            type="text"
-            placeholder="Search by name, ID, or component..."
-            aria-label="ค้นหาพนักงาน"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")} type="button" aria-label="ล้างคำค้นหา" title="ล้างคำค้นหา">
-              <X size={16} aria-hidden="true" />
-            </button>
-          )}
         </div>
 
         <div className={styles.filterActions}>
