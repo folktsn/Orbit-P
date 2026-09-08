@@ -49,6 +49,9 @@
 .statusTabs button { min-width: 0; min-height: 2.7rem; padding: .45rem .25rem; font-size: .84rem; font-weight: 600; color: var(--filter-text); border-radius: 999px; transition: color .18s, background .18s; cursor: pointer; white-space: nowrap; }
 .statusTabs button[aria-pressed="true"] { background: var(--filter-selected); color: var(--filter-selected-text); }
 .statusTabs button:not([aria-pressed="true"]):hover { background: var(--subtle); color: var(--ink); }
+.employeeStatusTabs { grid-template-columns: repeat(6, minmax(0, 1fr)); border-radius: 1.75rem; }
+.employeeStatusTabs button { grid-column: span 2; }
+.employeeStatusTabs button:nth-child(n + 4) { grid-column: span 3; }
 .searchField { display: flex; align-items: center; gap: .6rem; min-height: 3rem; margin-top: .85rem; border: 1px solid var(--filter-line); border-radius: 999px; padding: 0 1rem; background: var(--surface); color: var(--filter-icon); }
 .searchField > svg { flex-shrink: 0; }
 .searchField input { width: 100%; min-width: 0; padding: .65rem 0; font-size: .88rem; outline: none; color: var(--filter-text); background: transparent; }
@@ -90,6 +93,7 @@
 .results, .directory { min-width: 0; }
 .resultsHeading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding: .25rem 0 1.5rem; border-bottom: 1px solid var(--line); margin-bottom: 1.5rem; }
 .resultsHeading h2 { font-size: 1.65rem; font-weight: 700; margin-top: .5rem; line-height: 1.5; overflow-wrap: anywhere; }
+.payrollPeriod { margin-top: .5rem; color: var(--muted); font-size: .9rem; line-height: 1.6; }
 .resultCount { font-size: .9rem; font-weight: 600; color: var(--accent); white-space: nowrap; padding: .5rem .75rem; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
 .employeeStack { display: grid; gap: 1rem; padding: 0; margin: 0; list-style: none; }
 .employeeItem { min-width: 0; animation: card-enter .2s ease-out backwards; }

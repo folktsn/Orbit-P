@@ -9,7 +9,7 @@ import { getEmployeeFilterOptions, type EmployeeFilterRecord } from "./lib/searc
 import styles from "./EmployeesWorkspace.module.css";
 
 export default function EmployeesPage() {
-  const [activeTab, setActiveTab] = useState<"all" | "active" | "resigned" | "retirement">("active");
+  const [activeTab, setActiveTab] = useState<"all" | "active" | "new-join" | "resigned" | "retirement">("active");
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   
@@ -114,9 +114,9 @@ export default function EmployeesPage() {
           <p>ข้อมูลพนักงาน</p>
         </header>
 
-        <div className={styles.statusTabs} role="group" aria-label="สถานะพนักงาน">
+        <div className={cn(styles.statusTabs, styles.employeeStatusTabs)} role="group" aria-label="สถานะพนักงาน">
           {([
-            ["all", "All"], ["active", "Active"],
+            ["all", "All"], ["active", "Active"], ["new-join", "New Join"],
             ["retirement", "Retirement"], ["resigned", "Resign"],
           ] as const).map(([value, label]) => (
             <button key={value} type="button" onClick={() => setActiveTab(value)} aria-pressed={activeTab === value}>

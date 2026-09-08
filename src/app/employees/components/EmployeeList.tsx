@@ -6,6 +6,7 @@ import { EmployeeProfileDrawer, EmployeeData } from "./EmployeeProfileDrawer";
 import { EmployeeAge } from "./EmployeeAge";
 import { getEmployeeAge } from "../lib/age";
 import { useEmployeeToday } from "../lib/useEmployeeToday";
+import { getCurrentPayrollPeriod, getNewJoinEmployees } from "../lib/payroll";
 import { cn } from "@/lib/utils";
 import {
   compareDepartureRecords,
@@ -97,7 +98,7 @@ const getDualLanguage = (th: any, en: any, fallback: any) => {
 };
 
 interface EmployeeListProps {
-  activeTab: "all" | "active" | "resigned" | "retirement";
+  activeTab: "all" | "active" | "new-join" | "resigned" | "retirement";
   searchQuery?: string;
   departmentFilter?: string;
   divisionFilter?: string;
@@ -126,6 +127,8 @@ export const EmployeeList = memo(function EmployeeList({
   onFilterRecordsChange,
 }: EmployeeListProps) {
   const todayDate = useEmployeeToday();
+  const payrollPeriod = useMemo(() => getCurrentPayrollPeriod(todayDate), [todayDate]);
+  const newJoinPeriodStart = activeTab === "new-join" ? payrollPeriod?.start.getTime() : undefined;
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [employees, setEmployees] = useState<EmployeeData[]>([]);
@@ -385,7 +388,7 @@ export const EmployeeList = memo(function EmployeeList({
   // Reset pagination when activeTab, search query or filters change
   useEffect(() => {
     setVisibleCount(25);
-  }, [activeTab, searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter, startDateFilter, endDateFilter]);
+  }, [activeTab, searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter, startDateFilter, endDateFilter, newJoinPeriodStart]);
 
   const tabEmployees = useMemo(() => {
     let result = employees;
@@ -415,6 +418,8 @@ export const EmployeeList = memo(function EmployeeList({
         }
         return emp;
       });
+    } else if (activeTab === "new-join") {
+      result = getNewJoinEmployees(result, payrollPeriod);
     } else if (activeTab === "resigned") {
       result = result.filter(isDepartureRecord);
       result = [...result].sort((a, b) => compareDepartureRecords(a, b, today));
@@ -455,7 +460,7 @@ export const EmployeeList = memo(function EmployeeList({
     }
 
     return result;
-  }, [employees, activeTab, todayDate]);
+  }, [employees, activeTab, todayDate, payrollPeriod]);
 
   useEffect(() => {
     onFilterRecordsChange?.(tabEmployees);
@@ -471,8 +476,11 @@ export const EmployeeList = memo(function EmployeeList({
     <div className={styles.directory}>
       <header className={styles.resultsHeading}>
         <div>
-          <span className={styles.eyebrow}>EMPLOYEES / {activeTab.toUpperCase()}</span>
-          <h2>{activeTab === "resigned" ? "พนักงานลาออกและอยู่ระหว่างลาออก" : activeTab === "retirement" ? "พนักงานเกษียณอายุ" : "รายชื่อพนักงาน"}</h2>
+          <span className={styles.eyebrow}>EMPLOYEES / {activeTab === "new-join" ? "NEW JOIN" : activeTab.toUpperCase()}</span>
+          <h2>{activeTab === "resigned" ? "พนักงานลาออกและอยู่ระหว่างลาออก" : activeTab === "retirement" ? "พนักงานเกษียณอายุ" : activeTab === "new-join" ? "พนักงานเริ่มงานใหม่" : "รายชื่อพนักงาน"}</h2>
+          {activeTab === "new-join" && payrollPeriod && (
+            <p className={styles.payrollPeriod}>รอบเงินเดือน {statusDateFormatter.format(payrollPeriod.start)} - {statusDateFormatter.format(payrollPeriod.end)}</p>
+          )}
         </div>
         {!loading && !errorMsg && (
           <span role="status" className={styles.resultCount}>
@@ -534,6 +542,7 @@ const EmployeeCard = memo(function EmployeeCard({ employee: emp, activeTab, onOp
   today: string;
 }) {
   const name = emp.nameEn !== "-" ? emp.nameEn : emp.name;
+  const joinDate = activeTab === "new-join" ? parseEmployeeDate(emp.contractStart) : null;
   return (
     <li className={styles.employeeItem}>
       <article className={styles.employeeCard}>
@@ -551,6 +560,7 @@ const EmployeeCard = memo(function EmployeeCard({ employee: emp, activeTab, onOp
         <div className={styles.employeeWork}>
           <p title={emp.title}><Briefcase size={15} aria-hidden="true" /><span>{emp.title}</span></p>
           <p title={emp.department}><Building2 size={15} aria-hidden="true" /><span>{emp.department}</span></p>
+          {joinDate && <p><Calendar size={15} aria-hidden="true" /><span>เริ่มงาน {statusDateFormatter.format(joinDate)}</span></p>}
         </div>
         <ChevronRight className={styles.cardArrow} size={18} aria-hidden="true" />
         <footer className={styles.employeeFooter}>
