@@ -8,6 +8,9 @@ import { CustomSelect } from "@/components/ui/CustomSelect";
 import { PassProbationModal } from "./PassProbationModal";
 import { PermissionPanel } from "./PermissionPanel";
 import { useAuth } from "@/components/AuthProvider";
+import { getEmployeeAge } from "../lib/age";
+import { useEmployeeToday } from "../lib/useEmployeeToday";
+import { parseEmployeeDate } from "../lib/resignation";
 
 const MAX_DOCUMENT_FILE_SIZE_MB = 25;
 const MAX_DOCUMENT_FILE_SIZE_BYTES = MAX_DOCUMENT_FILE_SIZE_MB * 1024 * 1024;
@@ -264,6 +267,7 @@ const composeAddressFromDatabaseFields = (record: ServerEmployeeRecord) => {
   return parts.join(" ");
 };
 export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blurBackground = false }: DrawerProps) {
+  const today = useEmployeeToday(isOpen);
   const { can } = useAuth();
   const canEditProfile = can("edit");
   const canAdminPermissions = can("admin");
@@ -793,6 +797,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
   // ------------------------------------
 
   const displayEmployee = isEditing && editedData ? editedData : hydratedEmployee || employee;
+  const currentAge = getEmployeeAge(displayEmployee?.birthDate, today);
 
   const getTitleParts = (titlePrefix?: string) => {
     const clean = titlePrefix && titlePrefix !== "-" ? titlePrefix.trim() : "";
@@ -842,7 +847,9 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
   };
 
   const renderField = (label: string, field: keyof EmployeeData, isLocked = false, isTextArea = false, dropdownOptions?: string[], isDate = false) => {
-    const val = (isEditing ? editedData?.[field] : displayEmployee?.[field]) as any as string;
+    const val = field === "age"
+      ? (currentAge === null ? "ไม่ทราบ (ไม่มีวันเกิดที่ถูกต้อง)" : `${currentAge} ปี`)
+      : (isEditing ? editedData?.[field] : displayEmployee?.[field]) as any as string;
     
     if (isEditing && !isLocked) {
       if (dropdownOptions) {
@@ -859,12 +866,16 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
       }
 
       if (isDate) {
-        const dateVal = val && val !== "-" ? val.substring(0, 10) : "";
+        const birth = field === "birthDate" ? parseEmployeeDate(val) : null;
+        const dateVal = field === "birthDate"
+          ? (birth ? `${birth.getFullYear()}-${String(birth.getMonth() + 1).padStart(2, "0")}-${String(birth.getDate()).padStart(2, "0")}` : "")
+          : val && val !== "-" ? val.substring(0, 10) : "";
         return (
           <div className="w-full">
             <span className="text-[11px] text-slate-500 mb-0.5 block">{label}</span>
             <input 
               type="date" 
+              aria-label={label}
               value={dateVal} 
               onChange={(e) => handleChange(field, e.target.value)}
               className="w-full bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 truncate"
@@ -902,8 +913,8 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
     const formatDisplayVal = (v: any) => {
       if (field === 'gender') return v === 'M' ? 'Male' : v === 'F' ? 'Female' : v;
       if (isDate && v && v !== "-") {
-        const d = new Date(v);
-        if (!isNaN(d.getTime())) {
+        const d = field === "birthDate" ? parseEmployeeDate(v) : new Date(v);
+        if (d && !isNaN(d.getTime())) {
           return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
         }
       }

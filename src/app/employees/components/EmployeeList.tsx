@@ -3,6 +3,9 @@
 import { memo, useCallback, useState, useEffect, useMemo, useRef } from "react";
 import { Briefcase, Building2, MapPin, ChevronRight, AlertCircle, Clock, Calendar, SearchX } from "lucide-react";
 import { EmployeeProfileDrawer, EmployeeData } from "./EmployeeProfileDrawer";
+import { EmployeeAge } from "./EmployeeAge";
+import { getEmployeeAge } from "../lib/age";
+import { useEmployeeToday } from "../lib/useEmployeeToday";
 import { cn } from "@/lib/utils";
 import {
   compareDepartureRecords,
@@ -34,7 +37,7 @@ function EmployeeStatus({ employee, activeTab }: { employee: EmployeeData & { di
       : kind === "today" || (kind === "upcoming" && days <= 30) ? "warning" : "neutral";
     Icon = tone === "danger" ? AlertCircle : kind === "today" ? Clock : Calendar;
   } else if (activeTab === "retirement" && employee.retirementAge !== undefined) {
-    label = employee.turnsSixtyThisYear ? "ครบ 60 ปีในปีนี้" : `อายุ ${employee.retirementAge} ปี`;
+    label = employee.turnsSixtyThisYear ? "ครบ 60 ปีในปีนี้" : "กลุ่มเกษียณอายุ";
     tone = "warning";
   } else if (activeTab === "active" && employee.diffDays !== undefined) {
     const days = employee.diffDays;
@@ -122,6 +125,7 @@ export const EmployeeList = memo(function EmployeeList({
   onRefreshStateChange,
   onFilterRecordsChange,
 }: EmployeeListProps) {
+  const todayDate = useEmployeeToday();
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeData | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [employees, setEmployees] = useState<EmployeeData[]>([]);
@@ -385,7 +389,7 @@ export const EmployeeList = memo(function EmployeeList({
 
   const tabEmployees = useMemo(() => {
     let result = employees;
-    const today = new Date();
+    const today = parseEmployeeDate(todayDate) || new Date();
     today.setHours(0, 0, 0, 0);
 
     // Filter by activeTab first
@@ -425,10 +429,8 @@ export const EmployeeList = memo(function EmployeeList({
           const retirementYear = birthDate.getFullYear() + 60;
           if (retirementYear > currentYear) return false;
 
-          const birthdayPassed =
-            today.getMonth() > birthDate.getMonth() ||
-            (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
-          const currentAge = currentYear - birthDate.getFullYear() - (birthdayPassed ? 0 : 1);
+          const currentAge = getEmployeeAge(emp.birthDate, todayDate);
+          if (currentAge === null) return false;
 
           emp.retirementYear = retirementYear;
           emp.retirementAge = currentAge;
@@ -453,7 +455,7 @@ export const EmployeeList = memo(function EmployeeList({
     }
 
     return result;
-  }, [employees, activeTab]);
+  }, [employees, activeTab, todayDate]);
 
   useEffect(() => {
     onFilterRecordsChange?.(tabEmployees);
@@ -498,7 +500,7 @@ export const EmployeeList = memo(function EmployeeList({
       ) : !errorMsg && (
         <ul className={styles.employeeStack} aria-label="ผลการค้นหาพนักงาน">
           {filteredEmployees.slice(0, visibleCount).map((emp) => (
-            <EmployeeCard key={emp.id} employee={emp} activeTab={activeTab} onOpen={openEmployee} />
+            <EmployeeCard key={emp.id} employee={emp} activeTab={activeTab} onOpen={openEmployee} today={todayDate} />
           ))}
         </ul>
       )}
@@ -525,10 +527,11 @@ export const EmployeeList = memo(function EmployeeList({
   );
 });
 
-const EmployeeCard = memo(function EmployeeCard({ employee: emp, activeTab, onOpen }: {
+const EmployeeCard = memo(function EmployeeCard({ employee: emp, activeTab, onOpen, today }: {
   employee: EmployeeData;
   activeTab: EmployeeListProps["activeTab"];
   onOpen: (employee: EmployeeData) => void;
+  today: string;
 }) {
   const name = emp.nameEn !== "-" ? emp.nameEn : emp.name;
   return (
@@ -542,6 +545,7 @@ const EmployeeCard = memo(function EmployeeCard({ employee: emp, activeTab, onOp
             <p className={styles.employeeId}>ID: {emp.id}</p>
             <h3 title={name}>{name}</h3>
             {emp.nameEn !== "-" && <p className={styles.thaiName} title={emp.name}>{emp.name}</p>}
+            <EmployeeAge birthDate={emp.birthDate} today={today} />
           </div>
         </div>
         <div className={styles.employeeWork}>

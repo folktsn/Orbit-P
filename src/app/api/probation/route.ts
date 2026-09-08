@@ -18,7 +18,7 @@ const PROBATION_FIELDS = [
   "section_th", "section_en", "section",
   "unit_th", "unit_en", "unit",
   "station_th", "station_en", "station", "work_location",
-  "supervisor", "status", "emp_type", "start_date", "hire_date", "contractStart", "contractEnd", "contract_end",
+  "supervisor", "status", "emp_type", "birth_date", "start_date", "hire_date", "contractStart", "contractEnd", "contract_end",
   "probation_end_date", "probation_end", "probation_days", "probation_day", "probation_period_days",
   "probation_duration_days", "probation_total_days", "prob_days", "prob_period",
   "resign_date", "last_working_date", "last_work_date", "probation_outcome", "probation_extension_days",

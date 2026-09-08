@@ -30,6 +30,8 @@ import {
 } from "@/app/employees/components/EmployeeProfileDrawer";
 import styles from "@/app/employees/EmployeesWorkspace.module.css";
 import probationStyles from "./ProbationWorkspace.module.css";
+import { EmployeeAge } from "@/app/employees/components/EmployeeAge";
+import { useEmployeeToday } from "@/app/employees/lib/useEmployeeToday";
 
 type RawEmployee = Record<string, unknown>;
 type Urgency = "all" | "overdue" | "due30" | "due60" | "later" | "missing";
@@ -1038,12 +1040,13 @@ function KpiCard({
   );
 }
 
-const ProbationCard = memo(function ProbationCard({ record, selected, onOpen, onFollowUp, onToggle }: {
+const ProbationCard = memo(function ProbationCard({ record, selected, onOpen, onFollowUp, onToggle, today }: {
   record: ProbationRecord;
   selected: boolean;
   onOpen: (employee: EmployeeData) => void;
   onFollowUp: (record: ProbationRecord) => void;
   onToggle: (employeeId: string) => void;
+  today: string;
 }) {
   const name = record.employee.nameEn !== "-" ? record.employee.nameEn : record.employee.name;
   const completedCount = record.followUps.filter((entry) => hasValue(entry.date)).length;
@@ -1058,6 +1061,7 @@ const ProbationCard = memo(function ProbationCard({ record, selected, onOpen, on
             <p className={styles.employeeId}>ID: {record.employee.id}</p>
             <h3>{name}</h3>
             {record.employee.nameEn !== "-" && <p className={styles.thaiName}>{record.employee.name}</p>}
+            <EmployeeAge birthDate={record.employee.birthDate} today={today} />
           </div>
         </div>
         <div className={styles.employeeWork}>
@@ -1090,6 +1094,7 @@ const ProbationCard = memo(function ProbationCard({ record, selected, onOpen, on
 });
 
 export default function ProbationPage() {
+  const today = useEmployeeToday();
   const [rawEmployees, setRawEmployees] = useState<RawEmployee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -1649,7 +1654,7 @@ export default function ProbationPage() {
             <ul className={styles.employeeStack} aria-label="ผลการค้นหาพนักงานทดลองงาน">
               {displayedRecords.map((record) => (
                 <ProbationCard key={record.employee.id} record={record} selected={selectedFollowUpIds.has(record.employee.id)}
-                  onOpen={setSelectedEmployee} onFollowUp={setFollowUpRecord} onToggle={toggleFollowUpSelection} />
+                  onOpen={setSelectedEmployee} onFollowUp={setFollowUpRecord} onToggle={toggleFollowUpSelection} today={today} />
               ))}
             </ul>
           )}
