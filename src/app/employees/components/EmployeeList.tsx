@@ -476,7 +476,7 @@ export const EmployeeList = memo(function EmployeeList({
     }), [searchEmployees, activeTab, searchQuery, departmentFilter, divisionFilter, sectionFilter, stationFilter, unitFilter, startDateFilter, endDateFilter]);
 
   return (
-    <div className={cn(styles.directory, activeTab === "new-join" && styles.plainIndicators)}>
+    <div className={styles.directory}>
       <header className={styles.resultsHeading}>
         <div>
           <span className={styles.eyebrow}>EMPLOYEES / {activeTab === "new-join" ? "NEW JOIN" : activeTab.toUpperCase()}</span>
