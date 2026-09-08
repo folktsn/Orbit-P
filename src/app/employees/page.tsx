@@ -157,23 +157,23 @@ export default function EmployeesPage() {
           <div className={styles.filterFields}>
             <div className={styles.filterField}>
               <span className="sr-only">ฝ่าย / Department</span>
-              <CustomSelect portal value={selectedDepartment} onChange={(v) => { setSelectedDepartment(v); setSelectedDivision(""); setSelectedSection(""); setSelectedUnit(""); }} options={departments} placeholder="All Departments" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedDepartment} onChange={(v) => { setSelectedDepartment(v); setSelectedDivision(""); setSelectedSection(""); setSelectedUnit(""); }} options={departments} placeholder="Department" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">แผนก / Division</span>
-              <CustomSelect portal value={selectedDivision} onChange={(v) => { setSelectedDivision(v); setSelectedSection(""); setSelectedUnit(""); }} options={divisions} placeholder="All Divisions" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedDivision} onChange={(v) => { setSelectedDivision(v); setSelectedSection(""); setSelectedUnit(""); }} options={divisions} placeholder="Division" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">ส่วนงาน / Section</span>
-              <CustomSelect portal value={selectedSection} onChange={(v) => { setSelectedSection(v); setSelectedUnit(""); }} options={sections} placeholder="All Sections" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedSection} onChange={(v) => { setSelectedSection(v); setSelectedUnit(""); }} options={sections} placeholder="Section" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">หน่วยงาน / Unit</span>
-              <CustomSelect portal value={selectedUnit} onChange={setSelectedUnit} options={units} placeholder="All Units" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedUnit} onChange={setSelectedUnit} options={units} placeholder="Unit" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">สถานี / Station</span>
-              <CustomSelect portal value={selectedStation} onChange={setSelectedStation} options={stations} placeholder="All Stations" triggerClassName={styles.selectTrigger} />
+              <CustomSelect portal value={selectedStation} onChange={setSelectedStation} options={stations} placeholder="Station" triggerClassName={styles.selectTrigger} />
             </div>
             <div className={styles.filterField}>
               <span className="sr-only">{activeTab === "resigned" ? "วันที่ลาออก" : "วันที่เริ่มงาน"}</span>

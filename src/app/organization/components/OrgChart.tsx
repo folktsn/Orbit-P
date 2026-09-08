@@ -1496,7 +1496,7 @@ export function OrgChart() {
               }}
               className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
-              <option value="">All Departments</option>
+              <option value="">Department</option>
               {departmentsList.map(dept => (
                 <option key={dept.id} value={dept.id}>{dept.name}</option>
               ))}
@@ -1512,7 +1512,7 @@ export function OrgChart() {
               }}
               className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
-              <option value="">All Divisions</option>
+              <option value="">Division</option>
               {divisionsList.map(div => (
                 <option key={div.id} value={div.id}>{div.name}</option>
               ))}
@@ -1527,7 +1527,7 @@ export function OrgChart() {
               }}
               className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
-              <option value="">All Stations</option>
+              <option value="">Station</option>
               {stationsList.map(sta => (
                 <option key={sta.id} value={sta.id}>{sta.name}</option>
               ))}
@@ -1541,7 +1541,7 @@ export function OrgChart() {
               }}
               className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
-              <option value="">All Sections</option>
+              <option value="">Section</option>
               {sectionsList.map(sec => (
                 <option key={sec.id} value={sec.id}>{sec.name}</option>
               ))}
@@ -1552,7 +1552,7 @@ export function OrgChart() {
               onChange={(e) => setSelectedUnit(e.target.value)}
               className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
-              <option value="">All Units</option>
+              <option value="">Unit</option>
               {unitsList.map(unit => (
                 <option key={unit.id} value={unit.id}>{unit.name}</option>
               ))}

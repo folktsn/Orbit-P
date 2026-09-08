@@ -1372,7 +1372,7 @@ export default function ProbationPage() {
               setVisibleCount(30);
             }}
             options={departments}
-            placeholder="All Departments"
+            placeholder="Department"
             portal
             triggerClassName={styles.selectTrigger}
           />
@@ -1388,7 +1388,7 @@ export default function ProbationPage() {
               setVisibleCount(30);
             }}
             options={divisions}
-            placeholder="All Divisions"
+            placeholder="Division"
             portal
             triggerClassName={styles.selectTrigger}
           />
@@ -1403,7 +1403,7 @@ export default function ProbationPage() {
               setVisibleCount(30);
             }}
             options={sections}
-            placeholder="All Sections"
+            placeholder="Section"
             portal
             triggerClassName={styles.selectTrigger}
           />
@@ -1417,7 +1417,7 @@ export default function ProbationPage() {
               setVisibleCount(30);
             }}
             options={units}
-            placeholder="All Units"
+            placeholder="Unit"
             portal
             triggerClassName={styles.selectTrigger}
           />
@@ -1431,7 +1431,7 @@ export default function ProbationPage() {
               setVisibleCount(30);
             }}
             options={stations}
-            placeholder="All Stations"
+            placeholder="Station"
             portal
             triggerClassName={styles.selectTrigger}
           />

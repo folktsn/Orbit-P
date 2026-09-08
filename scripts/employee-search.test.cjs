@@ -26,6 +26,19 @@ const rows = [
 ];
 const ids = (filters) => filterEmployeeRecords(rows, filters).map((row) => row.id);
 
+test('organization filter placeholders use singular category labels consistently', () => {
+  const files = [
+    'src/app/employees/page.tsx',
+    'src/app/probation/page.tsx',
+    'src/app/organization/components/OrgChart.tsx',
+  ];
+  const source = files.map((file) => readFileSync(path.resolve(file), 'utf8')).join('\n');
+  for (const label of ['Department', 'Division', 'Section', 'Unit', 'Station']) {
+    assert.match(source, new RegExp(`[\"'>]${label}[\"'<]`), label);
+    assert.doesNotMatch(source, new RegExp(`All ${label}s?`), `legacy All ${label} label`);
+  }
+});
+
 test('cached search preserves every search mode across repeated queries and refreshed data', () => {
   const search = createEmployeeSearch(rows);
   const filters = [{}, {searchQuery:'test employee'}, {searchQuery:'02622'}, {searchQuery:'0812345678'},
