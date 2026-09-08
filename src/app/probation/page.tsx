@@ -1327,6 +1327,31 @@ export default function ProbationPage() {
             </button>
           ))}
         </div>
+        <div className={styles.searchField}>
+          <Search size={16} />
+          <input
+            aria-label="ค้นหาพนักงานทดลองงาน"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setVisibleCount(30);
+            }}
+            placeholder="Search by name, ID, or component..."
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setVisibleCount(30);
+              }}
+              aria-label="Clear search"
+              title="Clear search"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </div>
         <button type="button" className={styles.filterToggle} aria-expanded={filtersExpanded}
           aria-controls="probation-advanced-filters" onClick={() => setFiltersExpanded((expanded) => !expanded)}>
           <SlidersHorizontal size={16} /> ตัวกรอง
@@ -1506,32 +1531,6 @@ export default function ProbationPage() {
           </div>
         </div>
         </div>
-          <div className={styles.searchField}>
-            <Search size={16} />
-            <input
-              aria-label="ค้นหาพนักงานทดลองงาน"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setVisibleCount(30);
-              }}
-              placeholder="Search by name, ID, or component..."
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setVisibleCount(30);
-                }}
-                aria-label="Clear search"
-                title="Clear search"
-              >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-
           <div className={styles.filterActions}>
             <button
               type="button"
