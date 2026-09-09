@@ -716,17 +716,6 @@
   text-underline-offset: 2px;
 }
 
-.login-visual-caption--rain,
-.login-visual-caption--night {
-  color: #ffffff;
-  text-shadow: 0 1px 14px rgba(5, 15, 28, 0.72);
-}
-
-.login-visual-caption--rain small,
-.login-visual-caption--night small {
-  color: rgba(255, 255, 255, 0.78);
-}
-
 .login-visual-index {
   position: absolute;
   z-index: 2;
@@ -891,7 +880,9 @@
   }
 
   .login-visual-image {
-    object-position: center top;
+    height: 185%;
+    object-position: 65% top;
+    transform: translateY(-46%);
   }
 
   .login-visual-caption {

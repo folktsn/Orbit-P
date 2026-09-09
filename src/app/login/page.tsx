@@ -55,50 +55,23 @@ type LoginWeatherState = {
   locationSource: "checking" | "employee" | "recent" | "fallback";
 };
 
-const LOGIN_WEATHER_ASSETS: Record<LoginWeatherScene, { desktop: string; mobile: string }> = {
-  clear: {
-    desktop: "/login-aircraft-clear-4k.webp",
-    mobile: "/login-aircraft-clear-mobile-4k.webp",
-  },
-  cloudy: {
-    desktop: "/login-aircraft-cloudy-4k.webp",
-    mobile: "/login-aircraft-cloudy-mobile-4k.webp",
-  },
-  rain: {
-    desktop: "/login-aircraft-rain-4k.webp",
-    mobile: "/login-aircraft-rain-mobile-4k.webp",
-  },
-  night: {
-    desktop: "/login-aircraft-night-4k.webp",
-    mobile: "/login-aircraft-night-mobile-4k.webp",
-  },
-};
+const LOGIN_BACKGROUND_ASSET = "/login-pattaya-aviation-20260907.webp";
 
 const DEFAULT_LOGIN_STATION = "HDQ";
 const LAST_LOGIN_STATION_KEY = "orbithire_last_employee_station";
 
-function LoginWeatherPicture({ scene }: { scene: LoginWeatherScene }) {
-  const assets = LOGIN_WEATHER_ASSETS[scene];
-  const common = { alt: "", sizes: "100vw", quality: 85, fetchPriority: "high" as const };
-  const {
-    props: { srcSet: desktopSrcSet },
-  } = getImageProps({
+function LoginWeatherPicture() {
+  const common = { alt: "", sizes: "100vw", unoptimized: true, fetchPriority: "high" as const };
+  const { props } = getImageProps({
     ...common,
-    src: assets.desktop,
-    width: 3840,
-    height: 2160,
-  });
-  const { props: mobileProps } = getImageProps({
-    ...common,
-    src: assets.mobile,
-    width: 2160,
-    height: 3840,
+    src: LOGIN_BACKGROUND_ASSET,
+    width: 2048,
+    height: 2048,
   });
 
   return (
     <picture className="login-weather-picture">
-      <source media="(min-width: 761px)" srcSet={desktopSrcSet} />
-      <img {...mobileProps} alt="" className="login-visual-image" />
+      <img {...props} alt="" className="login-visual-image" />
     </picture>
   );
 }
@@ -753,7 +726,7 @@ export default function LoginPage() {
 
         <aside className="login-visual" data-weather-scene={loginWeather.scene}>
           <div className="login-weather-layer">
-            <LoginWeatherPicture scene={loginWeather.scene} />
+            <LoginWeatherPicture />
           </div>
           <div className={`login-visual-caption login-visual-caption--${loginWeather.scene}`}>
             <span>
