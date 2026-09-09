@@ -1328,8 +1328,9 @@ export default function ProbationPage() {
           ))}
         </div>
         <div className={styles.searchField}>
-          <Search size={16} />
+          <Search size={18} aria-hidden="true" />
           <input
+            type="text"
             aria-label="ค้นหาพนักงานทดลองงาน"
             value={search}
             onChange={(event) => {
