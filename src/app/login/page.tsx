@@ -61,7 +61,13 @@ const DEFAULT_LOGIN_STATION = "HDQ";
 const LAST_LOGIN_STATION_KEY = "orbithire_last_employee_station";
 
 function LoginWeatherPicture() {
-  const common = { alt: "", sizes: "100vw", unoptimized: true, fetchPriority: "high" as const };
+  const common = {
+    alt: "",
+    sizes: "100vw",
+    unoptimized: true,
+    loading: "eager" as const,
+    fetchPriority: "high" as const,
+  };
   const { props } = getImageProps({
     ...common,
     src: LOGIN_BACKGROUND_ASSET,
