@@ -98,7 +98,7 @@ export function PillNav() {
             {/* Clickable Profile Avatar (Shows ONLY the photo) */}
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="pill-action-button w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300 shadow-sm relative overflow-visible focus:outline-none cursor-pointer flex items-center justify-center bg-white dark:bg-slate-800 hover:scale-105 active:scale-95 duration-200"
+              className="pill-action-button pill-profile-button w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300 shadow-sm relative overflow-visible focus:outline-none cursor-pointer flex items-center justify-center bg-white dark:bg-slate-800 hover:scale-105 active:scale-95 duration-200"
               title={`${user.displayName} (${user.role})`}
             >
               {user.lineAvatarUrl ? (

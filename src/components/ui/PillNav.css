@@ -45,12 +45,14 @@
 
 .pill-actions {
   position: absolute;
-  top: 2rem;
-  right: 2rem;
+  top: 28px;
+  right: 28px;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 11px;
 }
+
+.pill-profile-button { width: 40px; height: 40px; }
 
 .pill-nav {
   display: flex;
@@ -153,9 +155,9 @@
   }
 
   .pill-actions {
-    top: 0.75rem;
-    right: 1rem;
-    gap: 0.5rem;
+    top: 11px;
+    right: 14px;
+    gap: 7px;
   }
 
   .pill-nav {
@@ -193,9 +195,9 @@
       "brand actions"
       "nav nav";
     align-items: center;
-    row-gap: 0.5rem;
-    min-height: 6rem;
-    padding: 0.5rem 0.75rem 0.75rem;
+    row-gap: 8px;
+    min-height: 96px;
+    padding: 8px 12px 12px;
   }
 
   .pill-brand {
@@ -205,20 +207,20 @@
   }
 
   .pill-brand-mark {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 36px;
+    height: 36px;
   }
 
   .pill-actions {
     position: static;
     grid-area: actions;
     min-width: 0;
-    gap: 0.25rem;
+    gap: 4px;
   }
 
   .pill-action-button {
-    width: 2rem;
-    height: 2rem;
+    width: 28px;
+    height: 28px;
   }
 
   .pill-nav {
@@ -256,7 +258,7 @@
 
 @media (max-width: 359px) {
   .pill-header {
-    padding-inline: 0.5rem;
+    padding-inline: 8px;
   }
 
   .pill-nav .nav-item.pill {
