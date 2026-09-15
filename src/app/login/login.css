@@ -14,7 +14,7 @@
   align-items: flex-end;
   width: 100%;
   min-height: 100dvh;
-  padding: 0;
+  padding: 0 16px 48px;
   overflow: hidden;
   background: #b9d8ea;
   border: 0;
