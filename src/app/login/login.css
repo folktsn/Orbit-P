@@ -11,10 +11,10 @@
 .login-shell {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   width: 100%;
   min-height: 100dvh;
-  padding: 0 16px 48px;
+  padding: 0 16px 4dvh;
   overflow: hidden;
   background: #b9d8ea;
   border: 0;
@@ -28,7 +28,7 @@
   display: flex;
   flex-direction: column;
   width: clamp(480px, 37vw, 720px);
-  min-height: 62dvh;
+  min-height: 60dvh;
   min-width: 0;
   padding: 28px 32px 24px;
   margin: 0;
