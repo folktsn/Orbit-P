@@ -845,7 +845,7 @@
   .login-shell {
     align-items: flex-end;
     min-height: 100dvh;
-    padding: 156px 0 16px;
+    padding: 156px 0 clamp(64px, 12dvh, 128px);
     border: 0;
     border-radius: 0;
     box-shadow: none;
@@ -868,7 +868,7 @@
   .login-visual-image {
     height: 185%;
     object-position: 65% top;
-    transform: translateY(-46%);
+    transform: translateY(-38%);
   }
 
   .login-visual-caption {
