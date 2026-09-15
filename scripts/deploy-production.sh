@@ -27,6 +27,9 @@ else
   echo "==> Dependencies unchanged"
 fi
 
+echo "==> Reclaiming package download cache before building"
+npm cache clean --force
+
 echo "==> Generating Prisma client"
 ./node_modules/.bin/prisma generate
 

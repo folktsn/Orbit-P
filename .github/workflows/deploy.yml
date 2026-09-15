@@ -21,5 +21,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
+            set -e
             cd /home/ubuntu/orbit-p-folktsn
+            # Reclaim disposable caches before Git needs space to fetch updates.
+            cache_dir="$(pwd -P)/.next/cache"
+            if [ -d "$cache_dir" ]; then
+              test "$(realpath "$cache_dir")" = "$cache_dir"
+              rm -rf -- "$cache_dir"
+            fi
+            npm cache clean --force
+            df -h .
             ./scripts/deploy-production.sh
