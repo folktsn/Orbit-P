@@ -854,7 +854,7 @@
   .login-content {
     width: min(480px, calc(100% - 24px));
     min-height: 0;
-    padding: 18px 24px 16px;
+    padding: 14px 24px 12px;
     margin: 0 auto;
     overflow: visible;
     border-radius: 24px;
@@ -897,7 +897,7 @@
   .login-hero {
     display: block;
     width: 100%;
-    padding: 24px 0 18px;
+    padding: 12px 0 8px;
   }
 
   .login-kicker {
@@ -926,7 +926,7 @@
   }
 
   .login-footer {
-    padding-top: 12px;
+    padding-top: 10px;
   }
 }
 
@@ -976,10 +976,6 @@
     padding-top: 108px;
   }
 
-  .login-content {
-    padding-top: 16px;
-  }
-
   .login-visual {
     min-height: 100%;
   }
@@ -992,9 +988,6 @@
     display: none;
   }
 
-  .login-hero {
-    padding-top: 24px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
