@@ -176,6 +176,11 @@
   width: 100%;
 }
 
+.login-swipe-hint,
+.login-tap-label {
+  display: none;
+}
+
 .login-line-button {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr) 34px;
@@ -817,6 +822,118 @@
     box-shadow: 0 -12px 34px rgba(24, 46, 58, 0.1);
   }
 
+  .login-content--swipe {
+    touch-action: pan-x pinch-zoom;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translateY(var(--login-swipe-lift, 0px));
+    transition: transform 180ms ease-out;
+  }
+
+  .login-content--swipe[data-swipe-dragging="true"] {
+    transition: none;
+  }
+
+  .login-swipe-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 58px;
+    color: #17232b;
+  }
+
+  .login-swipe-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    color: #087c3b;
+    background: rgba(6, 199, 85, 0.1);
+    border: 1px solid rgba(6, 199, 85, 0.22);
+    border-radius: 50%;
+  }
+
+  .login-swipe-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .login-swipe-hint > span:last-child {
+    display: grid;
+    gap: 3px;
+  }
+
+  .login-swipe-hint strong {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .login-swipe-hint small {
+    color: #53636b;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .login-swipe-ready-text,
+  .login-content[data-swipe-ready="true"] .login-swipe-idle-text {
+    display: none;
+  }
+
+  .login-content[data-swipe-ready="true"] .login-swipe-ready-text {
+    display: block;
+  }
+
+  .login-content[data-swipe-ready="true"] .login-swipe-icon {
+    color: #07351d;
+    background: #06c755;
+  }
+
+  .login-line-button,
+  .login-line-button:hover {
+    display: inline-flex;
+    justify-content: center;
+    align-self: center;
+    width: auto;
+    min-height: 32px;
+    padding: 6px 10px;
+    color: #53636b;
+    background: transparent;
+    border-color: transparent;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .login-line-button .login-line-mark,
+  .login-line-button .login-button-arrow,
+  .login-line-label {
+    display: none;
+  }
+
+  .login-tap-label {
+    display: inline;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .dark .login-swipe-hint {
+    color: #f8fafc;
+  }
+
+  .dark .login-swipe-hint small,
+  .dark .login-line-button {
+    color: #9aabb3;
+  }
+
+  .dark .login-swipe-icon {
+    color: #42d782;
+  }
+
   .login-visual {
     min-height: 100%;
   }
@@ -920,6 +1037,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .login-content--swipe {
+    transform: none;
+    transition: none;
+  }
+
   .login-weather-layer,
   .login-form-loading > span {
     animation: none;

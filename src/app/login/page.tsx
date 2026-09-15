@@ -4,9 +4,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image, { getImageProps } from "next/image";
 import { useAuth } from "@/components/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, User, Shield, ArrowRight, Eye, EyeOff, Sparkles, LogIn, AlertCircle, X, Check, Copy, LogOut } from "lucide-react";
+import { Lock, User, Shield, ArrowRight, ChevronsUp, Eye, EyeOff, Sparkles, LogIn, AlertCircle, X, Check, Copy, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Cloud, CloudRain, Sun, Moon } from "lucide-react";
+import SwipeLoginCard from "./SwipeLoginCard";
 import "./login.css";
 
 declare global {
@@ -465,7 +466,7 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <main className="login-shell" aria-labelledby="login-title">
-        <section className="login-content">
+        <SwipeLoginCard disabled={showCredentialsForm || showLineModal} onSwipeUp={handleGetStartedWithLine}>
           <header className="login-header">
             <div className="login-brand" aria-label="HO-Recruitment, Pattaya Aviation">
               <span className="login-brand-mark">
@@ -519,17 +520,27 @@ export default function LoginPage() {
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.35, delay: 0.18 }}
                   >
+                    <div className="login-swipe-hint">
+                      <span className="login-swipe-icon" aria-hidden="true"><ChevronsUp /></span>
+                      <span>
+                        <strong className="login-swipe-idle-text">ปัดขึ้นเพื่อเข้าสู่ระบบ</strong>
+                        <strong className="login-swipe-ready-text">ปล่อยเพื่อเข้าสู่ระบบ</strong>
+                        <small>ผ่านบัญชี LINE ของคุณ</small>
+                      </span>
+                    </div>
                     <button
                       type="button"
                       onClick={handleGetStartedWithLine}
                       className="login-line-button"
+                      aria-label="เข้าสู่ระบบด้วย LINE"
                     >
                       <span className="login-line-mark" aria-hidden="true">
                         <svg viewBox="0 0 24 24" focusable="false">
                           <path d="M12 2C6.48 2 2 5.58 2 10c0 2.9 1.87 5.48 4.7 7.02l-.5 1.83a.5.5 0 0 0 .7.57l2.25-1.25c.92.21 1.88.33 2.85.33 5.52 0 10-3.58 10-8s-4.48-8-10-8zm-1.8 11.23h-.8c-.1 0-.2-.1-.2-.2v-4.1c0-.1.1-.2.2-.2h.8c.1 0 .2.1.2.2v4.1c0 .1-.1.2-.2.2zm2.93 0h-.8c-.1 0-.2-.1-.2-.2v-3l-1.3 1.9c0 .1-.1.1-.2.1h-.2c-.1 0-.2-.1-.2-.2v-2.9c0-.1.1-.2.2-.2h.8c.1 0 .2.1.2.2v1.8l1.3-1.8c0-.1.1-.2.2-.2h.4c.1 0 .2.1.2.2v4.1c-.01.1-.11.2-.23.2zm2.87-2.1h-1.2v.9h1.2c.1 0 .2.1.2.2v.6c0 .1-.1.2-.2.2h-2c-.1 0-.2-.1-.2-.2v-4.1c0-.1.1-.2.2-.2h2c.1 0 .2.1.2.2v.6c0 .1-.1.2-.2.2h-1.2v.8h1.2c.1 0 .2.1.2.2v.6c0 .1-.1.2-.2.2z" />
                         </svg>
                       </span>
-                      <span>เข้าสู่ระบบด้วย LINE</span>
+                      <span className="login-line-label">เข้าสู่ระบบด้วย LINE</span>
+                      <span className="login-tap-label">หรือแตะเพื่อเข้าสู่ระบบด้วย LINE</span>
                       <span className="login-button-arrow" aria-hidden="true">
                         <ArrowRight />
                       </span>
@@ -691,7 +702,7 @@ export default function LoginPage() {
             <span>© {new Date().getFullYear()} Pattaya Aviation</span>
             <span>Human Resources</span>
           </footer>
-        </section>
+        </SwipeLoginCard>
 
         <aside className="login-visual" data-weather-scene={loginWeather.scene}>
           <div className="login-weather-layer">
