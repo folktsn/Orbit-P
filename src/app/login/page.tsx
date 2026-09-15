@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image, { getImageProps } from "next/image";
 import { useAuth } from "@/components/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, User, Shield, ArrowRight, Eye, EyeOff, Sparkles, LogIn, AlertCircle, MessageCircle, X, Check, Copy, LogOut } from "lucide-react";
+import { Lock, User, Shield, ArrowRight, Eye, EyeOff, Sparkles, LogIn, AlertCircle, X, Check, Copy, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Cloud, CloudRain, Sun, Moon } from "lucide-react";
 import "./login.css";
@@ -681,29 +681,10 @@ export default function LoginPage() {
           </div>
 
           {!showCredentialsForm && (
-            <div className="login-status-grid" aria-label="System status">
-              <div>
-                <MessageCircle aria-hidden="true" />
-                <span>
-                  <small>IDENTITY</small>
-                  <strong>LINE verified</strong>
-                </span>
-              </div>
-              <div>
-                <Shield aria-hidden="true" />
-                <span>
-                  <small>ACCESS</small>
-                  <strong>Role controlled</strong>
-                </span>
-              </div>
-              <div>
-                <span className="login-live-dot" aria-hidden="true" />
-                <span>
-                  <small>STATUS</small>
-                  <strong>Production online</strong>
-                </span>
-              </div>
-            </div>
+            <p className="login-trust-note">
+              <Shield aria-hidden="true" />
+              <span>ยืนยันตัวตนผ่าน LINE</span>
+            </p>
           )}
 
           <footer className="login-footer">

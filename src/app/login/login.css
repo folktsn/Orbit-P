@@ -182,22 +182,23 @@
   align-items: center;
   width: 100%;
   min-height: 58px;
-  padding: 6px 8px;
-  color: #ffffff;
-  background: #101a22;
-  border: 1px solid #101a22;
-  border-radius: 999px;
+  padding: 6px 14px;
+  color: #07351d;
+  background: #06c755;
+  border: 1px solid #06c755;
+  border-radius: 18px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
-  transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
 .login-line-button:hover {
-  background: #172630;
+  background: #18d567;
+  border-color: #18d567;
   transform: translateY(-1px);
-  box-shadow: 0 12px 26px rgba(15, 27, 35, 0.16);
+  box-shadow: 0 6px 18px rgba(6, 199, 85, 0.18);
 }
 
 .login-line-button:active {
@@ -214,8 +215,8 @@
 }
 
 .login-line-mark {
-  color: #ffffff;
-  background: #06c755;
+  color: #06a647;
+  background: #ffffff;
 }
 
 .login-line-mark svg {
@@ -225,8 +226,8 @@
 }
 
 .login-button-arrow {
-  color: #101a22;
-  background: #ffffff;
+  color: inherit;
+  background: transparent;
 }
 
 .login-button-arrow svg {
@@ -554,70 +555,28 @@
   color: #64748b;
 }
 
-.login-status-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  flex: 0 0 auto;
-  border-top: 1px solid #dce3e5;
-  border-bottom: 1px solid #dce3e5;
-}
-
-.login-status-grid > div {
+.login-trust-note {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
-  padding: 14px 12px;
-  border-right: 1px solid #dce3e5;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 8px;
+  min-height: 60px;
+  margin: 0;
+  padding: 16px 0;
+  color: #53636b;
+  border-top: 1px solid #dce3e5;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
 }
 
-.login-status-grid > div:first-child {
-  padding-left: 0;
-}
-
-.login-status-grid > div:last-child {
-  padding-right: 0;
-  border-right: 0;
-}
-
-.login-status-grid svg {
+.login-trust-note svg {
   width: 17px;
   height: 17px;
   flex: 0 0 17px;
-  color: #2c4a58;
-}
-
-.login-status-grid > div > span:last-child {
-  display: grid;
-  min-width: 0;
-}
-
-.login-status-grid small,
-.login-status-grid strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.login-status-grid small {
-  font-size: 8px;
-  font-weight: 800;
-  color: #71838c;
-}
-
-.login-status-grid strong {
-  margin-top: 3px;
-  font-size: 10px;
-  color: #22313a;
-}
-
-.login-live-dot {
-  width: 9px;
-  height: 9px;
-  flex: 0 0 9px;
-  background: #06c755;
-  border-radius: 50%;
-  box-shadow: 0 0 0 5px rgba(6, 199, 85, 0.12);
+  color: #087c3b;
 }
 
 .login-footer {
@@ -741,15 +700,14 @@
 }
 
 .dark .login-brand-copy strong,
-.dark .login-hero h1,
-.dark .login-status-grid strong {
+.dark .login-hero h1 {
   color: #f8fafc;
 }
 
 .dark .login-brand-copy span,
 .dark .login-kicker,
 .dark .login-footer,
-.dark .login-status-grid small {
+.dark .login-trust-note {
   color: #9aabb3;
 }
 
@@ -768,13 +726,12 @@
   color: #ffffff;
 }
 
-.dark .login-status-grid,
-.dark .login-status-grid > div {
+.dark .login-trust-note {
   border-color: #2b363d;
 }
 
-.dark .login-status-grid svg {
-  color: #b9c7ce;
+.dark .login-trust-note svg {
+  color: #42d782;
 }
 
 .dark .login-local-card {
@@ -834,10 +791,6 @@
     font-size: 58px;
   }
 
-  .login-status-grid > div {
-    padding-right: 8px;
-    padding-left: 8px;
-  }
 }
 
 @media (max-width: 760px) {
@@ -916,16 +869,9 @@
     margin-top: 20px;
   }
 
-  .login-status-grid > div {
-    gap: 7px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-
-  .login-status-grid svg {
-    width: 15px;
-    height: 15px;
-    flex-basis: 15px;
+  .login-trust-note {
+    min-height: 52px;
+    padding: 12px 0;
   }
 
   .login-footer {
@@ -941,26 +887,6 @@
 
   .login-hero h1 {
     font-size: 42px;
-  }
-
-  .login-status-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .login-status-grid > div,
-  .login-status-grid > div:first-child,
-  .login-status-grid > div:last-child {
-    padding: 9px 0;
-    border-right: 0;
-    border-bottom: 1px solid #dce3e5;
-  }
-
-  .login-status-grid > div:last-child {
-    border-bottom: 0;
-  }
-
-  .dark .login-status-grid > div {
-    border-bottom-color: #2b363d;
   }
 
   .login-demo-list > div {
