@@ -161,22 +161,6 @@
   letter-spacing: 0;
 }
 
-.login-lead {
-  margin: 24px 0 0;
-  font-size: 20px;
-  line-height: 1.45;
-  font-weight: 700;
-  color: #17232b;
-}
-
-.login-description {
-  max-width: 520px;
-  margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 1.7;
-  color: #667780;
-}
-
 .login-auth-area {
   width: min(100%, 470px);
   margin-top: 34px;
@@ -753,14 +737,12 @@
 
 .dark .login-brand-copy strong,
 .dark .login-hero h1,
-.dark .login-lead,
 .dark .login-status-grid strong {
   color: #f8fafc;
 }
 
 .dark .login-brand-copy span,
 .dark .login-kicker,
-.dark .login-description,
 .dark .login-footer,
 .dark .login-status-grid small {
   color: #9aabb3;
@@ -922,15 +904,6 @@
     font-size: 48px;
   }
 
-  .login-lead {
-    margin-top: 18px;
-    font-size: 17px;
-  }
-
-  .login-description {
-    font-size: 12px;
-  }
-
   .login-auth-area {
     width: 100%;
     margin-top: 26px;
@@ -961,10 +934,6 @@
 
   .login-hero h1 {
     font-size: 42px;
-  }
-
-  .login-description {
-    max-width: 320px;
   }
 
   .login-status-grid {

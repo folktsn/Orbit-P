@@ -507,23 +507,6 @@ export default function LoginPage() {
             >
               OrbitHire
             </motion.h1>
-            <motion.p
-              className="login-lead"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.1 }}
-            >
-              ระบบบริหารบุคลากรของ Pattaya Aviation
-            </motion.p>
-            <motion.p
-              id="login-hint"
-              className="login-description"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.55, delay: 0.16 }}
-            >
-              เข้าสู่พื้นที่ทำงานสำหรับการสรรหา กำลังพล และการประเมินผล
-            </motion.p>
 
             <div className="login-auth-area">
               <AnimatePresence mode="wait">
@@ -540,7 +523,6 @@ export default function LoginPage() {
                       type="button"
                       onClick={handleGetStartedWithLine}
                       className="login-line-button"
-                      aria-describedby="login-hint"
                     >
                       <span className="login-line-mark" aria-hidden="true">
                         <svg viewBox="0 0 24 24" focusable="false">
