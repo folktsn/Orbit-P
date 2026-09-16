@@ -822,11 +822,16 @@
     box-shadow: 0 -12px 34px rgba(24, 46, 58, 0.1);
   }
 
-  .login-swipe-hint--enabled {
+  .login-content--swipe {
     touch-action: pan-x pinch-zoom;
     user-select: none;
     -webkit-user-select: none;
-    cursor: grab;
+    transform: translateY(var(--login-swipe-lift, 0px));
+    transition: transform 180ms ease-out;
+  }
+
+  .login-content--swipe[data-swipe-dragging="true"] {
+    transition: none;
   }
 
   .login-swipe-hint {
@@ -834,47 +839,20 @@
     align-items: center;
     justify-content: center;
     gap: 12px;
-    min-height: 96px;
-    padding: 10px 12px;
-    overflow: hidden;
+    min-height: 58px;
     color: #17232b;
-    background: rgba(6, 199, 85, 0.04);
-    border: 1px solid rgba(6, 199, 85, 0.22);
-    border-radius: 16px;
-  }
-
-  .login-swipe-track {
-    position: relative;
-    width: 46px;
-    height: 72px;
-    flex: 0 0 46px;
-    background: rgba(6, 199, 85, 0.08);
-    border: 1px solid rgba(6, 199, 85, 0.18);
-    border-radius: 24px;
   }
 
   .login-swipe-icon {
-    position: absolute;
-    left: 5px;
-    bottom: 5px;
     display: grid;
     place-items: center;
-    width: 34px;
-    height: 34px;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
     color: #087c3b;
     background: rgba(6, 199, 85, 0.1);
     border: 1px solid rgba(6, 199, 85, 0.22);
     border-radius: 50%;
-    transform: translateY(var(--login-swipe-lift, 0px));
-    transition: transform 180ms ease-out;
-  }
-
-  .login-swipe-hint[data-swipe-dragging="true"] {
-    cursor: grabbing;
-  }
-
-  .login-swipe-hint[data-swipe-dragging="true"] .login-swipe-icon {
-    transition: none;
   }
 
   .login-swipe-icon svg {
@@ -900,15 +878,15 @@
   }
 
   .login-swipe-ready-text,
-  .login-swipe-hint[data-swipe-ready="true"] .login-swipe-idle-text {
+  .login-content[data-swipe-ready="true"] .login-swipe-idle-text {
     display: none;
   }
 
-  .login-swipe-hint[data-swipe-ready="true"] .login-swipe-ready-text {
+  .login-content[data-swipe-ready="true"] .login-swipe-ready-text {
     display: block;
   }
 
-  .login-swipe-hint[data-swipe-ready="true"] .login-swipe-icon {
+  .login-content[data-swipe-ready="true"] .login-swipe-icon {
     color: #07351d;
     background: #06c755;
   }
@@ -1059,7 +1037,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-swipe-icon {
+  .login-content--swipe {
+    transform: none;
     transition: none;
   }
 

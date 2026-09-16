@@ -4,10 +4,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image, { getImageProps } from "next/image";
 import { useAuth } from "@/components/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, User, Shield, ArrowRight, Eye, EyeOff, Sparkles, LogIn, AlertCircle, X, Check, Copy, LogOut } from "lucide-react";
+import { Lock, User, Shield, ArrowRight, ChevronsUp, Eye, EyeOff, Sparkles, LogIn, AlertCircle, X, Check, Copy, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Cloud, CloudRain, Sun, Moon } from "lucide-react";
-import SwipeLoginControl from "./SwipeLoginControl";
+import SwipeLoginCard from "./SwipeLoginCard";
 import "./login.css";
 
 declare global {
@@ -466,7 +466,7 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <main className="login-shell" aria-labelledby="login-title">
-        <section className="login-content">
+        <SwipeLoginCard disabled={showCredentialsForm || showLineModal} onSwipeUp={handleGetStartedWithLine}>
           <header className="login-header">
             <div className="login-brand" aria-label="HO-Recruitment, Pattaya Aviation">
               <span className="login-brand-mark">
@@ -520,7 +520,14 @@ export default function LoginPage() {
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.35, delay: 0.18 }}
                   >
-                    <SwipeLoginControl disabled={showLineModal} onSwipeUp={handleGetStartedWithLine} />
+                    <div className="login-swipe-hint">
+                      <span className="login-swipe-icon" aria-hidden="true"><ChevronsUp /></span>
+                      <span>
+                        <strong className="login-swipe-idle-text">ปัดขึ้นเพื่อเข้าสู่ระบบ</strong>
+                        <strong className="login-swipe-ready-text">ปล่อยเพื่อเข้าสู่ระบบ</strong>
+                        <small>ผ่านบัญชี LINE ของคุณ</small>
+                      </span>
+                    </div>
                     <button
                       type="button"
                       onClick={handleGetStartedWithLine}
@@ -695,7 +702,7 @@ export default function LoginPage() {
             <span>© {new Date().getFullYear()} Pattaya Aviation</span>
             <span>Human Resources</span>
           </footer>
-        </section>
+        </SwipeLoginCard>
 
         <aside className="login-visual" data-weather-scene={loginWeather.scene}>
           <div className="login-weather-layer">
