@@ -7,10 +7,7 @@ const calendarDate = new Intl.DateTimeFormat("en-US", {
   timeZone, calendar: "gregory", year: "numeric", month: "2-digit", day: "2-digit",
 });
 const thaiDate = new Intl.DateTimeFormat("th-TH", {
-  timeZone, calendar: "buddhist", numberingSystem: "latn", day: "numeric", month: "long", year: "numeric",
-});
-const thaiMonthYear = new Intl.DateTimeFormat("th-TH", {
-  timeZone, calendar: "buddhist", numberingSystem: "latn", month: "long", year: "numeric",
+  timeZone, calendar: "buddhist", numberingSystem: "latn", weekday: "long", day: "numeric", month: "long", year: "numeric",
 });
 
 function getDateSnapshot() {
@@ -40,9 +37,7 @@ export function DashboardDate({ className }: { className?: string }) {
 
   return (
     <time className={className} dateTime={date || undefined} aria-label={day ? thaiDate.format(day) : "วันที่ปัจจุบัน"}>
-      <span>{date ? date.slice(-2) : "\u00a0"}</span>
-      <i aria-hidden="true" />
-      <span>{day ? thaiMonthYear.format(day) : "\u00a0"}</span>
+      {day ? thaiDate.format(day) : "\u00a0"}
     </time>
   );
 }
