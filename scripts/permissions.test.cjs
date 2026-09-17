@@ -100,13 +100,17 @@ test('unauthenticated, view-only, and credential-only production sessions cannot
   assert.equal(await auth.getSessionUser(userRequest(localToken)), null);
 });
 
-function lineRoute({ identity = adminLineId, items = [], mapping = null, employee = null, channel = '1234567890', expires = 3600, scanError = false } = {}) {
-  const state = { cookies: [], mappingQueries: [], upserts: 0 };
+function lineRoute({ identity = adminLineId, items = [], mapping = null, employee = null, channel = '1234567890', expires = 3600, scanError = false, pictureUrl, upsertError = false } = {}) {
+  const state = { cookies: [], mappingQueries: [], upserts: 0, savedMappings: [] };
   const prisma = {
     lineWebhook: {
       findFirst: async (query) => { state.mappingQueries.push(query); return mapping; },
       findUnique: async () => mapping,
-      upsert: async () => { state.upserts++; },
+      upsert: async (query) => {
+        state.upserts++;
+        if (upsertError) throw new Error('Test avatar cache write failure');
+        state.savedMappings.push(query);
+      },
     },
   };
   const route = loadTs('src/app/api/auth/line/lookup/route.ts', {
@@ -125,7 +129,7 @@ function lineRoute({ identity = adminLineId, items = [], mapping = null, employe
     } } },
   }, { LINE_LOGIN_CHANNEL_ID: '1234567890', AUTH_APP_ORIGIN: 'https://example.test' }, async (url) => {
     if (url.includes('/verify?')) return Response.json({ client_id: channel, expires_in: expires });
-    return Response.json({ userId: identity, displayName: 'Same Display Name' });
+    return Response.json({ userId: identity, displayName: 'Same Display Name', pictureUrl });
   });
   const request = (body = { accessToken: 'test-token' }) => new Request('https://example.test/api/auth/line/lookup', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
@@ -139,6 +143,48 @@ test('verified exact LINE account receives the configured Admin grant', async ()
   assert.equal((await route.POST(request())).status, 200);
   assert.equal(state.cookies[0].staffId, '00001');
   assert.equal(state.cookies[0].permissions.admin, true);
+});
+
+test('latest verified LINE photo reaches the Admin session instead of an old employee avatar', async () => {
+  const pictureUrl = 'https://profile.line-scdn.net/current-test-photo';
+  const { route, state, request } = lineRoute({
+    items: [{ ...employee, line_avatar_url: 'https://example.test/old-cartoon.png' }],
+    pictureUrl,
+  });
+  const response = await route.POST(request({ accessToken: 'test-token', lineAvatarUrl: 'https://example.test/unverified.png' }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).data.lineAvatarUrl, pictureUrl);
+  assert.equal(state.cookies[0].lineAvatarUrl, pictureUrl);
+  assert.equal(state.savedMappings[0].update.lineAvatar, pictureUrl);
+  assert.equal(state.savedMappings[0].create.lineAvatar, pictureUrl);
+
+  const { prisma } = createDatabase([adminGrant()]);
+  const auth = sessionModule(prisma);
+  const session = loadTs('src/app/api/auth/session/route.ts', {
+    '@/lib/auth-session': auth, '@/lib/permissions': permissions,
+  });
+  const restored = await session.GET(userRequest(auth.createSessionToken(state.cookies[0])));
+  assert.equal(restored.status, 200);
+  assert.equal((await restored.json()).user.lineAvatarUrl, pictureUrl);
+});
+
+test('an avatar cache write failure does not discard the verified LINE photo', async () => {
+  const pictureUrl = 'https://profile.line-scdn.net/current-test-photo';
+  const { route, state, request } = lineRoute({ items: [employee], pictureUrl, upsertError: true });
+  const response = await route.POST(request());
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).data.lineAvatarUrl, pictureUrl);
+  assert.equal(state.cookies[0].lineAvatarUrl, pictureUrl);
+});
+
+test('stored avatar is only a fallback when LINE returns no photo and client photos are ignored', async () => {
+  const storedAvatar = 'https://example.test/stored-photo.png';
+  const { route, state, request } = lineRoute({ items: [{ ...employee, line_avatar_url: storedAvatar }] });
+  const response = await route.POST(request({ accessToken: 'test-token', pictureUrl: 'https://example.test/unverified.png', lineAvatarUrl: 'https://example.test/unverified.png' }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).data.lineAvatarUrl, storedAvatar);
+  assert.equal(state.cookies[0].lineAvatarUrl, storedAvatar);
+  assert.equal(state.upserts, 0);
 });
 
 test('public login origin works behind a reverse proxy and cross-site origins are rejected', async () => {

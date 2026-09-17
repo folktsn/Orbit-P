@@ -221,9 +221,11 @@ async function resolveLineProfile(request: Request) {
         .map((key) => readString(employeeProfile, key))
         .find(isMeaningfulValue) || "";
 
-      // Extract lineAvatarUrl query parameter if provided from client LIFF login
+      // POST supplies this photo from the server-verified LINE profile.
       const lineAvatarUrl = searchParams.get("lineAvatarUrl");
       if (lineUserId && lineAvatarUrl) {
+        // Keep the current photo even when saving the optional mapping fails.
+        lineAvatar = lineAvatarUrl;
         try {
           await prisma.lineWebhook.upsert({
             where: { lineUserId: lineUserId },
@@ -241,15 +243,14 @@ async function resolveLineProfile(request: Request) {
               status: "Linked"
             }
           });
-          lineAvatar = lineAvatarUrl;
         } catch (upsertError) {
           console.error("Failed to upsert LINE webhook mapping in SQLite:", upsertError);
         }
       }
 
-      // Prioritize the DynamoDB custom line_avatar_url if it exists
+      // A stored employee photo is only a fallback, never an override of LINE's latest photo.
       const employeeAvatar = readString(employeeProfile, "line_avatar_url");
-      if (employeeAvatar && employeeAvatar !== "-") {
+      if (!lineAvatarUrl && isMeaningfulValue(employeeAvatar)) {
         lineAvatar = employeeAvatar;
       }
 
