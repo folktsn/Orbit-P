@@ -28,6 +28,12 @@
 .heroCopy .currentDate { display: block; min-height: 20px; font: 500 11px/1.8 var(--font-inter), var(--font-sukhumvit), sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .025em; }
 .heroCopy h2 { font-size: clamp(40px, 4.6vw, 88px); font-weight: 400; line-height: 1.02; letter-spacing: -.065em; margin: 24px 0 22px; }
 .heroCopy h2 > span { color: var(--muted); }
+.liveHeadcount { display: block; }
+.headcountNumber { display: block; font-variant-numeric: tabular-nums; letter-spacing: -.045em; }
+.headcountCaption { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; font-size: 11px; font-weight: 400; line-height: 1.6; letter-spacing: .025em; }
+.headcountStatus { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; }
+.headcountStatus i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .5; }
+.liveHeadcount[data-status="live"] .headcountStatus i, .liveHeadcount[data-status="auto"] .headcountStatus i { background: #328273; opacity: 1; }
 .heroCopy > p { font-size: 13px; line-height: 1.85; color: var(--muted); }
 .primaryButton { position: relative; display: inline-flex; align-items: center; gap: 14px; min-height: 50px; margin-top: 24px; padding: 12px 20px; border: 1px solid var(--ink); border-radius: 4px; background: var(--ink); color: var(--paper); overflow: hidden; isolation: isolate; font-size: 13px; font-weight: 500; transition: transform .3s, box-shadow .3s, color .7s; }
 .primaryButton::before { position: absolute; content: ''; inset: 0; background: var(--paper); transform: translateX(-101%); transition: transform .7s cubic-bezier(.16,1,.3,1); z-index: -1; }

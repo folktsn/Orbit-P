@@ -103,6 +103,7 @@ export function apiPageRequirements(request: Request): readonly PageKey[] {
   const read = request.method === "GET" || request.method === "HEAD";
   const profiles: PageKey[] = ["employees", "probation", "dataQuality"];
   switch (path) {
+    case "/api/dashboard/headcount": return ["dashboard"];
     case "/api/ats": return ["recruitment"];
     case "/api/probation":
     case "/api/probation/follow-up": return ["probation"];

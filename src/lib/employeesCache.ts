@@ -1,5 +1,7 @@
 type EmployeesCacheState = {
   entries: Map<string, { value: unknown; expiresAt: number }>;
+  revision: number;
+  listeners: Set<() => void>;
 };
 
 const EMPLOYEES_CACHE_TTL_MS = 60_000;
@@ -13,10 +15,15 @@ function getCacheState(): EmployeesCacheState {
   if (!globalWithCache[GLOBAL_CACHE_KEY]) {
     globalWithCache[GLOBAL_CACHE_KEY] = {
       entries: new Map(),
+      revision: 0,
+      listeners: new Set(),
     };
   }
 
-  return globalWithCache[GLOBAL_CACHE_KEY];
+  const cache = globalWithCache[GLOBAL_CACHE_KEY];
+  cache.revision ??= 0;
+  cache.listeners ??= new Set();
+  return cache;
 }
 
 export function getCachedEmployees(key = "list:full"): unknown[] | null {
@@ -50,4 +57,19 @@ export function setCachedEmployeeValue(key: string, value: unknown) {
 export function invalidateEmployeesCache() {
   const cache = getCacheState();
   cache.entries.clear();
+  cache.revision += 1;
+  for (const listener of cache.listeners) {
+    // Live subscribers must never cause an employee update to fail.
+    try { listener(); } catch { /* The subscriber will retry on its next refresh. */ }
+  }
+}
+
+export function getEmployeesRevision() {
+  return getCacheState().revision;
+}
+
+export function subscribeToEmployeeChanges(listener: () => void) {
+  const listeners = getCacheState().listeners;
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
 }
