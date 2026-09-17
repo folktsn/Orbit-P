@@ -12,10 +12,11 @@
 .selectedMarker .dot { fill: #13755e; }
 .label, .pinTarget { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; cursor: pointer; }
 .pinTarget { width: 22px; height: 22px; border-radius: 50%; background: transparent; border: 0; padding: 0; }
-.label { z-index: 2; display: grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0 4px; background: transparent; border: 0; border-radius: 6px; color: var(--ink); font: 500 11px/1.2 var(--mono); letter-spacing: .025em; white-space: nowrap; }
-.label > span { display: inline-flex; align-items: center; gap: 5px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--paper); box-shadow: 0 2px 8px #00000008; transition: color .2s, background .2s, border-color .2s; }
-.label:hover > span, .label[aria-pressed="true"] > span { color: #fff; background: #245f50; border-color: #245f50; }
-.label:focus-visible { outline: 2px solid #13755e; outline-offset: 1px; }
+.label { --badge-size: 46px; z-index: 2; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; background: transparent; border: 0; border-radius: 50%; color: var(--ink); font: 500 11px/1.1 var(--mono); letter-spacing: .025em; white-space: nowrap; }
+.label > span { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: var(--badge-size); height: var(--badge-size); border: 1px solid var(--line); border-radius: 50%; background: var(--paper); box-shadow: 0 3px 10px #00000008; transition: color .2s, background .2s, border-color .2s, box-shadow .2s; }
+.label[data-multicode="true"] { font-size: 10px; }
+.label:hover > span, .label[aria-pressed="true"] > span { color: #fff; background: #245f50; border-color: #245f50; box-shadow: 0 0 0 3px #245f5014, 0 3px 10px #0000000d; }
+.label:focus-visible { outline: 2px solid #13755e; outline-offset: 2px; }
 .detail { display: flex; align-items: flex-start; justify-content: center; gap: 9px; width: 100%; min-height: 48px; margin-top: -18px; padding-inline: 4px; color: var(--ink); }
 .detail > svg { flex-shrink: 0; margin-top: 2px; color: #13755e; }
 .detail strong { display: block; font: 500 11px/1.6 var(--mono); }
@@ -29,8 +30,8 @@
 :global(.dark) .detail > svg { color: #8ad2bd; }
 @keyframes drift { from { transform: translateY(7px); } to { transform: translateY(-12px); } }
 @media (max-width: 760px) {
-  .label { font-size: 10px; }
-  .label > span { padding: 6px; }
+  .label { --badge-size: 38px; width: 44px; height: 44px; font-size: 10px; }
+  .label[data-multicode="true"] { font-size: 9px; }
   .detail { margin-top: -2px; min-height: 49px; }
   .detail strong { font-size: 10px; }
   .detail strong > span { font-size: 11px; }

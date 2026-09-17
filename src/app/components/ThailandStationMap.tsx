@@ -34,8 +34,8 @@ export function ThailandStationMap({ paused }: { paused: boolean }) {
           return (
             <div key={id}>
               <button type="button" className={styles.pinTarget} style={position(point.x, point.y)} tabIndex={-1} aria-label={`หมุด ${accessibleName}`} onClick={() => setSelectedId(id)} />
-              <button type="button" className={styles.label} style={position(label[0], label[1])} aria-label={accessibleName} aria-pressed={selectedId === id} aria-controls="station-map-detail" title={accessibleName} onClick={() => setSelectedId(id)}>
-                <span>{headquarters && <Building2 size={11} aria-hidden="true" />}{codes.join(" / ")}</span>
+              <button type="button" className={styles.label} style={position(label[0], label[1])} data-multicode={codes.length > 1} aria-label={accessibleName} aria-pressed={selectedId === id} aria-controls="station-map-detail" title={accessibleName} onClick={() => setSelectedId(id)}>
+                <span>{headquarters && <Building2 size={11} aria-hidden="true" />}{codes.map((code) => <span key={code}>{code}</span>)}</span>
               </button>
             </div>
           );
