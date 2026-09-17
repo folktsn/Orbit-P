@@ -30,7 +30,7 @@ function DataState({ result }: { result: SummaryResult<unknown> }) {
 }
 
 export default function Dashboard() {
-  const { canPage } = useAuth();
+  const { user, canPage } = useAuth();
   const { preferences } = useDisplayPreferences();
   const systemReducedMotion = useReducedMotion();
   const reducedMotion = preferences.reduceMotion || Boolean(systemReducedMotion);
@@ -101,7 +101,9 @@ export default function Dashboard() {
             <ThailandStationMap paused={ambientPaused || reducedMotion || !pageVisible} />
           </motion.div>
           <motion.aside className={styles.heroAside} {...reveal} transition={{ duration: 0.8, delay: reducedMotion ? 0 : 0.9, ease: EASE }}>
-            <Plane size={22} strokeWidth={1} /><span className={styles.mono}>ONE TEAM.<br />EVERY DEPARTURE.</span><p>From the ground<br />to greater heights.</p>
+            <Plane size={22} strokeWidth={1} />
+            <div className={styles.welcome}><span className={styles.mono}>Welcome</span><span className={styles.welcomeName}>{user?.displayName?.trim() || "ผู้ใช้งาน"}</span></div>
+            <p>From the ground<br />to greater heights.</p>
             <dl><div><dt>FOCUS</dt><dd>Our people</dd></div><div><dt>DESTINATION</dt><dd>What&apos;s next</dd></div></dl>
           </motion.aside>
         </div>
