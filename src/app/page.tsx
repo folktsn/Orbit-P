@@ -10,6 +10,7 @@ import { useDisplayPreferences } from "@/components/DisplayPreferencesProvider";
 import { useDashboardSummary, type SummaryResult } from "./components/useDashboardSummary";
 import { SandTransitionImage } from "./components/SandTransitionImage";
 import { ThailandStationMap } from "./components/ThailandStationMap";
+import { DashboardDate } from "./components/DashboardDate";
 import styles from "./dashboard.module.css";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -92,7 +93,7 @@ export default function Dashboard() {
         </h1>
         <div className={styles.heroMain}>
           <motion.div className={styles.heroCopy} {...reveal} transition={{ duration: 0.9, delay: reducedMotion ? 0 : 0.45, ease: EASE }}>
-            <span className={styles.sectionIndex}>01 <i /> CONTROL TOWER</span>
+            <DashboardDate className={`${styles.sectionIndex} ${styles.currentDate}`} />
             <h2>People.<br />Possibility.<br /><span>In motion.</span></h2>
             <p>ทุกความเป็นไปได้ เริ่มต้นที่คน<br />เชื่อมการสรรหา กำลังคน และการเติบโต<br />ให้พร้อมสำหรับเที่ยวบินต่อไป</p>
             <button className={styles.primaryButton} onClick={scrollToOverview}><Plane size={18} /><span>ดูภาพรวมกำลังคน</span><ArrowUpRight size={18} /></button>
