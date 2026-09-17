@@ -2,7 +2,7 @@
 
 ## thailand.svg
 
-Hero map drawn from the Thailand feature of [Natural Earth 1:50m Admin 0 Countries](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_admin_0_countries.geojson), accessed 2026-09-17. The SVG uses a Mercator projection, preserves the complete country including its islands, and adds a silver gradient, subtle extrusion, and decorative geographic guides. It is a decorative country map; no company stations or operational coverage are implied. Natural Earth data is [public domain](https://www.naturalearthdata.com/about/terms-of-use/).
+Hero map drawn from the Thailand feature of [Natural Earth 1:50m Admin 0 Countries](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_admin_0_countries.geojson), accessed 2026-09-17. The SVG uses a Mercator projection, preserves the complete country including its islands, and adds a silver gradient and subtle extrusion. The canvas is tightly framed around the country, without geographic grid lines or surrounding guides. It is a decorative country map; no company stations or operational coverage are implied. Natural Earth data is [public domain](https://www.naturalearthdata.com/about/terms-of-use/).
 
 ## Generated photography
 
