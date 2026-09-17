@@ -18,10 +18,11 @@
 .sectionIndex { display: inline-flex; align-items: center; gap: 12px; }
 .sectionIndex i { width: 42px; height: 1px; background: currentColor; opacity: .35; }
 .hero { position: relative; isolation: isolate; min-height: calc(100svh - 80px); padding: 36px var(--gutter) 26px; display: flex; flex-direction: column; }
-.wordmark { margin: 0; display: flex; justify-content: space-between; align-items: baseline; font-size: clamp(62px, 13.9vw, 290px); font-weight: 400; line-height: .93; letter-spacing: -.075em; }
-.letterClip { display: inline-block; overflow: hidden; padding-bottom: .05em; }
+.wordmark { margin: 0; display: flex; justify-content: space-between; align-items: baseline; font-size: clamp(62px, 13.9vw, 290px); font-weight: 400; line-height: 1.05; letter-spacing: 0; }
+/* Give each animated glyph its full width and a small clipping safety margin. */
+.letterClip { display: inline-block; flex: 0 0 auto; overflow: hidden; padding: .025em; }
 .letterClip > span, .wordSpace > span { display: inline-block; }
-.wordSpace { width: .18em; }
+.wordSpace { flex: 0 0 .18em; }
 .heroMeta { display: grid; grid-template-columns: 1fr 60px 2.1fr 1fr; align-items: start; gap: 16px; padding-top: 25px; }
 .heroMeta > p { font: 400 11px/1.65 var(--mono); letter-spacing: .02em; }
 .heroMeta > p > span { display: block; margin-top: 8px; color: var(--muted); font: 400 11px/1.6 var(--font-sukhumvit), sans-serif; }
