@@ -33,7 +33,7 @@ export function DashboardWorkProfile() {
   return (
     <div className={styles.workProfile} aria-label="Your work profile" aria-busy={result.status === "loading"}>
       <dl>
-        {WORK_PROFILE_FIELDS.map(({ key, label }) => (
+        {WORK_PROFILE_FIELDS.filter(({ key }) => key !== "unit" || result.profile?.unit).map(({ key, label }) => (
           <div key={key}>
             <dt>{label}</dt>
             <dd>{result.status === "loading" ? "Loading…" : result.status === "error" ? "Unavailable" : result.profile?.[key] || "Not specified"}</dd>
