@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useInView, useReducedMotion } from "framer-motion";
-import { ArrowDown, ArrowUpRight, Building2, BriefcaseBusiness, Check, CirclePlus, Compass, GraduationCap, Pause, Plane, Play, RefreshCw, Users } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Building2, BriefcaseBusiness, Check, Compass, GraduationCap, Pause, Plane, Play, RefreshCw, Users } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { useDisplayPreferences } from "@/components/DisplayPreferencesProvider";
 import { useDashboardSummary, type SummaryResult } from "./components/useDashboardSummary";
@@ -75,7 +75,6 @@ export default function Dashboard() {
   const scrollToOverview = () => document.getElementById("workforce-overview")?.scrollIntoView({ behavior: reducedMotion ? "instant" : "smooth", block: "start" });
   const workforce = summary.workforce.data;
   const recruitment = summary.recruitment.data;
-  const firstLink = chapters.find((item) => canPage(item.key));
   const metrics = [
     { label: "กำลังคนปัจจุบัน", english: "CURRENT HEADCOUNT", value: workforce?.total, result: summary.workforce, note: "ตามขอบเขตหน้า Manpower", href: "/manpower" },
     { label: "ผู้สมัครในระบบ", english: "CANDIDATE PIPELINE", value: recruitment?.total, result: summary.recruitment, note: "รวมทุกสถานะการสรรหา", href: "/ats" },
@@ -104,7 +103,6 @@ export default function Dashboard() {
           <motion.aside className={styles.heroAside} {...reveal} transition={{ duration: 0.8, delay: reducedMotion ? 0 : 0.9, ease: EASE }}>
             <Plane size={22} strokeWidth={1} /><span className={styles.mono}>ONE TEAM.<br />EVERY DEPARTURE.</span><p>From the ground<br />to greater heights.</p>
             <dl><div><dt>FOCUS</dt><dd>Our people</dd></div><div><dt>DESTINATION</dt><dd>What&apos;s next</dd></div></dl>
-            {firstLink && <Link href={firstLink.href} className={styles.detailLink}><CirclePlus size={28} strokeWidth={1} /><span>เข้าสู่พื้นที่ทำงาน</span></Link>}
           </motion.aside>
         </div>
         <div className={styles.heroBottom}>
