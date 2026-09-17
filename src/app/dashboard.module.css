@@ -23,12 +23,6 @@
 .letterClip { display: inline-block; flex: 0 0 auto; overflow: hidden; padding: .025em; }
 .letterClip > span, .wordSpace > span { display: inline-block; }
 .wordSpace { flex: 0 0 .18em; }
-.heroMeta { display: grid; grid-template-columns: 1fr 60px 2.1fr 1fr; align-items: start; gap: 16px; padding-top: 25px; }
-.heroMeta > p { font: 400 11px/1.65 var(--mono); letter-spacing: .02em; }
-.heroMeta > p > span { display: block; margin-top: 8px; color: var(--muted); font: 400 11px/1.6 var(--font-sukhumvit), sans-serif; }
-.station { text-align: right; color: var(--muted); }
-.station b { font-weight: 500; color: var(--ink); }
-.metaArrow { margin-top: 3px; color: var(--muted); }
 .heroMain { position: relative; display: flex; flex: 1; justify-content: space-between; min-height: 870px; padding-top: 64px; }
 .heroCopy { position: relative; width: 30%; max-width: 410px; z-index: 2; }
 .heroCopy h2 { font-size: clamp(40px, 4.6vw, 88px); font-weight: 400; line-height: 1.02; letter-spacing: -.065em; margin: 24px 0 22px; }
@@ -178,11 +172,7 @@
   .page { --gutter: 24px; }
   .hero { padding-top: 24px; min-height: calc(100svh - 96px); }
   .wordmark { font-size: 13.5vw; line-height: 1; }
-  .heroMeta { grid-template-columns: 1fr 1.5fr; gap: 20px; padding-top: 18px; }
-  .heroMeta .mono { font-size: 8px; letter-spacing: .04em; }
-  .heroMeta > p { font-size: 9px; }
-  .heroMeta > p > span { font-size: 10px; margin-top: 6px; }
-  .metaArrow, .station, .heroAside { display: none; }
+  .heroAside { display: none; }
   .heroMain { padding-top: 595px; min-height: 1000px; }
   .heroMap { --map-height: 500px; top: 12px; left: 0; width: 100%; }
   .heroCopy { width: 100%; max-width: none; }

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useInView, useReducedMotion } from "framer-motion";
-import { ArrowDown, ArrowRight, ArrowUpRight, Building2, BriefcaseBusiness, Check, CirclePlus, Compass, GraduationCap, Pause, Plane, Play, RefreshCw, Users } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Building2, BriefcaseBusiness, Check, CirclePlus, Compass, GraduationCap, Pause, Plane, Play, RefreshCw, Users } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { useDisplayPreferences } from "@/components/DisplayPreferencesProvider";
 import { useDashboardSummary, type SummaryResult } from "./components/useDashboardSummary";
@@ -29,7 +29,7 @@ function DataState({ result }: { result: SummaryResult<unknown> }) {
 }
 
 export default function Dashboard() {
-  const { user, canPage } = useAuth();
+  const { canPage } = useAuth();
   const { preferences } = useDisplayPreferences();
   const systemReducedMotion = useReducedMotion();
   const reducedMotion = preferences.reduceMotion || Boolean(systemReducedMotion);
@@ -90,13 +90,6 @@ export default function Dashboard() {
             <motion.span initial={reducedMotion ? false : { y: "115%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.2, delay: index * 0.06, ease: EASE }}>{letter === " " ? "\u00a0" : letter}</motion.span>
           </span>)}
         </h1>
-        <motion.div className={styles.heroMeta} {...reveal}>
-          <span className={styles.mono}>PATTAYA AVIATION<br />PEOPLE & POSSIBILITY</span>
-          <ArrowRight size={16} strokeWidth={1} className={styles.metaArrow} />
-          <p>Connecting the people<br />behind every departure.<span>พื้นที่ทำงานของคนที่ขับเคลื่อนทุกเที่ยวบิน</span></p>
-          <span className={`${styles.mono} ${styles.station}`}>YOUR WORKSPACE<br /><b>{user?.station || "PATTAYA AVIATION"}</b></span>
-        </motion.div>
-
         <div className={styles.heroMain}>
           <motion.div className={styles.heroCopy} {...reveal} transition={{ duration: 0.9, delay: reducedMotion ? 0 : 0.45, ease: EASE }}>
             <span className={styles.sectionIndex}>01 <i /> CONTROL TOWER</span>
