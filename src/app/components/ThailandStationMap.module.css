@@ -4,7 +4,7 @@
 .land, .markers { position: absolute; inset: 0; width: 100%; height: 100%; }
 .markers { overflow: visible; }
 .marker { color: #4e625f; }
-.leader { fill: none; stroke: currentColor; stroke-width: .65; opacity: .65; vector-effect: non-scaling-stroke; }
+.leader { fill: none; stroke: currentColor; stroke-width: .8; stroke-linecap: round; stroke-linejoin: round; opacity: .7; vector-effect: non-scaling-stroke; }
 .dot { fill: #315e54; stroke: #fcfcfa; stroke-width: 1; }
 .halo { fill: #128568; opacity: .17; }
 .selectedMarker { color: #13755e; }
@@ -18,18 +18,20 @@
   --letter-side: #c1c4bd;
   --letter-highlight: #ffffffe6;
   --letter-shadow: #15151526;
-  z-index: 2; display: grid; place-items: center; width: 48px; height: 48px;
-  padding: 0; background: transparent; border: 0; border-radius: 5px;
+  z-index: 2; display: flex; align-items: center; justify-content: flex-start; width: max-content; min-width: 48px; height: 48px;
+  transform: translateY(-50%); padding: 0 0 0 6px; background: transparent; border: 0; border-radius: 5px;
   color: var(--letter-face);
   font: 750 15px/1.2 var(--font-inter), sans-serif; letter-spacing: .04em; white-space: nowrap;
 }
+.label[data-side="left"] { transform: translate(-100%, -50%); justify-content: flex-end; padding: 0 6px 0 0; }
 .label > span {
-  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px;
   color: inherit;
   text-shadow: -.6px -.6px 0 var(--letter-highlight), .6px .8px 0 var(--letter-edge),
     1.2px 1.6px 0 var(--letter-side), 1.5px 3px 3px var(--letter-shadow);
   transition: transform .2s, color .2s;
 }
+.label[data-side="left"] > span { align-items: flex-end; }
 .label[data-multicode="true"] { font-size: 12px; }
 .label[aria-pressed="true"] {
   --letter-face: #1e6552; --letter-edge: #7aa497; --letter-side: #b1c8bc;
@@ -55,7 +57,7 @@
 :global(.dark) .label[aria-pressed="true"] { --letter-face: #a3e8d2; --letter-edge: #53786b; --letter-side: #2c4b40; }
 @keyframes drift { from { transform: translateY(7px); } to { transform: translateY(-12px); } }
 @media (max-width: 760px) {
-  .label { width: 44px; height: 44px; font-size: 13px; }
+  .label { min-width: 44px; height: 44px; font-size: 13px; }
   .label[data-multicode="true"] { font-size: 10.5px; }
   .detail { margin-top: -2px; min-height: 49px; }
   .detail strong { font-size: 10px; }

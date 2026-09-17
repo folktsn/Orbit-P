@@ -8,13 +8,14 @@ import styles from "./ThailandStationMap.module.css";
 
 const points = STATION_LOCATIONS.map((location) => ({ ...location, point: projectStation(location.latitude, location.longitude) }));
 const position = (x: number, y: number): CSSProperties => ({ left: `${(x - MAP_VIEWBOX.x) / MAP_VIEWBOX.width * 100}%`, top: `${y / MAP_VIEWBOX.height * 100}%` });
-// Leave clear space before the unframed station text, including at mobile scale.
+// The label anchor is its near edge; CSS adds a constant gap at every screen size.
 const leaderPath = (point: { x: number; y: number }, label: readonly [number, number]) => {
   const dx = label[0] - point.x;
-  const dy = label[1] - point.y;
-  const distance = Math.hypot(dx, dy);
-  const ratio = distance > 26 ? (distance - 26) / distance : 0;
-  return `M${point.x} ${point.y} L${point.x + dx * ratio} ${point.y + dy * ratio}`;
+  const direction = Math.sign(dx);
+  const reach = Math.min(Math.abs(dx) * .65, Math.max(18, Math.abs(label[1] - point.y)));
+  const controlX = point.x + direction * reach / 2;
+  const bendX = point.x + direction * reach;
+  return `M${point.x} ${point.y} C${controlX} ${point.y} ${controlX} ${label[1]} ${bendX} ${label[1]} H${label[0]}`;
 };
 
 export function ThailandStationMap({ paused }: { paused: boolean }) {
@@ -37,12 +38,12 @@ export function ThailandStationMap({ paused }: { paused: boolean }) {
             </g>
           ))}
         </svg>
-        {points.map(({ id, codes, name, province, point, label }) => {
+        {points.map(({ id, codes, name, province, point, label, labelSide }) => {
           const accessibleName = `${codes.join(" / ")} · ${name} · ${province}`;
           return (
             <div key={id}>
               <button type="button" className={styles.pinTarget} style={position(point.x, point.y)} tabIndex={-1} aria-label={`หมุด ${accessibleName}`} onClick={() => setSelectedId(id)} />
-              <button type="button" className={styles.label} style={position(label[0], label[1])} data-multicode={codes.length > 1} aria-label={accessibleName} aria-pressed={selectedId === id} aria-controls="station-map-detail" title={accessibleName} onClick={() => setSelectedId(id)}>
+              <button type="button" className={styles.label} style={position(label[0], label[1])} data-side={labelSide} data-multicode={codes.length > 1} aria-label={accessibleName} aria-pressed={selectedId === id} aria-controls="station-map-detail" title={accessibleName} onClick={() => setSelectedId(id)}>
                 <span>{codes.map((code) => <span key={code}>{code}</span>)}</span>
               </button>
             </div>
