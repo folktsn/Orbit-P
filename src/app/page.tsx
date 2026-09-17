@@ -11,6 +11,7 @@ import { useDashboardSummary, type SummaryResult } from "./components/useDashboa
 import { SandTransitionImage } from "./components/SandTransitionImage";
 import { ThailandStationMap } from "./components/ThailandStationMap";
 import { DashboardDate } from "./components/DashboardDate";
+import { DashboardWorkProfile } from "./components/DashboardWorkProfile";
 import styles from "./dashboard.module.css";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -103,8 +104,7 @@ export default function Dashboard() {
           <motion.aside className={styles.heroAside} {...reveal} transition={{ duration: 0.8, delay: reducedMotion ? 0 : 0.9, ease: EASE }}>
             <Plane size={22} strokeWidth={1} />
             <div className={styles.welcome}><span className={styles.mono}>Welcome</span><span className={styles.welcomeName}>{user?.displayName?.trim() || "ผู้ใช้งาน"}</span></div>
-            <p>From the ground<br />to greater heights.</p>
-            <dl><div><dt>FOCUS</dt><dd>Our people</dd></div><div><dt>DESTINATION</dt><dd>What&apos;s next</dd></div></dl>
+            <DashboardWorkProfile key={user?.staffId || user?.username || "guest"} />
           </motion.aside>
         </div>
         <div className={styles.heroBottom}>
