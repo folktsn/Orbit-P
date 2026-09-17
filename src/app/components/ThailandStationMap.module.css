@@ -13,36 +13,31 @@
 .label, .pinTarget { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; cursor: pointer; }
 .pinTarget { width: 22px; height: 22px; border-radius: 50%; background: transparent; border: 0; padding: 0; }
 .label {
-  --badge-size: 46px;
-  --badge-face: #ffffff;
-  --badge-ink: #343432;
-  --badge-rim: #d5d5cf;
-  --badge-hover-rim: #8b8b84;
-  --badge-shadow: #1515150d;
-  --badge-ring: #1515150a;
+  --letter-face: #343633;
+  --letter-edge: #9fa39d;
+  --letter-side: #c1c4bd;
+  --letter-highlight: #ffffffe6;
+  --letter-shadow: #15151526;
   z-index: 2; display: grid; place-items: center; width: 48px; height: 48px;
-  padding: 0; background: transparent; border: 0; border-radius: 50%;
-  color: var(--badge-ink);
-  font: 600 11px/1.15 var(--font-inter), sans-serif; letter-spacing: .025em; white-space: nowrap;
+  padding: 0; background: transparent; border: 0; border-radius: 5px;
+  color: var(--letter-face);
+  font: 750 15px/1.2 var(--font-inter), sans-serif; letter-spacing: .04em; white-space: nowrap;
 }
 .label > span {
-  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  width: var(--badge-size); height: var(--badge-size); border: 1px solid var(--badge-rim); border-radius: 50%;
-  color: inherit; background: var(--badge-face);
-  box-shadow: 0 2px 5px var(--badge-shadow);
-  transition: transform .2s, background .2s, color .2s, border-color .2s, box-shadow .2s;
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  color: inherit;
+  text-shadow: -.6px -.6px 0 var(--letter-highlight), .6px .8px 0 var(--letter-edge),
+    1.2px 1.6px 0 var(--letter-side), 1.5px 3px 3px var(--letter-shadow);
+  transition: transform .2s, color .2s;
 }
-.label[data-multicode="true"] { font-size: 10px; }
+.label[data-multicode="true"] { font-size: 12px; }
 .label[aria-pressed="true"] {
-  --badge-face: #20201f; --badge-ink: #fcfcfa;
-  --badge-rim: #20201f; --badge-hover-rim: #20201f;
-  --badge-shadow: #15151514;
+  --letter-face: #1e6552; --letter-edge: #7aa497; --letter-side: #b1c8bc;
 }
-.label[aria-pressed="true"] > span { box-shadow: 0 0 0 3px var(--badge-ring), 0 2px 5px var(--badge-shadow); }
 @media (hover: hover) and (pointer: fine) {
-  .label:hover > span { transform: translateY(-1px); border-color: var(--badge-hover-rim); box-shadow: 0 0 0 3px var(--badge-ring), 0 3px 7px var(--badge-shadow); }
+  .label:hover > span { transform: translateY(-1px); }
 }
-.label:active > span { transform: scale(.96); box-shadow: 0 1px 2px var(--badge-shadow); }
+.label:active > span { transform: translateY(1px); }
 .label:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .detail { display: flex; align-items: flex-start; justify-content: center; gap: 9px; width: 100%; min-height: 48px; margin-top: -18px; padding-inline: 4px; color: var(--ink); }
 .detail > svg { flex-shrink: 0; margin-top: 2px; color: #13755e; }
@@ -55,12 +50,13 @@
 :global(.dark) .dot { fill: #71bba6; stroke: #18342c; }
 :global(.dark) .halo { fill: #8ee9cb; opacity: .3; }
 :global(.dark) .detail > svg { color: #8ad2bd; }
-:global(.dark) .label { --badge-face: #242424; --badge-ink: #efefeb; --badge-rim: #555550; --badge-hover-rim: #9b9b93; --badge-shadow: #00000024; --badge-ring: #ffffff1a; }
-:global(.dark) .label[aria-pressed="true"] { --badge-face: #f0f0ec; --badge-ink: #20201f; --badge-rim: #f0f0ec; --badge-hover-rim: #f0f0ec; }
+:global(.dark) .label { --letter-face: #eeeeea; --letter-edge: #62665f; --letter-side: #373c35; --letter-highlight: #292c28; --letter-shadow: #00000080; }
+:global(.dark) .label > span { -webkit-text-stroke: .4px #30342e; paint-order: stroke fill; }
+:global(.dark) .label[aria-pressed="true"] { --letter-face: #a3e8d2; --letter-edge: #53786b; --letter-side: #2c4b40; }
 @keyframes drift { from { transform: translateY(7px); } to { transform: translateY(-12px); } }
 @media (max-width: 760px) {
-  .label { --badge-size: 38px; width: 44px; height: 44px; font-size: 10px; }
-  .label[data-multicode="true"] { font-size: 9px; }
+  .label { width: 44px; height: 44px; font-size: 13px; }
+  .label[data-multicode="true"] { font-size: 10.5px; }
   .detail { margin-top: -2px; min-height: 49px; }
   .detail strong { font-size: 10px; }
   .detail strong > span { font-size: 11px; }

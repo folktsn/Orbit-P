@@ -8,6 +8,14 @@ import styles from "./ThailandStationMap.module.css";
 
 const points = STATION_LOCATIONS.map((location) => ({ ...location, point: projectStation(location.latitude, location.longitude) }));
 const position = (x: number, y: number): CSSProperties => ({ left: `${(x - MAP_VIEWBOX.x) / MAP_VIEWBOX.width * 100}%`, top: `${y / MAP_VIEWBOX.height * 100}%` });
+// Leave clear space before the unframed station text, including at mobile scale.
+const leaderPath = (point: { x: number; y: number }, label: readonly [number, number]) => {
+  const dx = label[0] - point.x;
+  const dy = label[1] - point.y;
+  const distance = Math.hypot(dx, dy);
+  const ratio = distance > 26 ? (distance - 26) / distance : 0;
+  return `M${point.x} ${point.y} L${point.x + dx * ratio} ${point.y + dy * ratio}`;
+};
 
 export function ThailandStationMap({ paused }: { paused: boolean }) {
   const [selectedId, setSelectedId] = useState("HDQ");
@@ -21,7 +29,7 @@ export function ThailandStationMap({ paused }: { paused: boolean }) {
         <svg className={styles.markers} viewBox="230 0 340 570" aria-hidden="true">
           {points.map(({ id, headquarters, point, label }) => (
             <g key={id} className={`${styles.marker} ${selectedId === id ? styles.selectedMarker : ""}`}>
-              <path className={styles.leader} d={`M${point.x} ${point.y} L${label[0]} ${label[1]}`} />
+              <path className={styles.leader} d={leaderPath(point, label)} />
               {selectedId === id && <circle className={styles.halo} cx={point.x} cy={point.y} r="8" />}
               {headquarters
                 ? <rect className={styles.dot} x={point.x - 2.5} y={point.y - 2.5} width="5" height="5" rx=".6" />
@@ -29,13 +37,13 @@ export function ThailandStationMap({ paused }: { paused: boolean }) {
             </g>
           ))}
         </svg>
-        {points.map(({ id, codes, name, province, headquarters, point, label }) => {
+        {points.map(({ id, codes, name, province, point, label }) => {
           const accessibleName = `${codes.join(" / ")} · ${name} · ${province}`;
           return (
             <div key={id}>
               <button type="button" className={styles.pinTarget} style={position(point.x, point.y)} tabIndex={-1} aria-label={`หมุด ${accessibleName}`} onClick={() => setSelectedId(id)} />
               <button type="button" className={styles.label} style={position(label[0], label[1])} data-multicode={codes.length > 1} aria-label={accessibleName} aria-pressed={selectedId === id} aria-controls="station-map-detail" title={accessibleName} onClick={() => setSelectedId(id)}>
-                <span>{headquarters && <Building2 size={11} aria-hidden="true" />}{codes.map((code) => <span key={code}>{code}</span>)}</span>
+                <span>{codes.map((code) => <span key={code}>{code}</span>)}</span>
               </button>
             </div>
           );
