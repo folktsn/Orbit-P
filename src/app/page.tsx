@@ -103,8 +103,8 @@ export default function Dashboard() {
             <p>ทุกความเป็นไปได้ เริ่มต้นที่คน<br />เชื่อมการสรรหา กำลังคน และการเติบโต<br />ให้พร้อมสำหรับเที่ยวบินต่อไป</p>
             <button className={styles.primaryButton} onClick={scrollToOverview}><Plane size={18} /><span>ดูภาพรวมกำลังคน</span><ArrowUpRight size={18} /></button>
           </motion.div>
-          <motion.div className={styles.heroAircraft} initial={false} animate={{ opacity: heroVisible || reducedMotion ? 1 : 0, y: heroVisible || reducedMotion ? 0 : 35 }} transition={{ duration: reducedMotion ? 0 : 1.4, ease: EASE }}>
-            <div className={styles.aircraftFloat} style={{ animationPlayState: ambientPaused || reducedMotion || !pageVisible ? "paused" : "running" }}><Image src="/dashboard/aircraft.webp" alt="ภาพประกอบเครื่องบินโดยสารสีเงิน" width={1600} height={800} sizes="(max-width: 760px) 110vw, 68vw" loading="eager" fetchPriority="high" unoptimized /></div>
+          <motion.div className={styles.heroMap} initial={false} animate={{ opacity: heroVisible || reducedMotion ? 1 : 0, y: heroVisible || reducedMotion ? 0 : 35 }} transition={{ duration: reducedMotion ? 0 : 1.4, ease: EASE }}>
+            <div className={styles.mapFloat} style={{ animationPlayState: ambientPaused || reducedMotion || !pageVisible ? "paused" : "running" }}><Image src="/dashboard/thailand.svg" alt="แผนที่ประเทศไทย" width={800} height={560} sizes="(max-width: 760px) 100vw, 58vw" loading="eager" fetchPriority="high" unoptimized /></div>
           </motion.div>
           <motion.aside className={styles.heroAside} {...reveal} transition={{ duration: 0.8, delay: reducedMotion ? 0 : 0.9, ease: EASE }}>
             <Plane size={22} strokeWidth={1} /><span className={styles.mono}>ONE TEAM.<br />EVERY DEPARTURE.</span><p>From the ground<br />to greater heights.</p>

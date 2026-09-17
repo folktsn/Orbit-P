@@ -1,5 +1,11 @@
 # Dashboard artwork
 
+## thailand.svg
+
+Hero map drawn from the Thailand feature of [Natural Earth 1:50m Admin 0 Countries](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_admin_0_countries.geojson), accessed 2026-09-17. The SVG uses a Mercator projection, preserves the complete country including its islands, and adds a silver gradient, subtle extrusion, and decorative geographic guides. It is a decorative country map; no company stations or operational coverage are implied. Natural Earth data is [public domain](https://www.naturalearthdata.com/about/terms-of-use/).
+
+## Generated photography
+
 Created with the built-in image_gen tool for OrbitHire. These are fictional illustrative scenes, not photographs of actual employees or company facilities. Original generated PNG files remain in the Codex generated_images directory; the website uses compressed WebP copies.
 
 ## aircraft.webp
@@ -25,4 +31,3 @@ Use case: photorealistic-natural. Asset type: square editorial chapter photograp
 ## probation.webp
 
 Use case: photorealistic-natural. Asset type: square editorial chapter photograph for an aviation people-management website. A fictional experienced Thai aviation operations mentor explaining a checklist on a tablet to a younger colleague during a hands-on airport ground safety briefing, attentive realistic expressions, aircraft fuselage in soft focus, uniformed professionals, no readable text. Strictly monochrome silver gelatin photography, rich black and charcoal shadows, luminous silver highlights, fine film grain, understated premium magazine art direction, authentic human proportions and anatomy, sophisticated composition, realistic material textures. Soft directional light, 4:5 or square composition that can crop gracefully. No typography, no logos, no watermark, no UI. This is an illustrative fictional scene, not actual employees.
-
