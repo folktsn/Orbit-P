@@ -2,7 +2,32 @@
 
 ## thailand.svg
 
-Hero map drawn from the Thailand feature of [Natural Earth 1:50m Admin 0 Countries](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_admin_0_countries.geojson), accessed 2026-09-17. The SVG uses a Mercator projection, preserves the complete country including its islands, and adds a silver gradient and subtle extrusion. The canvas is tightly framed around the country, without geographic grid lines or surrounding guides. It is a decorative country map; no company stations or operational coverage are implied. Natural Earth data is [public domain](https://www.naturalearthdata.com/about/terms-of-use/).
+Hero map drawn from the Thailand feature of [Natural Earth 1:50m Admin 0 Countries](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_50m_admin_0_countries.geojson), accessed 2026-09-17. The SVG uses a Mercator projection, preserves the complete country including its islands, and adds a silver gradient and subtle extrusion. The canvas is tightly framed around the country, without geographic grid lines or surrounding guides. Natural Earth data is [public domain](https://www.naturalearthdata.com/about/terms-of-use/).
+
+### Station overlay
+
+`ThailandStationMap.tsx` overlays the user's supplied 16 Station codes at 15 geographic locations. BKKPA and BKK share one Suvarnabhumi marker. This roster is configured company coverage, not a live headcount or an inference from employee records. Pin coordinates and label callouts are separate; labels can move for readability without moving the geographic locations. The overlay uses the exact Mercator transform of the country artwork.
+
+Airport reference-point coordinates were checked against CAAT AIP Thailand, **AD 2.2**, AIRAC **2026-09-03** (accessed 2026-09-17):
+
+| Station | CAAT source |
+| --- | --- |
+| BKKPA / BKK | [VTBS](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTBS-en-GB.html) |
+| DMK | [VTBD](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTBD-en-GB.html) |
+| CEI | [VTCT](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTCT-en-GB.html) |
+| CNX | [VTCC](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTCC-en-GB.html) |
+| UTH | [VTUD](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTUD-en-GB.html) |
+| UBP | [VTUU](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTUU-en-GB.html) |
+| KKC | [VTUK](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTUK-en-GB.html) |
+| UTP | [VTBU](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTBU-en-GB.html) |
+| HKT | [VTSP](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTSP-en-GB.html) |
+| URT | [VTSB](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTSB-en-GB.html) |
+| CJM | [VTSE](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTSE-en-GB.html) |
+| HDY | [VTSS](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTSS-en-GB.html) |
+| KBV | [VTSG](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTSG-en-GB.html) |
+| NST | [VTSF](https://aip.caat.or.th/2026-09-03-AIRAC/html/eAIP/VT-AD-2.VTSF-en-GB.html) |
+
+HDQ is an **approximate** marker for Ban Mai, Pak Kret, Nonthaburi, consistent with the [company's published office address](https://www.pattayaaviation.com/contact-us). It is explicitly identified as approximate in the interface; it is not a surveyed building coordinate or an airport.
 
 ## Generated photography
 

@@ -1,0 +1,40 @@
+.map { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.canvas { position: relative; width: min(100%, calc(var(--map-height) * 340 / 570)); aspect-ratio: 340 / 570; flex-shrink: 0; animation: drift 14s ease-in-out infinite alternate; }
+.canvas:hover, .canvas:focus-within { animation-play-state: paused !important; }
+.land, .markers { position: absolute; inset: 0; width: 100%; height: 100%; }
+.markers { overflow: visible; }
+.marker { color: #4e625f; }
+.leader { fill: none; stroke: currentColor; stroke-width: .65; opacity: .65; vector-effect: non-scaling-stroke; }
+.dot { fill: #315e54; stroke: #fcfcfa; stroke-width: 1; }
+.halo { fill: #128568; opacity: .17; }
+.selectedMarker { color: #13755e; }
+.selectedMarker .leader { opacity: 1; stroke-width: 1.2; }
+.selectedMarker .dot { fill: #13755e; }
+.label, .pinTarget { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; cursor: pointer; }
+.pinTarget { width: 22px; height: 22px; border-radius: 50%; background: transparent; border: 0; padding: 0; }
+.label { z-index: 2; display: grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0 4px; background: transparent; border: 0; border-radius: 6px; color: var(--ink); font: 500 11px/1.2 var(--mono); letter-spacing: .025em; white-space: nowrap; }
+.label > span { display: inline-flex; align-items: center; gap: 5px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--paper); box-shadow: 0 2px 8px #00000008; transition: color .2s, background .2s, border-color .2s; }
+.label:hover > span, .label[aria-pressed="true"] > span { color: #fff; background: #245f50; border-color: #245f50; }
+.label:focus-visible { outline: 2px solid #13755e; outline-offset: 1px; }
+.detail { display: flex; align-items: flex-start; justify-content: center; gap: 9px; width: 100%; min-height: 48px; margin-top: -18px; padding-inline: 4px; color: var(--ink); }
+.detail > svg { flex-shrink: 0; margin-top: 2px; color: #13755e; }
+.detail strong { display: block; font: 500 11px/1.6 var(--mono); }
+.detail strong > span { font: 500 12px/1.6 var(--font-sukhumvit), sans-serif; }
+.detail p { margin-top: 2px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.hint { display: flex; align-items: center; justify-content: center; gap: 9px; color: var(--muted); font: 9px/1.6 var(--mono); letter-spacing: .025em; }
+.hint i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
+:global(.dark) .leader { stroke: #9dbab1; }
+:global(.dark) .dot { fill: #71bba6; stroke: #18342c; }
+:global(.dark) .halo { fill: #8ee9cb; opacity: .3; }
+:global(.dark) .detail > svg { color: #8ad2bd; }
+@keyframes drift { from { transform: translateY(7px); } to { transform: translateY(-12px); } }
+@media (max-width: 760px) {
+  .label { font-size: 10px; }
+  .label > span { padding: 6px; }
+  .detail { margin-top: -2px; min-height: 49px; }
+  .detail strong { font-size: 10px; }
+  .detail strong > span { font-size: 11px; }
+  .detail p { font-size: 9px; }
+  .hint { font-size: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .canvas { animation: none; } .label > span { transition: none; } }
