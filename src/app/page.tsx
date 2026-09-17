@@ -95,7 +95,7 @@ export default function Dashboard() {
         <div className={styles.heroMain}>
           <motion.div className={styles.heroCopy} {...reveal} transition={{ duration: 0.9, delay: reducedMotion ? 0 : 0.45, ease: EASE }}>
             <DashboardDate className={styles.currentDate} />
-            <h2>People.<br />Possibility.<br /><LiveEmployeeCount key={user?.staffId || user?.username || "guest"} allowed={canPage("dashboard") && Boolean(user?.permissions.view)} /></h2>
+            <h2>Employee<br /><LiveEmployeeCount key={user?.staffId || user?.username || "guest"} allowed={canPage("dashboard") && Boolean(user?.permissions.view)} /></h2>
             <p>ทุกความเป็นไปได้ เริ่มต้นที่คน<br />เชื่อมการสรรหา กำลังคน และการเติบโต<br />ให้พร้อมสำหรับเที่ยวบินต่อไป</p>
             <button className={styles.primaryButton} onClick={scrollToOverview}><Plane size={18} /><span>ดูภาพรวมกำลังคน</span><ArrowUpRight size={18} /></button>
           </motion.div>
