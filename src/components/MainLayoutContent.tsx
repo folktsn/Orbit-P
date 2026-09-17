@@ -40,7 +40,7 @@ export function MainLayoutContent({ children }: { children: React.ReactNode }) {
   ) : children;
 
   return (
-    <div className={isDirectoryWorkspace ? styles.workspaceLayout : "contents"}>
+    <div className={isDirectoryWorkspace ? styles.workspaceLayout : pathname === "/" ? styles.dashboardLayout : "contents"}>
       {!isLoginPage && <PillNav />}
       <main className={`flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto ${isDirectoryWorkspace ? styles.workspaceContent : ""}`}>
         {content}
