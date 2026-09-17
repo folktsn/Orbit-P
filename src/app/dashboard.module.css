@@ -37,9 +37,9 @@
 .primaryButton:hover svg:first-child { transform: translate(1px,-2px) rotate(-12deg); }
 .primaryButton:active { transform: none; box-shadow: none; }
 .heroMap { --map-height: 780px; position: absolute; width: 64%; height: calc(var(--map-height) + 65px); left: 24%; top: 0; z-index: 1; pointer-events: none; }
-.heroAside { position: relative; z-index: 2; width: 200px; margin-top: 18px; padding: 0 0 0 20px; }
+.heroAside { position: relative; z-index: 2; width: 154px; margin-top: 18px; padding: 0 0 0 20px; }
 .heroAside > svg { margin-bottom: 20px; }
-.welcome { display: grid; gap: 2px; }
+.welcome { display: grid; gap: 2px; width: max-content; max-width: calc(100% + var(--gutter) - 12px); }
 .welcomeName { font-size: 12px; font-weight: 500; line-height: 1.7; overflow-wrap: anywhere; }
 .heroAside > p { font-size: 12px; color: var(--muted); line-height: 1.65; margin-top: 14px; }
 .heroAside dl { display: grid; gap: 20px; margin: 30px 0; }
@@ -147,7 +147,7 @@
 @media (max-width: 1100px) {
   .hero { padding-top: 24px; }
   .heroMain { min-height: 770px; padding-top: 54px; }
-  .heroAside { width: 180px; padding-left: 10px; }
+  .heroAside { width: 134px; padding-left: 10px; }
   .heroMap { --map-height: 680px; width: 60%; top: 10px; left: 27%; }
   .heroCopy { width: 34%; }
   .heroCopy h2 { font-size: 50px; }
