@@ -104,7 +104,7 @@ export default function Dashboard() {
             <button className={styles.primaryButton} onClick={scrollToOverview}><Plane size={18} /><span>ดูภาพรวมกำลังคน</span><ArrowUpRight size={18} /></button>
           </motion.div>
           <motion.div className={styles.heroMap} initial={false} animate={{ opacity: heroVisible || reducedMotion ? 1 : 0, y: heroVisible || reducedMotion ? 0 : 35 }} transition={{ duration: reducedMotion ? 0 : 1.4, ease: EASE }}>
-            <div className={styles.mapFloat} style={{ animationPlayState: ambientPaused || reducedMotion || !pageVisible ? "paused" : "running" }}><Image src="/dashboard/thailand.svg" alt="แผนที่ประเทศไทย" width={700} height={560} sizes="(max-width: 760px) 140vw, 64vw" loading="eager" fetchPriority="high" unoptimized /></div>
+            <div className={styles.mapFloat} style={{ animationPlayState: ambientPaused || reducedMotion || !pageVisible ? "paused" : "running" }}><Image src="/dashboard/thailand.svg?v=2" alt="แผนที่ประเทศไทย" width={700} height={560} sizes="(max-width: 760px) 140vw, 64vw" loading="eager" fetchPriority="high" unoptimized /></div>
           </motion.div>
           <motion.aside className={styles.heroAside} {...reveal} transition={{ duration: 0.8, delay: reducedMotion ? 0 : 0.9, ease: EASE }}>
             <Plane size={22} strokeWidth={1} /><span className={styles.mono}>ONE TEAM.<br />EVERY DEPARTURE.</span><p>From the ground<br />to greater heights.</p>
