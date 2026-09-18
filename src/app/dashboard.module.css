@@ -43,7 +43,8 @@
 .primaryButton svg:first-child { transition: transform .5s; }
 .primaryButton:hover svg:first-child { transform: translate(1px,-2px) rotate(-12deg); }
 .primaryButton:active { transform: none; box-shadow: none; }
-.heroMap { --map-height: 780px; position: absolute; width: 64%; height: calc(var(--map-height) + 65px); left: 24%; top: 0; z-index: 1; pointer-events: none; }
+/* Center station details across the page while preserving the map's position. */
+.heroMap { --map-height: 780px; --map-canvas-width: 64%; --map-canvas-offset: 6%; position: absolute; width: 100%; height: calc(var(--map-height) + 65px); left: 0; top: 0; z-index: 1; pointer-events: none; }
 .heroAside { position: relative; z-index: 2; width: 154px; margin-top: 18px; padding: 0 0 0 20px; }
 .heroAside > svg { margin-bottom: 20px; }
 .welcome { display: grid; gap: 2px; width: max-content; max-width: calc(100% + var(--gutter) - 12px); }
@@ -151,7 +152,7 @@
   .hero { padding-top: 24px; }
   .heroMain { min-height: 770px; padding-top: 54px; }
   .heroAside { width: 134px; padding-left: 10px; }
-  .heroMap { --map-height: 680px; width: 60%; top: 10px; left: 27%; }
+  .heroMap { --map-height: 680px; --map-canvas-width: 60%; --map-canvas-offset: 7%; top: 10px; }
   .heroCopy { width: 34%; }
   .heroCopy h2 { font-size: 50px; }
   .collectionHeading { align-items: flex-start; flex-direction: column; gap: 26px; }
@@ -167,7 +168,7 @@
 
 @media (min-width: 761px) and (max-width: 900px) {
   .heroAside { display: none; }
-  .heroMap { width: 66%; left: 34%; }
+  .heroMap { --map-canvas-width: 66%; --map-canvas-offset: 17%; }
 }
 
 @media (max-width: 760px) {
@@ -176,7 +177,7 @@
   .wordmark { font-size: 13.5vw; line-height: 1; }
   .heroAside { display: none; }
   .heroMain { padding-top: 595px; min-height: 1000px; }
-  .heroMap { --map-height: 500px; top: 12px; left: 0; width: 100%; }
+  .heroMap { --map-height: 500px; --map-canvas-width: 100%; --map-canvas-offset: 0%; top: 12px; }
   .heroCopy { width: 100%; max-width: none; }
   .heroCopy .sectionIndex { font-size: 9px; }
   .heroCopy h2 { font-size: clamp(44px, 12vw, 66px); margin: 19px 0 18px; }
