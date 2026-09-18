@@ -106,7 +106,7 @@ export default function EmployeesPage() {
   const filterCount = [selectedDepartment, selectedDivision, selectedSection, selectedUnit, selectedStation, startDate || endDate].filter(Boolean).length;
 
   return (
-    <div className={styles.workspace}>
+    <div className={cn(styles.workspace, styles.expandedSidebar)}>
       <aside className={styles.sidebar} aria-label="ค้นหาและกรองพนักงาน">
         <header className={styles.sidebarHeading}>
           <span className={styles.eyebrow}><UsersRound size={16} aria-hidden="true" /> PEOPLE DIRECTORY</span>
