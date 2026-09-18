@@ -1,21 +1,20 @@
-.map { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.map { --station-blue: #0890c0; --station-active: #05769f; position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
 .canvas { position: relative; width: min(100%, calc(var(--map-height) * 340 / 570)); aspect-ratio: 340 / 570; flex-shrink: 0; animation: drift 14s ease-in-out infinite alternate; }
 .canvas:hover, .canvas:focus-within { animation-play-state: paused !important; }
 .land, .markers { position: absolute; inset: 0; width: 100%; height: 100%; }
 .markers { overflow: visible; }
-.marker { color: #4e625f; }
+.marker { color: var(--station-blue); }
 .leader { fill: none; stroke: currentColor; stroke-width: .8; stroke-linecap: round; stroke-linejoin: round; opacity: .7; vector-effect: non-scaling-stroke; }
-.dot { fill: #315e54; stroke: #fcfcfa; stroke-width: 1; }
-.halo { fill: #128568; opacity: .17; }
-.selectedMarker { color: #13755e; }
+.dot { fill: currentColor; stroke: #fcfcfa; stroke-width: 1; }
+.halo { fill: var(--station-blue); opacity: .17; }
+.selectedMarker { color: var(--station-active); }
 .selectedMarker .leader { opacity: 1; stroke-width: 1.2; }
-.selectedMarker .dot { fill: #13755e; }
 .label, .pinTarget { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; cursor: pointer; }
 .pinTarget { width: 22px; height: 22px; border-radius: 50%; background: transparent; border: 0; padding: 0; }
 .label {
-  --letter-face: #343633;
-  --letter-edge: #9fa39d;
-  --letter-side: #c1c4bd;
+  --letter-face: var(--station-blue);
+  --letter-edge: #78bcd3;
+  --letter-side: #bddce5;
   --letter-highlight: #ffffffe6;
   --letter-shadow: #15151526;
   z-index: 2; display: flex; align-items: center; justify-content: flex-start; width: max-content; min-width: 48px; height: 48px;
@@ -34,7 +33,7 @@
 .label[data-side="left"] > span { align-items: flex-end; }
 .label[data-multicode="true"] { font-size: 12px; }
 .label[aria-pressed="true"] {
-  --letter-face: #1e6552; --letter-edge: #7aa497; --letter-side: #b1c8bc;
+  --letter-face: var(--station-active); --letter-edge: #56a5c0; --letter-side: #a4cedd;
 }
 @media (hover: hover) and (pointer: fine) {
   .label:hover > span { transform: translateY(-1px); }
@@ -42,19 +41,18 @@
 .label:active > span { transform: translateY(1px); }
 .label:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .detail { display: flex; align-items: flex-start; justify-content: center; gap: 9px; width: 100%; min-height: 48px; margin-top: -18px; padding-inline: 4px; color: var(--ink); }
-.detail > svg { flex-shrink: 0; margin-top: 2px; color: #13755e; }
+.detail > svg { flex-shrink: 0; margin-top: 2px; color: var(--station-blue); }
 .detail strong { display: block; font: 500 11px/1.6 var(--mono); }
 .detail strong > span { font: 500 12px/1.6 var(--font-sukhumvit), sans-serif; }
 .detail p { margin-top: 2px; color: var(--muted); font-size: 10px; line-height: 1.6; }
 .hint { display: flex; align-items: center; justify-content: center; gap: 9px; color: var(--muted); font: 9px/1.6 var(--mono); letter-spacing: .025em; }
 .hint i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
-:global(.dark) .leader { stroke: #9dbab1; }
-:global(.dark) .dot { fill: #71bba6; stroke: #18342c; }
-:global(.dark) .halo { fill: #8ee9cb; opacity: .3; }
-:global(.dark) .detail > svg { color: #8ad2bd; }
-:global(.dark) .label { --letter-face: #eeeeea; --letter-edge: #62665f; --letter-side: #373c35; --letter-highlight: #292c28; --letter-shadow: #00000080; }
-:global(.dark) .label > span { -webkit-text-stroke: .4px #30342e; paint-order: stroke fill; }
-:global(.dark) .label[aria-pressed="true"] { --letter-face: #a3e8d2; --letter-edge: #53786b; --letter-side: #2c4b40; }
+:global(.dark) .map { --station-blue: #56c1e5; --station-active: #8bdcf4; }
+:global(.dark) .dot { stroke: #123445; }
+:global(.dark) .halo { opacity: .3; }
+:global(.dark) .label { --letter-face: var(--station-blue); --letter-edge: #245769; --letter-side: #183b49; --letter-highlight: #172c35; --letter-shadow: #00000080; }
+:global(.dark) .label > span { -webkit-text-stroke: .4px #17303b; paint-order: stroke fill; }
+:global(.dark) .label[aria-pressed="true"] { --letter-face: var(--station-active); --letter-edge: #39788e; --letter-side: #214b5b; }
 @keyframes drift { from { transform: translateY(7px); } to { transform: translateY(-12px); } }
 @media (max-width: 760px) {
   .label { min-width: 44px; height: 44px; font-size: 13px; }
