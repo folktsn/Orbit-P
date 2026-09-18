@@ -113,10 +113,22 @@ test('station totals match directory aliases, field precedence and current emplo
   const result = counts.summarize();
   assert.equal(result.count, 12);
   assert.deepEqual(Object.entries(result.byStation).filter(([, count]) => count).sort(),
-    [['BKK', 1], ['BKKPA', 2], ['CEI', 1], ['CNX', 1], ['DMK', 1], ['HDQ', 1], ['HKT', 1], ['UTP', 1]]);
+    [['BKK', 2], ['BKKPA', 2], ['CEI', 1], ['CNX', 1], ['DMK', 1], ['HDQ', 1], ['HKT', 1], ['UTP', 1]]);
   assert.equal(result.byStation.NST, 0, 'An empty station is a real zero');
   assert.equal(Object.keys(result.byStation).length, 16);
   assert.equal(counting.createHeadcountAccumulator(today).summarize().count, 0);
+});
+
+test('airport totals include every operational sub-station from the employee directory while keeping BKKPA separate', () => {
+  const counts = counting.createHeadcountAccumulator(today);
+  const bkk = ['BKK(BM)', 'BKK(GA-A)', 'BKK(GA-B)', 'BKK(GB)', 'BKK(GC)', 'BKK(GD-C)', 'BKK(GF-A)', 'BKK(GF-B)'];
+  [...bkk, 'BKKPA', 'GF(BKKPA)', 'DMK(PA)', 'สุวรรณภูมิ / bkk (pa)', 'ดอนเมือง / dmk (pa)']
+    .forEach((station, index) => counts.add(active(String(index), { station })));
+  const result = counts.summarize();
+  assert.equal(result.byStation.BKK, 8);
+  assert.equal(result.byStation.BKKPA, 3);
+  assert.equal(result.byStation.DMK, 2);
+  assert.equal(Object.values(result.byStation).reduce((total, count) => total + count, 0), result.count);
 });
 
 test('live snapshots preserve per-station counts and reject incomplete or invalid totals instead of displaying a false zero', () => {

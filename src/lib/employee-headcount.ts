@@ -1,5 +1,5 @@
 import { parseEmployeeDate } from "@/app/employees/lib/resignation";
-import { matchesStation } from "@/app/employees/lib/search";
+import { matchesStation, normalizeSearchText } from "@/app/employees/lib/search";
 import { STATION_CODES } from "@/app/components/station-map-data";
 
 export type HeadcountSnapshot = { count: number; byStation: Record<string, number>; updatedAt: string };
@@ -47,15 +47,29 @@ export function createHeadcountAccumulator(today: string) {
       const id = String(employee.staff_id).trim();
       if (countedIds.has(id)) return;
       countedIds.add(id);
-      // Use the same station-field precedence and exact matching as the directory.
+      // Use the directory's field precedence, then group operational sub-stations by airport.
       const station = text(employee.station)
         || [text(employee.station_th), text(employee.station_en)].filter(Boolean).join(" / ")
         || text(employee.work_location);
-      const code = STATION_CODES.find((candidate) => matchesStation(station, candidate));
+      const code = headcountStationCode(station);
       if (code) byStation[code]++;
     },
     summarize() { return { count: countedIds.size, byStation: { ...byStation } }; },
   };
+}
+
+function headcountStationCode(station: string) {
+  const exact = STATION_CODES.find((candidate) => matchesStation(station, candidate));
+  if (exact) return exact;
+  const parts = normalizeSearchText(station).toUpperCase().split(/\s*\/\s*/)
+    .map((part) => part.replace(/[\s[\]._-]/g, ""));
+  const keys = parts.map((part) => part.replace(/[()]/g, ""));
+  // Employee records use GF(BKKPA) for the BKKPA group and DMK(PA) for Don Mueang.
+  if (keys.includes("GFBKKPA")) return "BKKPA";
+  if (keys.includes("DMKPA")) return "DMK";
+  // BKK(BM), BKK(GA-A), BKK(GC), etc. belong to BKK. BKK(PA) matched BKKPA above.
+  if (parts.some((part) => /^BKK\([A-Z0-9]+\)$/.test(part))) return "BKK";
+  return undefined;
 }
 
 export function parseHeadcountSnapshot(value: unknown): HeadcountSnapshot {
