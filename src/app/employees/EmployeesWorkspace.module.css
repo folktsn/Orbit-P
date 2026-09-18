@@ -163,11 +163,11 @@
 }
 
 @media (min-width: 1440px) {
-  /* Use the spare left margin for filters while keeping the results in place. */
+  /* Center the wider layout so the left and right page gutters stay equal. */
   .expandedSidebar {
     --sidebar-extra: min(20rem, calc((100vw - 1440px) / 2));
-    max-width: calc(1440px + var(--sidebar-extra));
-    margin-left: calc((100% - 1440px) / 2 - var(--sidebar-extra));
+    max-width: 1920px;
+    margin-inline: auto;
     grid-template-columns: minmax(240px, calc(20rem + var(--sidebar-extra))) minmax(0, 1fr);
   }
 }
