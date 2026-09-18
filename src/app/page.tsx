@@ -89,7 +89,7 @@ export default function Dashboard() {
       <section className={styles.hero} aria-labelledby="dashboard-heading">
         <h1 id="dashboard-heading" className={styles.wordmark} aria-label="OrbitHire — People workspace">
           {"ORBIT HIRE".split("").map((letter, index) => <span key={index} className={letter === " " ? styles.wordSpace : styles.letterClip} aria-hidden="true">
-            <motion.span initial={reducedMotion ? false : { y: "115%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.2, delay: index * 0.06, ease: EASE }}>{letter === " " ? "\u00a0" : letter}</motion.span>
+            <motion.span className={index >= "ORBIT ".length ? styles.hireLetter : undefined} initial={reducedMotion ? false : { y: "115%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.2, delay: index * 0.06, ease: EASE }}>{letter === " " ? "\u00a0" : letter}</motion.span>
           </span>)}
         </h1>
         <div className={styles.heroMain}>
