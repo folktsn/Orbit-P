@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [focused, setFocused] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
   const [heroVisible, setHeroVisible] = useState(false);
+  const [selectedStation, setSelectedStation] = useState<string | null>(null);
   const collectionRef = useRef<HTMLElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
   const collectionVisible = useInView(collectionRef, { amount: 0.25 });
@@ -94,12 +95,13 @@ export default function Dashboard() {
         <div className={styles.heroMain}>
           <motion.div className={styles.heroCopy} {...reveal} transition={{ duration: 0.9, delay: reducedMotion ? 0 : 0.45, ease: EASE }}>
             <DashboardDate className={styles.currentDate} />
-            <h2>Employee<br /><LiveEmployeeCount key={user?.staffId || user?.username || "guest"} allowed={canPage("dashboard") && Boolean(user?.permissions.view)} reducedMotion={reducedMotion || !pageVisible} /></h2>
+            <h2>Employee<br /><LiveEmployeeCount key={user?.staffId || user?.username || "guest"} allowed={canPage("dashboard") && Boolean(user?.permissions.view)} reducedMotion={reducedMotion || !pageVisible} station={selectedStation} /></h2>
+            {selectedStation && <button type="button" className={styles.resetStation} onClick={() => setSelectedStation(null)} aria-controls="employee-headcount station-map-detail">ดูพนักงานทั้งหมด</button>}
             <p>ทุกความเป็นไปได้ เริ่มต้นที่คน<br />เชื่อมการสรรหา กำลังคน และการเติบโต<br />ให้พร้อมสำหรับเที่ยวบินต่อไป</p>
             <button className={styles.primaryButton} onClick={scrollToOverview}><Plane size={18} /><span>ดูภาพรวมกำลังคน</span><ArrowUpRight size={18} /></button>
           </motion.div>
           <motion.div className={styles.heroMap} initial={false} animate={{ opacity: heroVisible || reducedMotion ? 1 : 0, y: heroVisible || reducedMotion ? 0 : 35 }} transition={{ duration: reducedMotion ? 0 : 1.4, ease: EASE }}>
-            <ThailandStationMap paused={reducedMotion || !pageVisible} />
+            <ThailandStationMap paused={reducedMotion || !pageVisible} selectedStation={selectedStation} onStationSelect={setSelectedStation} />
           </motion.div>
           <motion.aside className={styles.heroAside} {...reveal} transition={{ duration: 0.8, delay: reducedMotion ? 0 : 0.9, ease: EASE }}>
             <Plane size={22} strokeWidth={1} />

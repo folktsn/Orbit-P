@@ -1,22 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { HeadcountSnapshot } from "@/lib/employee-headcount";
+import { parseHeadcountSnapshot, type HeadcountSnapshot } from "@/lib/employee-headcount";
+import { STATION_LOCATIONS } from "./station-map-data";
 import { CountUp } from "./CountUp";
 import styles from "../dashboard.module.css";
 
 type CountState = { snapshot: HeadcountSnapshot | null; status: "loading" | "live" | "auto" | "error" | "restricted" };
 const initialState: CountState = { snapshot: null, status: "loading" };
 
-function parseSnapshot(value: unknown): HeadcountSnapshot {
-  const data = value as HeadcountSnapshot | null;
-  if (!data || !Number.isSafeInteger(data.count) || data.count < 0 || typeof data.updatedAt !== "string" || !Number.isFinite(Date.parse(data.updatedAt))) {
-    throw new Error("Invalid headcount");
-  }
-  return { count: data.count, updatedAt: data.updatedAt };
-}
-
-export function LiveEmployeeCount({ allowed, reducedMotion = false }: { allowed: boolean; reducedMotion?: boolean }) {
+export function LiveEmployeeCount({ allowed, reducedMotion = false, station = null }: { allowed: boolean; reducedMotion?: boolean; station?: string | null }) {
   const [result, setResult] = useState<CountState>(initialState);
 
   useEffect(() => {
@@ -47,7 +40,7 @@ export function LiveEmployeeCount({ allowed, reducedMotion = false }: { allowed:
           return;
         }
         if (!response.ok) throw new Error("Headcount unavailable");
-        const snapshot = parseSnapshot(await response.json());
+        const snapshot = parseHeadcountSnapshot(await response.json());
         if (!current.signal.aborted && current === request) accept(snapshot, "auto");
       } catch {
         if (!stopped && current === request && lastEvent <= started) setResult((previous) => ({ ...previous, status: "error" }));
@@ -72,7 +65,7 @@ export function LiveEmployeeCount({ allowed, reducedMotion = false }: { allowed:
       connection.addEventListener("headcount", (event) => {
         if (connection !== stream || stopped) return;
         try {
-          accept(parseSnapshot(JSON.parse(event.data)), "live");
+          accept(parseHeadcountSnapshot(JSON.parse(event.data)), "live");
           lastEvent = Date.now();
         } catch { void fallback(); }
       });
@@ -105,17 +98,20 @@ export function LiveEmployeeCount({ allowed, reducedMotion = false }: { allowed:
   }, [allowed]);
 
   const snapshot = allowed ? result.snapshot : null;
+  const count = snapshot ? (station ? snapshot.byStation[station] : snapshot.count) : undefined;
+  const location = STATION_LOCATIONS.find((item) => item.codes.includes(station ?? ""));
+  const caption = station ? `${station} · ${location?.name ?? "Station"}` : "Total employees";
   const status = allowed ? result.status : "restricted";
   const statusText = { loading: "Loading…", live: "Live", auto: "Auto update", error: "Reconnecting…", restricted: "No access" }[status];
   const updated = snapshot ? new Date(snapshot.updatedAt).toLocaleTimeString("en-GB", { timeZone: "Asia/Bangkok" }) : null;
 
   return (
-    <span className={styles.liveHeadcount} data-status={status} data-updated-at={snapshot?.updatedAt} title={updated ? `Last updated ${updated} (Thailand time)` : undefined}>
+    <span id="employee-headcount" className={styles.liveHeadcount} data-station={station ?? "all"} data-status={status} data-updated-at={snapshot?.updatedAt} title={updated ? `Last updated ${updated} (Thailand time)` : undefined}>
       <span className={styles.headcountNumber}>
-        {snapshot ? <CountUp value={snapshot.count} reducedMotion={reducedMotion} /> : <span aria-hidden="true">—</span>}
-        <span className={styles.headcountAccessible} aria-live="polite" aria-atomic="true">{snapshot ? `${snapshot.count.toLocaleString("en-US")} total employees` : "Employee count unavailable"}</span>
+        {count !== undefined ? <CountUp value={count} reducedMotion={reducedMotion} /> : <span aria-hidden="true">—</span>}
+        <span className={styles.headcountAccessible} aria-live="polite" aria-atomic="true">{count !== undefined ? `${count.toLocaleString("en-US")} ${station ? `employees at ${caption}` : "total employees"}` : "Employee count unavailable"}</span>
       </span>
-      <span className={styles.headcountCaption}>Total employees<span className={styles.headcountStatus}><i aria-hidden="true" />{statusText}</span></span>
+      <span className={styles.headcountCaption}>{caption}<span className={styles.headcountStatus}><i aria-hidden="true" />{statusText}</span></span>
     </span>
   );
 }

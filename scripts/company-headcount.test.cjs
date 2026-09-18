@@ -21,7 +21,13 @@ function loadTs(file, mocks = {}, globals = {}) {
 
 const departure = loadTs('src/app/employees/lib/resignation.ts');
 const age = loadTs('src/app/employees/lib/age.ts', { './resignation': departure });
-const counting = loadTs('src/lib/employee-headcount.ts', { '@/app/employees/lib/resignation': departure });
+const search = loadTs('src/app/employees/lib/search.ts', { './resignation': departure });
+const stations = loadTs('src/app/components/station-map-data.ts');
+const counting = loadTs('src/lib/employee-headcount.ts', {
+  '@/app/employees/lib/resignation': departure,
+  '@/app/employees/lib/search': search,
+  '@/app/components/station-map-data': stations,
+});
 const permissions = loadTs('src/lib/permissions.ts');
 const today = '2026-09-17';
 const active = (staff_id, extra = {}) => ({ staff_id, status: 'Active', ...extra });
@@ -65,18 +71,65 @@ test('scan reads every page, de-duplicates employee IDs and shares a fresh aggre
     assert.equal(command.input.FilterExpression, undefined);
     assert.deepEqual(Object.values(command.input.ExpressionAttributeNames), counting.HEADCOUNT_FIELDS);
     return command.input.ExclusiveStartKey
-      ? { Items: [active('1'), active('2'), active('3', { status: 'Resigned' })] }
-      : { Items: [active('1')], LastEvaluatedKey: { staff_id: '1' } };
+      ? { Items: [active('1', { station: 'CEI' }), active('2', { station: 'CNX' }), active('3', { station: 'CEI', status: 'Resigned' })] }
+      : { Items: [active('1', { station: 'CEI' })], LastEvaluatedKey: { staff_id: '1' } };
   });
   const [first, simultaneous] = await Promise.all([counter.readCompanyHeadcount(), counter.readCompanyHeadcount()]);
   assert.equal(first.count, 2);
-  assert.deepEqual(Object.keys(first).sort(), ['count', 'updatedAt']);
+  assert.deepEqual(Object.keys(first).sort(), ['byStation', 'count', 'updatedAt']);
+  assert.equal(first.byStation.CEI, 1);
+  assert.equal(first.byStation.CNX, 1);
+  assert.equal(first.byStation.HKT, 0);
   assert.deepEqual(first, simultaneous);
   assert.deepEqual(await counter.readCompanyHeadcount(), first);
   assert.equal(calls, 2);
   cache.invalidateEmployeesCache();
   await counter.readCompanyHeadcount();
   assert.equal(calls, 4);
+});
+
+test('station totals match directory aliases, field precedence and current employment without combining BKK and BKKPA', () => {
+  const counts = counting.createHeadcountAccumulator(today);
+  const rows = [
+    active('1', { station: '  cei ' }),
+    active('2', { station: 'เชียงใหม่ / CNX', status: 'Pending', resign_date: '2026-09-18' }),
+    active('3', { station: 'กรุงเทพ / BKK(PA)' }),
+    active('4', { station: 'BKK' }),
+    active('5', { station: 'BKK(GC)' }),
+    active('6', { station: '-', station_th: 'สำนักงานใหญ่', station_en: 'HDQ', work_location: 'DMK' }),
+    active('7', { station: 'null', station_en: '-', work_location: 'HKT' }),
+    active('8', { station: 'DMK', station_en: 'HKT' }),
+    active('9', { station: 'CEI', start_date: '2026-09-18' }),
+    active('10', { station: 'CEI', status: 'Pending', resign_date: today }),
+    active('11', { station: 'CNX', status: 'Resigned' }),
+    active('12', { station: 'UNKNOWN' }),
+    active('13'),
+    active('14', { station: 'BKK PA' }),
+    active('15', { station: 'UTP', status: 'Resigning', resign_date: '18/09/2569' }),
+    active('16', { station: 'CEI', status: 'Pending' }),
+  ];
+  rows.forEach(counts.add);
+  counts.add(rows[0]);
+  const result = counts.summarize();
+  assert.equal(result.count, 12);
+  assert.deepEqual(Object.entries(result.byStation).filter(([, count]) => count).sort(),
+    [['BKK', 1], ['BKKPA', 2], ['CEI', 1], ['CNX', 1], ['DMK', 1], ['HDQ', 1], ['HKT', 1], ['UTP', 1]]);
+  assert.equal(result.byStation.NST, 0, 'An empty station is a real zero');
+  assert.equal(Object.keys(result.byStation).length, 16);
+  assert.equal(counting.createHeadcountAccumulator(today).summarize().count, 0);
+});
+
+test('live snapshots preserve per-station counts and reject incomplete or invalid totals instead of displaying a false zero', () => {
+  const counts = counting.createHeadcountAccumulator(today);
+  counts.add(active('1', { station: 'CEI' }));
+  const snapshot = { ...counts.summarize(), updatedAt: '2026-09-17T08:00:00Z' };
+  assert.deepEqual(counting.parseHeadcountSnapshot(snapshot), snapshot);
+  for (const value of [null, { count: 1, updatedAt: snapshot.updatedAt },
+    { ...snapshot, byStation: {} }, { ...snapshot, byStation: { ...snapshot.byStation, CEI: -1 } },
+    { ...snapshot, byStation: { ...snapshot.byStation, CEI: 2 } },
+    { ...snapshot, byStation: { ...snapshot.byStation, CEI: 0.5 } }]) {
+    assert.throws(() => counting.parseHeadcountSnapshot(value), /Invalid headcount/);
+  }
 });
 
 test('an update during a scan triggers a fresh count and failed scans are never cached as zero', async () => {
@@ -107,8 +160,9 @@ test('an employee update pushes a new count without a page reload; disconnect cl
   const cache = cacheModule();
   const clock = fakeTimers();
   let count = 10;
+  let cei = 3;
   const streamModule = loadTs('src/lib/headcount-stream.ts', {
-    '@/lib/company-headcount': { readCompanyHeadcount: async () => ({ count, updatedAt: '2026-09-17T08:00:00Z' }) },
+    '@/lib/company-headcount': { readCompanyHeadcount: async () => ({ count, byStation: { CEI: cei }, updatedAt: '2026-09-17T08:00:00Z' }) },
     '@/lib/employeesCache': cache,
   }, clock.globals);
   const abort = new AbortController();
@@ -117,9 +171,12 @@ test('an employee update pushes a new count without a page reload; disconnect cl
   assert.match(await text(), /connected/);
   assert.match(await text(), /"count":10/);
   count = 11;
+  cei = 4;
   cache.invalidateEmployeesCache();
   clock.timers.values().find((timer) => timer.delay === 150).fn();
-  assert.match(await text(), /"count":11/);
+  const update = await text();
+  assert.match(update, /"count":11/);
+  assert.match(update, /"CEI":4/);
   const poll = clock.timers.values().find((timer) => timer.delay === 15_000);
   count = 12;
   poll.fn();

@@ -16,9 +16,14 @@ function loadTs(file, mocks = {}) {
 }
 
 const departure = loadTs('src/app/employees/lib/resignation.ts');
-const headcount = loadTs('src/lib/employee-headcount.ts', { '@/app/employees/lib/resignation': departure });
+const search = loadTs('src/app/employees/lib/search.ts', { './resignation': departure });
+const headcount = loadTs('src/lib/employee-headcount.ts', {
+  '@/app/employees/lib/resignation': departure,
+  '@/app/employees/lib/search': search,
+  '@/app/components/station-map-data': loadTs('src/app/components/station-map-data.ts'),
+});
 const { getActiveEmployees } = loadTs('src/app/employees/lib/employment.ts', { '@/lib/employee-headcount': headcount });
-const { createEmployeeSearch, getEmployeeFilterOptions } = loadTs('src/app/employees/lib/search.ts', { './resignation': departure });
+const { createEmployeeSearch, getEmployeeFilterOptions } = search;
 const { getEmployeeToday } = loadTs('src/app/employees/lib/age.ts', { './resignation': departure });
 const today = '2026-09-18';
 const ids = (rows, date = today) => getActiveEmployees(rows, date).map((row) => row.id);

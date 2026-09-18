@@ -34,6 +34,7 @@
 .headcountCaption { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; font-size: 11px; font-weight: 400; line-height: 1.6; letter-spacing: .025em; }
 .headcountStatus { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; }
 .headcountStatus i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .5; }
+.resetStation { display: block; min-height: 36px; margin: -14px 0 12px; padding: 5px 0; border: 0; background: transparent; color: #0890c0; font-size: 11px; text-decoration: underline; text-underline-offset: 4px; }
 .liveHeadcount[data-status="live"] .headcountStatus i, .liveHeadcount[data-status="auto"] .headcountStatus i { background: #328273; opacity: 1; }
 .heroCopy > p { font-size: 13px; line-height: 1.85; color: var(--muted); }
 .primaryButton { position: relative; display: inline-flex; align-items: center; gap: 14px; min-height: 50px; margin-top: 24px; padding: 12px 20px; border: 1px solid var(--ink); border-radius: 4px; background: var(--ink); color: var(--paper); overflow: hidden; isolation: isolate; font-size: 13px; font-weight: 500; transition: transform .3s, box-shadow .3s, color .7s; }

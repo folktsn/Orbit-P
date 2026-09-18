@@ -31,7 +31,8 @@ export const STATION_LOCATIONS: readonly StationLocation[] = [
   { id: "NST", codes: ["NST"], name: "นครศรีธรรมราช", province: "นครศรีธรรมราช", latitude: 8.539617, longitude: 99.944725, label: [407, 399], labelSide: "right" },
 ];
 
-export const STATION_COUNT = STATION_LOCATIONS.reduce((total, location) => total + location.codes.length, 0);
+export const STATION_CODES = STATION_LOCATIONS.flatMap((location) => location.codes);
+export const STATION_COUNT = STATION_CODES.length;
 export const MAP_VIEWBOX = { x: 230, y: 0, width: 340, height: 570 } as const;
 
 // Same Mercator transform used to draw public/dashboard/thailand.svg.

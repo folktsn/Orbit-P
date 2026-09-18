@@ -3,7 +3,7 @@ import "server-only";
 import { ScanCommand, type NativeAttributeValue } from "@aws-sdk/lib-dynamodb";
 import { docClient } from "@/lib/dynamodb";
 import { getEmployeesRevision } from "@/lib/employeesCache";
-import { HEADCOUNT_FIELDS, isCurrentCompanyEmployee, type HeadcountSnapshot } from "@/lib/employee-headcount";
+import { HEADCOUNT_FIELDS, createHeadcountAccumulator, type HeadcountSnapshot } from "@/lib/employee-headcount";
 import { getEmployeeToday } from "@/app/employees/lib/age";
 
 type HeadcountState = { snapshot?: HeadcountSnapshot; revision?: number; today?: string; inFlight?: Promise<HeadcountSnapshot> };
@@ -11,7 +11,7 @@ const globalCache = globalThis as typeof globalThis & { __orbitCompanyHeadcount?
 const state = globalCache.__orbitCompanyHeadcount ??= {};
 
 async function scanHeadcount(today: string, signal: AbortSignal) {
-  const countedIds = new Set<string>();
+  const counts = createHeadcountAccumulator(today);
   let cursor: Record<string, NativeAttributeValue> | undefined;
   do {
     const response = await docClient.send(new ScanCommand({
@@ -22,11 +22,11 @@ async function scanHeadcount(today: string, signal: AbortSignal) {
       ExpressionAttributeNames: Object.fromEntries(HEADCOUNT_FIELDS.map((field, index) => [`#f${index}`, field])),
     }), { abortSignal: signal });
     for (const employee of response.Items ?? []) {
-      if (isCurrentCompanyEmployee(employee, today)) countedIds.add(String(employee.staff_id).trim());
+      counts.add(employee);
     }
     cursor = response.LastEvaluatedKey;
   } while (cursor);
-  return countedIds.size;
+  return counts.summarize();
 }
 
 export async function readCompanyHeadcount(): Promise<HeadcountSnapshot> {
@@ -41,9 +41,9 @@ export async function readCompanyHeadcount(): Promise<HeadcountSnapshot> {
     for (let attempt = 0; attempt < 3; attempt++) {
       const revision = getEmployeesRevision();
       const scanDate = getEmployeeToday();
-      const count = await scanHeadcount(scanDate, signal);
+      const counts = await scanHeadcount(scanDate, signal);
       if (revision !== getEmployeesRevision() || scanDate !== getEmployeeToday()) continue;
-      state.snapshot = { count, updatedAt: new Date().toISOString() };
+      state.snapshot = { ...counts, updatedAt: new Date().toISOString() };
       state.revision = revision;
       state.today = scanDate;
       return state.snapshot;
