@@ -475,7 +475,7 @@ const NodeCard = ({
   const isMinimal = cardMode === 'minimal';
   const isCompact = cardMode === 'compact';
 
-  // The default chart shares Dashboard's neutral palette; other presets remain available.
+  // Use level colors by default; the slate preset provides a neutral alternative.
   const customStyles = (() => {
     if (themeConfig.neutral) {
       const isTopLevel = isRoot || node.id === 'dept-VP';
@@ -786,7 +786,7 @@ export function OrgChart() {
 
   const dragNodeStartPos = useRef({ x: 0, y: 0 });
   const dragPointerStartPos = useRef({ x: 0, y: 0 });
-  const [chartTheme, setChartTheme] = useState<'emerald' | 'ocean' | 'sunset' | 'grape' | 'slate'>('slate');
+  const [chartTheme, setChartTheme] = useState<'emerald' | 'ocean' | 'sunset' | 'grape' | 'slate'>('emerald');
   const [cardMode, setCardMode] = useState<'detailed' | 'compact' | 'minimal'>('detailed');
   const [spacing, setSpacing] = useState<'compact' | 'normal' | 'spacious'>('normal');
   const [backgroundStyle, setBackgroundStyle] = useState<'dotted' | 'grid' | 'solid'>('dotted');
