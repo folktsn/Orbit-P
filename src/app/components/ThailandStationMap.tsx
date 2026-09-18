@@ -51,8 +51,8 @@ export function ThailandStationMap({ paused }: { paused: boolean }) {
         })}
       </div>
       <div className={styles.detail} id="station-map-detail" aria-live="polite" aria-atomic="true">
-        <Icon size={15} strokeWidth={1.5} aria-hidden="true" />
-        <div><strong>{selected.codes.join(" / ")} <span>· {selected.name}</span></strong><p>{selected.province}{selected.headquarters ? " · ตำแหน่งโดยประมาณ" : selected.codes.length > 1 ? " · 2 Station ในสนามบินเดียวกัน" : " · สนามบินที่มีพนักงานปฏิบัติงาน"}</p></div>
+        <strong><Icon size={15} strokeWidth={1.5} aria-hidden="true" />{selected.codes.join(" / ")} <span>· {selected.name}</span></strong>
+        <p>{selected.province}{selected.headquarters ? " · ตำแหน่งโดยประมาณ" : selected.codes.length > 1 ? " · 2 Station ในสนามบินเดียวกัน" : " · สนามบินที่มีพนักงานปฏิบัติงาน"}</p>
       </div>
       <p className={styles.hint}>{STATION_COUNT} STATIONS <i /> แตะรหัสเพื่อดูสถานี</p>
     </div>
