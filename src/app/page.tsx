@@ -147,7 +147,7 @@ export default function Dashboard() {
       </section>
 
       <section ref={collectionRef} className={styles.collection} aria-labelledby="collection-heading">
-        <motion.div className={styles.bridgeAircraft} initial={reducedMotion ? false : { y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true, margin: "100px" }} transition={{ duration: 1.4, ease: EASE }} aria-hidden="true"><Image src="/dashboard/aircraft.webp" alt="" width={1600} height={800} sizes="(max-width: 760px) 110vw, 75vw" unoptimized /></motion.div>
+        <motion.div className={styles.bridgeAircraft} initial={reducedMotion ? false : { y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true, margin: "100px" }} transition={{ duration: 1.4, ease: EASE }} aria-hidden="true"><Image src="/dashboard/pattaya-aircraft.webp" alt="" width={1774} height={887} sizes="(max-width: 760px) 110vw, 75vw" unoptimized /></motion.div>
         <motion.div className={styles.collectionHeading} {...reveal}>
           <div><span className={styles.sectionIndex}>[ 03 ] &nbsp; YOUR PEOPLE WORKSPACE</span><h2 id="collection-heading">Build the team.<br />Shape what&apos;s next. <span className={styles.headingIcons}><Users /><Plane /><Compass /></span></h2></div>
           <div className={styles.collectionTagline}><p>THE PEOPLE BEHIND THE JOURNEY.<br />THE POSSIBILITY AHEAD.</p><div><span>CONNECTED</span><span>HUMAN</span><span>FORWARD</span></div></div>
