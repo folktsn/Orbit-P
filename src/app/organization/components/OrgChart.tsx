@@ -11,7 +11,7 @@ const themeColors = {
   ocean: { line: "#0ea5e9", card: "bg-[#0284c7]", hover: "hover:bg-[#0369a1]", badgeBg: "bg-sky-50", badgeText: "text-sky-900", ring: "ring-sky-500" },
   sunset: { line: "#f97316", card: "bg-[#ea580c]", hover: "hover:bg-[#c2410c]", badgeBg: "bg-orange-50", badgeText: "text-orange-950", ring: "ring-orange-500" },
   grape: { line: "#8b5cf6", card: "bg-[#7c3aed]", hover: "hover:bg-[#6d28d9]", badgeBg: "bg-violet-50", badgeText: "text-violet-950", ring: "ring-violet-500" },
-  slate: { line: "#64748b", card: "bg-[#475569]", hover: "hover:bg-[#334155]", badgeBg: "bg-slate-100", badgeText: "text-slate-900", ring: "ring-slate-500" }
+  slate: { line: "#a0a09a", card: "bg-action", hover: "hover:opacity-90", badgeBg: "bg-subtle", badgeText: "text-ink", ring: "ring-brand-500", neutral: true }
 };
 
 export interface OrgData {
@@ -475,8 +475,24 @@ const NodeCard = ({
   const isMinimal = cardMode === 'minimal';
   const isCompact = cardMode === 'compact';
 
-  // Premium node type styling matching PDF diagram
+  // The default chart shares Dashboard's neutral palette; other presets remain available.
   const customStyles = (() => {
+    if (themeConfig.neutral) {
+      const isTopLevel = isRoot || node.id === 'dept-VP';
+      return {
+        card: isTopLevel
+          ? "bg-action text-action-foreground border border-action shadow-sm"
+          : node.type === 'department' || node.type === 'station'
+            ? "bg-subtle text-ink border border-line shadow-sm"
+            : "bg-surface text-ink border border-line shadow-sm",
+        hover: "hover:scale-[1.03] hover:shadow-md",
+        text: isTopLevel ? "text-action-foreground font-bold" : "text-ink font-semibold",
+        badgeBg: isTopLevel ? "bg-paper/15 border-current/25" : "bg-paper border-line",
+        badgeText: isTopLevel ? "text-action-foreground" : "text-ink",
+        ring: "ring-brand-500",
+        countText: isTopLevel ? "text-action-foreground" : "text-muted",
+      };
+    }
     switch (node.type) {
       case 'root':
         return {
@@ -594,9 +610,9 @@ const NodeCard = ({
             : isCompact 
               ? "h-11 pl-12 pr-5 min-w-[190px] max-w-[240px]" 
               : "h-12 pl-14 pr-6 min-w-[220px] max-w-[280px]",
-          isEditMode && `ring-2 ${customStyles.ring} ring-offset-2 dark:ring-offset-[#0A0A0A]`,
-          isNodeDragging && "opacity-60 cursor-grabbing border border-indigo-500",
-          isHoveredTarget && "ring-4 ring-purple-600 ring-offset-4 animate-pulse scale-105"
+          isEditMode && `ring-2 ${customStyles.ring} ring-offset-2 dark:ring-offset-paper`,
+          isNodeDragging && "opacity-60 cursor-grabbing border border-brand-500",
+          isHoveredTarget && "ring-4 ring-brand-600 ring-offset-4 animate-pulse scale-105"
         )}
       >
         {/* Absolute circle on the left (Code Badge) */}
@@ -642,7 +658,7 @@ const NodeCard = ({
               e.stopPropagation();
               onAddClick(node);
             }}
-            className="absolute -right-3 -top-3 w-7 h-7 bg-emerald-500 hover:bg-emerald-600 active:scale-90 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-[#0A0A0A] z-30 transition-all"
+            className="absolute -right-3 -top-3 w-7 h-7 bg-action hover:opacity-90 active:scale-90 text-action-foreground rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-line z-30 transition-all"
             title={`Add Position under ${node.label}`}
           >
             <Plus className="w-4 h-4" strokeWidth={3} />
@@ -770,7 +786,7 @@ export function OrgChart() {
 
   const dragNodeStartPos = useRef({ x: 0, y: 0 });
   const dragPointerStartPos = useRef({ x: 0, y: 0 });
-  const [chartTheme, setChartTheme] = useState<'emerald' | 'ocean' | 'sunset' | 'grape' | 'slate'>('emerald');
+  const [chartTheme, setChartTheme] = useState<'emerald' | 'ocean' | 'sunset' | 'grape' | 'slate'>('slate');
   const [cardMode, setCardMode] = useState<'detailed' | 'compact' | 'minimal'>('detailed');
   const [spacing, setSpacing] = useState<'compact' | 'normal' | 'spacious'>('normal');
   const [backgroundStyle, setBackgroundStyle] = useState<'dotted' | 'grid' | 'solid'>('dotted');
@@ -1424,7 +1440,7 @@ export function OrgChart() {
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-white dark:bg-[#0A0A0A]">
+    <div className="flex flex-col w-full h-full bg-white dark:bg-surface">
       {errorMsg && (
         <div className="mx-4 mt-4 flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
           <span>{errorMsg}</span>
@@ -1440,7 +1456,7 @@ export function OrgChart() {
       )}
       
       {/* --- HEADER & TOOLBAR --- */}
-      <div className="flex flex-col border-b border-slate-200 dark:border-white/10 shrink-0 z-40 bg-white dark:bg-[#0A0A0A]">
+      <div className="flex flex-col border-b border-slate-200 dark:border-white/10 shrink-0 z-40 bg-white dark:bg-surface">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center p-4 lg:px-6 lg:py-4 gap-4">
           <div className="flex items-center justify-between w-full lg:w-auto">
             <h1 className="text-xl lg:text-2xl font-semibold text-slate-800 dark:text-white shrink-0 mr-6">Organization Structure</h1>
@@ -1450,8 +1466,8 @@ export function OrgChart() {
                 className={cn(
                   "px-3 py-1.5 text-xs font-medium rounded-md transition-all shadow-sm duration-300",
                   isEditMode 
-                    ? "bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-500 ring-offset-1 dark:ring-offset-[#0A0A0A]" 
-                    : "bg-[#407B6B] hover:bg-[#2C574B] text-white"
+                    ? "bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-500 ring-offset-1 dark:ring-offset-paper"
+                    : "bg-action hover:opacity-90 text-action-foreground"
                 )}
               >
                 {isEditMode ? "Exit Edit" : "Edit Structure"}
@@ -1471,7 +1487,7 @@ export function OrgChart() {
                 placeholder="Search name, position..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md pl-9 pr-8 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm transition-shadow"
+                className="w-full h-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md pl-9 pr-8 text-sm text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm transition-shadow"
               />
               {searchQuery && (
                 <button 
@@ -1494,7 +1510,7 @@ export function OrgChart() {
                 setSelectedSection("");
                 setSelectedUnit("");
               }}
-              className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
+              className="h-9 bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
               <option value="">Department</option>
               {departmentsList.map(dept => (
@@ -1510,7 +1526,7 @@ export function OrgChart() {
                 setSelectedSection("");
                 setSelectedUnit("");
               }}
-              className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
+              className="h-9 bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
               <option value="">Division</option>
               {divisionsList.map(div => (
@@ -1525,7 +1541,7 @@ export function OrgChart() {
                 setSelectedSection("");
                 setSelectedUnit("");
               }}
-              className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
+              className="h-9 bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
               <option value="">Station</option>
               {stationsList.map(sta => (
@@ -1539,7 +1555,7 @@ export function OrgChart() {
                 setSelectedSection(e.target.value);
                 setSelectedUnit("");
               }}
-              className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
+              className="h-9 bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
               <option value="">Section</option>
               {sectionsList.map(sec => (
@@ -1550,7 +1566,7 @@ export function OrgChart() {
             <select
               value={selectedUnit}
               onChange={(e) => setSelectedUnit(e.target.value)}
-              className="h-9 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
+              className="h-9 bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2.5 text-[13px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer w-[140px] shrink-0 truncate"
             >
               <option value="">Unit</option>
               {unitsList.map(unit => (
@@ -1569,7 +1585,7 @@ export function OrgChart() {
                   setSelectedUnit("");
                   setSearchQuery("");
                 }}
-                className="h-9 px-3 flex items-center justify-center text-rose-500 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md hover:bg-rose-50 dark:hover:bg-rose-500/10 shadow-sm transition-colors shrink-0 text-[13px] font-medium"
+                className="h-9 px-3 flex items-center justify-center text-rose-500 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md hover:bg-rose-50 dark:hover:bg-rose-500/10 shadow-sm transition-colors shrink-0 text-[13px] font-medium"
               >
                 Clear
               </button>
@@ -1579,7 +1595,7 @@ export function OrgChart() {
             <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-0.5 hidden lg:block"></div>
 
             {/* Zoom Controls */}
-            <div className="flex items-center gap-1 bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md p-0.5 shadow-sm h-9 shrink-0">
+            <div className="flex items-center gap-1 bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md p-0.5 shadow-sm h-9 shrink-0">
               <button onClick={handleZoomOut} className="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 rounded transition-colors"><Minus className="w-3.5 h-3.5" /></button>
               <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 min-w-[2.5rem] text-center">{Math.round(scale * 100)}%</span>
               <button onClick={handleZoomIn} className="w-7 h-7 flex items-center justify-center text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 rounded transition-colors"><Plus className="w-3.5 h-3.5" /></button>
@@ -1591,19 +1607,19 @@ export function OrgChart() {
                 type="button"
                 onClick={() => fetchOrg(true)}
                 disabled={isRefreshing}
-                className="h-9 px-3 flex items-center justify-center gap-1.5 text-sky-600 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/10 border border-sky-100 dark:border-sky-500/20 rounded-md hover:bg-sky-100 dark:hover:bg-sky-500/20 shadow-sm transition-colors disabled:opacity-70 text-[13px] font-semibold"
+                className="h-9 px-3 flex items-center justify-center gap-1.5 text-brand-600 dark:text-brand-300 bg-brand-50 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20 rounded-md hover:bg-brand-100 dark:hover:bg-brand-500/20 shadow-sm transition-colors disabled:opacity-70 text-[13px] font-semibold"
                 title="Refresh organization data"
               >
                 <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
                 Refresh
               </button>
-              <button className="w-9 h-9 flex items-center justify-center text-slate-500 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md hover:bg-slate-50 dark:hover:bg-white/5 shadow-sm transition-colors">
+              <button className="w-9 h-9 flex items-center justify-center text-slate-500 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md hover:bg-slate-50 dark:hover:bg-white/5 shadow-sm transition-colors">
                 <Send className="w-4 h-4" />
               </button>
-              <button className="w-9 h-9 flex items-center justify-center text-slate-500 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md hover:bg-slate-50 dark:hover:bg-white/5 shadow-sm transition-colors">
+              <button className="w-9 h-9 flex items-center justify-center text-slate-500 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md hover:bg-slate-50 dark:hover:bg-white/5 shadow-sm transition-colors">
                 <Download className="w-4 h-4" />
               </button>
-              <button className="w-9 h-9 flex items-center justify-center text-slate-500 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md hover:bg-slate-50 dark:hover:bg-white/5 shadow-sm transition-colors">
+              <button className="w-9 h-9 flex items-center justify-center text-slate-500 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md hover:bg-slate-50 dark:hover:bg-white/5 shadow-sm transition-colors">
                 <Printer className="w-4 h-4" />
               </button>
               {isEditMode && (
@@ -1628,7 +1644,7 @@ export function OrgChart() {
                     });
                     setIsAddModalOpen(true);
                   }}
-                  className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-medium rounded-md transition-all shadow-sm flex items-center gap-1.5 ml-2"
+                  className="px-4 py-1.5 bg-action hover:opacity-90 text-action-foreground text-[13px] font-medium rounded-md transition-all shadow-sm flex items-center gap-1.5 ml-2"
                 >
                   <Plus className="w-4 h-4" /> Add Position
                 </button>
@@ -1638,8 +1654,8 @@ export function OrgChart() {
                 className={cn(
                   "px-4 py-1.5 text-[13px] font-medium rounded-md transition-all shadow-sm duration-300 ml-2",
                   isEditMode 
-                    ? "bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-500 ring-offset-2 dark:ring-offset-[#0A0A0A]" 
-                    : "bg-[#407B6B] hover:bg-[#2C574B] text-white"
+                    ? "bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-500 ring-offset-2 dark:ring-offset-paper"
+                    : "bg-action hover:opacity-90 text-action-foreground"
                 )}
               >
                 {isEditMode ? "Exit Edit Mode" : "Edit Structure"}
@@ -1649,8 +1665,8 @@ export function OrgChart() {
                 className={cn(
                   "px-4 py-1.5 text-[13px] font-medium rounded-md transition-all shadow-sm duration-300 ml-2 flex items-center gap-1.5 border border-slate-200 dark:border-white/10",
                   isCustomizerOpen 
-                    ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
-                    : "bg-white dark:bg-[#121212] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                    ? "bg-brand-600 hover:bg-brand-700 text-white"
+                    : "bg-white dark:bg-surface text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
                 )}
               >
                 <Sliders className="w-4 h-4" /> Appearance
@@ -1664,7 +1680,7 @@ export function OrgChart() {
       {/* --- NATIVE INFINITE CANVAS --- */}
       <div className={cn(
         "relative flex-1 w-full overflow-hidden transition-all duration-300",
-        backgroundStyle === 'dotted' ? "bg-dotted" : backgroundStyle === 'grid' ? "bg-grid" : "bg-solid bg-slate-50/50 dark:bg-[#0B0B0B]"
+        backgroundStyle === 'dotted' ? "bg-dotted" : backgroundStyle === 'grid' ? "bg-grid" : "bg-solid bg-slate-50/50 dark:bg-surface"
       )}>
       <div
         ref={containerRef}
@@ -1801,7 +1817,7 @@ export function OrgChart() {
             <motion.div 
               animate={{ rotate: 360 }} 
               transition={{ repeat: Infinity, ease: "linear", duration: 1 }} 
-              className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full mb-4"
+              className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full mb-4"
             />
             <h4 className="font-bold text-slate-800 dark:text-white text-sm">Saving Hierarchy Changes...</h4>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Updating positions and reorganizing structure</p>
@@ -1848,10 +1864,10 @@ export function OrgChart() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.3 }}
-              className="relative w-full max-w-2xl bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden z-10"
+              className="relative w-full max-w-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden z-10"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-[#121212]">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-surface">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                     <Plus className="w-4 h-4" />
@@ -1888,7 +1904,7 @@ export function OrgChart() {
                         required
                         value={prefilledAddForm.position_en || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, position_en: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                         placeholder="e.g. Flight Operations Manager"
                       />
                     </div>
@@ -1898,7 +1914,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.position_th || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, position_th: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                         placeholder="e.g. ผู้จัดการฝ่ายปฏิบัติการบิน"
                       />
                     </div>
@@ -1915,7 +1931,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.department_en || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, department_en: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                     <div>
@@ -1924,7 +1940,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.department_th || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, department_th: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                     <div>
@@ -1933,7 +1949,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.department_code || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, department_code: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                         placeholder="e.g. OD"
                       />
                     </div>
@@ -1946,7 +1962,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.division_en || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, division_en: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                     <div>
@@ -1955,7 +1971,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.division_th || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, division_th: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                     <div>
@@ -1964,7 +1980,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.division_code || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, division_code: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                         placeholder="e.g. FD"
                       />
                     </div>
@@ -1981,7 +1997,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.section_en || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, section_en: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                     <div>
@@ -1990,7 +2006,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.section_th || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, section_th: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                     <div>
@@ -1999,7 +2015,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.section_code || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, section_code: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                   </div>
@@ -2011,7 +2027,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.unit_en || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, unit_en: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                     <div>
@@ -2020,7 +2036,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.unit_th || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, unit_th: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                     <div>
@@ -2029,7 +2045,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.unit_code || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, unit_code: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                       />
                     </div>
                   </div>
@@ -2045,7 +2061,7 @@ export function OrgChart() {
                         type="text"
                         value={prefilledAddForm.station || ""}
                         onChange={(e) => setPrefilledAddForm({ ...prefilledAddForm, station: e.target.value })}
-                        className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
+                        className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:text-white"
                         placeholder="e.g. DMK, BKK, HKT"
                       />
                     </div>
@@ -2053,7 +2069,7 @@ export function OrgChart() {
                 </div>
 
                 {/* Footer buttons */}
-                <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex justify-end gap-3 bg-white dark:bg-[#0A0A0A] sticky bottom-0 z-10 py-2">
+                <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex justify-end gap-3 bg-white dark:bg-surface sticky bottom-0 z-10 py-2">
                   <button
                     type="button"
                     disabled={isSaving}
@@ -2068,7 +2084,7 @@ export function OrgChart() {
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="flex items-center gap-1.5 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-5 py-2 bg-action hover:opacity-90 text-action-foreground text-sm font-medium rounded-lg transition-colors shadow-sm disabled:opacity-50"
                   >
                     {isSaving && <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, ease: "linear", duration: 1 }} className="w-4 h-4 border-2 border-white border-t-transparent rounded-full" />}
                     Save Position
@@ -2087,12 +2103,12 @@ export function OrgChart() {
             initial={{ opacity: 0, x: 50, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 50, scale: 0.95 }}
-            className="fixed top-36 right-6 z-40 w-80 bg-white/95 dark:bg-[#0A0A0A]/95 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl backdrop-blur-md p-5 flex flex-col max-h-[72vh] overflow-y-auto select-none gap-5 custom-scrollbar"
+            className="fixed top-36 right-6 z-40 w-80 bg-white/95 dark:bg-surface/95 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl backdrop-blur-md p-5 flex flex-col max-h-[72vh] overflow-y-auto select-none gap-5 custom-scrollbar"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3 shrink-0">
               <div className="flex items-center gap-2">
-                <Palette className="w-4 h-4 text-indigo-500" />
+                <Palette className="w-4 h-4 text-brand-500" />
                 <h4 className="font-bold text-sm text-slate-900 dark:text-white">ปรับแต่งการแสดงผล</h4>
               </div>
               <button 
@@ -2120,7 +2136,7 @@ export function OrgChart() {
                       className={cn(
                         "py-1.5 px-1 rounded-lg text-[10px] font-semibold border text-center transition-all",
                         layoutMode === mode
-                          ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                          ? "bg-brand-50 dark:bg-brand-950/30 border-brand-500 text-brand-600 dark:text-brand-400 shadow-sm"
                           : "bg-transparent border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
                       )}
                     >
@@ -2157,9 +2173,9 @@ export function OrgChart() {
                       key={t}
                       onClick={() => setChartTheme(t)}
                       className={cn(
-                        "w-10 h-10 rounded-full transition-all border-2 border-white dark:border-[#0A0A0A] shadow-sm shrink-0",
+                        "w-10 h-10 rounded-full transition-all border-2 border-white dark:border-line shadow-sm shrink-0",
                         colors[t],
-                        chartTheme === t ? "ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-[#0A0A0A] scale-110" : "opacity-80 hover:opacity-100"
+                        chartTheme === t ? "ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-paper scale-110" : "opacity-80 hover:opacity-100"
                       )}
                       title={t.charAt(0).toUpperCase() + t.slice(1)}
                     />
@@ -2185,7 +2201,7 @@ export function OrgChart() {
                       className={cn(
                         "px-2 py-1.5 rounded-lg text-xs font-medium border text-center capitalize transition-all",
                         cardMode === mode
-                          ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                          ? "bg-brand-50 dark:bg-brand-950/30 border-brand-500 text-brand-600 dark:text-brand-400 shadow-sm"
                           : "bg-transparent border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
                       )}
                     >
@@ -2213,7 +2229,7 @@ export function OrgChart() {
                       className={cn(
                         "px-2 py-1.5 rounded-lg text-xs font-medium border text-center capitalize transition-all",
                         spacing === density
-                          ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                          ? "bg-brand-50 dark:bg-brand-950/30 border-brand-500 text-brand-600 dark:text-brand-400 shadow-sm"
                           : "bg-transparent border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
                       )}
                     >
@@ -2241,7 +2257,7 @@ export function OrgChart() {
                       className={cn(
                         "px-2 py-1.5 rounded-lg text-xs font-medium border text-center capitalize transition-all",
                         backgroundStyle === bg
-                          ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                          ? "bg-brand-50 dark:bg-brand-950/30 border-brand-500 text-brand-600 dark:text-brand-400 shadow-sm"
                           : "bg-transparent border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
                       )}
                     >
@@ -2272,7 +2288,7 @@ export function OrgChart() {
                       className={cn(
                         "px-2 py-1.5 rounded-lg text-xs font-medium border text-center capitalize transition-all",
                         lineStyle === style
-                          ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                          ? "bg-brand-50 dark:bg-brand-950/30 border-brand-500 text-brand-600 dark:text-brand-400 shadow-sm"
                           : "bg-transparent border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
                       )}
                     >
@@ -2294,7 +2310,7 @@ export function OrgChart() {
                     className={cn(
                       "py-1.5 rounded-lg text-xs font-medium border text-center transition-all",
                       lineWidth === width
-                        ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                        ? "bg-brand-50 dark:bg-brand-950/30 border-brand-500 text-brand-600 dark:text-brand-400 shadow-sm"
                         : "bg-transparent border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
                     )}
                   >
@@ -2319,7 +2335,7 @@ export function OrgChart() {
                     className={cn(
                       "px-1 py-1.5 rounded-lg text-xs font-medium border text-center transition-all",
                       lineRadius === opt.value
-                        ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                        ? "bg-brand-50 dark:bg-brand-950/30 border-brand-500 text-brand-600 dark:text-brand-400 shadow-sm"
                         : "bg-transparent border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
                     )}
                   >
@@ -2332,7 +2348,7 @@ export function OrgChart() {
             {/* Custom Line Color Picker */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">สีของเส้นเชื่อม</label>
-              <div className="flex items-center gap-3 bg-slate-50 dark:bg-[#121212] border border-slate-100 dark:border-white/5 p-2 rounded-xl">
+              <div className="flex items-center gap-3 bg-slate-50 dark:bg-surface border border-slate-100 dark:border-white/5 p-2 rounded-xl">
                 <input 
                   type="color" 
                   value={customLineColor || themeColors[chartTheme].line} 

@@ -52,11 +52,11 @@ export function KanbanBoard({
                     draggable
                     onDragStart={(e) => onDragStart(e as unknown as React.DragEvent, candidate.id)}
                     onClick={() => onSelectCandidate(candidate)}
-                    className="bg-white dark:bg-[#1e293b] border border-slate-100 dark:border-slate-700 rounded-2xl shadow-sm p-4 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow group"
+                    className="bg-white dark:bg-surface border border-slate-100 dark:border-slate-700 rounded-2xl shadow-sm p-4 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow group"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-semibold text-slate-900 dark:text-slate-100">{candidate.name}</h4>
-                      <div className="flex items-center gap-1 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-full px-2 py-0.5 text-xs font-bold">
+                      <div className="flex items-center gap-1 bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-full px-2 py-0.5 text-xs font-bold">
                         <Sparkles className="w-3 h-3" />
                         {candidate.score}
                       </div>

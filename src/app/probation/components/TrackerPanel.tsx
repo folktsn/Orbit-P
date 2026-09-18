@@ -8,7 +8,7 @@ export function TrackerPanel() {
     <div className="space-y-6">
       <Card className="border-t-4 border-t-purple-500 border-x-slate-100 dark:border-x-slate-800 border-b-slate-100 dark:border-b-slate-800">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full flex items-center justify-center text-xl font-bold">
+          <div className="w-12 h-12 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-full flex items-center justify-center text-xl font-bold">
             J
           </div>
           <div>
@@ -34,12 +34,12 @@ export function TrackerPanel() {
             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-100 dark:bg-emerald-500/20 px-2 py-1 rounded-md">เสร็จสิ้น</span>
           </div>
 
-          <div className="flex justify-between items-center p-3 border border-purple-200 dark:border-purple-500/20 bg-purple-50 dark:bg-purple-500/10 rounded-xl">
+          <div className="flex justify-between items-center p-3 border border-brand-200 dark:border-brand-500/20 bg-brand-50 dark:bg-brand-500/10 rounded-xl">
             <div className="flex items-center gap-3">
-              <Activity className="w-5 h-5 text-purple-500 dark:text-purple-400 animate-pulse" />
-              <span className="font-medium text-purple-900 dark:text-purple-100">การประเมิน 90 วัน</span>
+              <Activity className="w-5 h-5 text-brand-500 dark:text-brand-400 animate-pulse" />
+              <span className="font-medium text-brand-900 dark:text-brand-100">การประเมิน 90 วัน</span>
             </div>
-            <span className="text-xs text-purple-700 dark:text-purple-400 font-semibold bg-purple-100 dark:bg-purple-500/20 px-2 py-1 rounded-md">ครบกำหนดวันนี้</span>
+            <span className="text-xs text-brand-700 dark:text-brand-400 font-semibold bg-brand-100 dark:bg-brand-500/20 px-2 py-1 rounded-md">ครบกำหนดวันนี้</span>
           </div>
         </div>
 

@@ -37,8 +37,8 @@ export function BudgetOverview({
             </span>
           </div>
           <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex">
-            <div className="h-full bg-blue-500" style={{ width: `${(headcount / budgetLimit) * 100}%` }} />
-            <div className={cn("h-full", isOverBudget ? "bg-red-500" : "bg-purple-500")} style={{ width: `${(requestCount / budgetLimit) * 100}%` }} />
+            <div className="h-full bg-brand-900 dark:bg-brand-200" style={{ width: `${(headcount / budgetLimit) * 100}%` }} />
+            <div className={cn("h-full", isOverBudget ? "bg-red-500" : "bg-brand-400 dark:bg-brand-600")} style={{ width: `${(requestCount / budgetLimit) * 100}%` }} />
           </div>
         </div>
       </div>

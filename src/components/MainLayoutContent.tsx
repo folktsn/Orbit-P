@@ -34,7 +34,7 @@ export function MainLayoutContent({ children }: { children: React.ReactNode }) {
       <h1 className="mt-4 text-lg font-semibold">ไม่มีสิทธิ์เข้าถึงหน้านี้</h1>
       <p className="mt-2 text-sm text-slate-500">กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์</p>
       <nav aria-label="หน้าที่เข้าถึงได้" className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-3">
-        {PAGE_DEFINITIONS.filter(({ key }) => canPage(key)).map((page) => <Link key={page.key} href={page.href} className="text-sm font-medium text-sky-600 hover:underline">{page.name}</Link>)}
+        {PAGE_DEFINITIONS.filter(({ key }) => canPage(key)).map((page) => <Link key={page.key} href={page.href} className="text-sm font-medium text-brand-600 hover:underline">{page.name}</Link>)}
       </nav>
     </section>
   ) : children;

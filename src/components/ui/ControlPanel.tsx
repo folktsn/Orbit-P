@@ -52,7 +52,7 @@ export function ControlPanel({ onOpen }: { onOpen: () => void }) {
               )}
               {showQuality && (
                 <Link href="/data-quality" className="control-shortcut" aria-current={pathname === "/data-quality" ? "page" : undefined} onClick={() => setOpen(false)}>
-                  <ClipboardCheck className="h-5 w-5 text-sky-600 dark:text-sky-400" aria-hidden="true" />
+                  <ClipboardCheck className="h-5 w-5 text-brand-600 dark:text-brand-400" aria-hidden="true" />
                   <span>Quality</span>
                   <ChevronRight size={16} aria-hidden="true" />
                 </Link>

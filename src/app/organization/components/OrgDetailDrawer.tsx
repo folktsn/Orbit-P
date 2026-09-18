@@ -110,12 +110,12 @@ export function OrgDetailDrawer({ isOpen, onClose, node, onUpdate, isEditMode = 
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-[#0A0A0A] shadow-2xl border-l border-slate-200 dark:border-white/10 z-50 flex flex-col overflow-hidden"
+            className="fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-surface shadow-2xl border-l border-slate-200 dark:border-white/10 z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-[#121212]">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-surface">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center">
                   {node.type === 'department' ? <Building2 className="w-5 h-5" /> :
                    node.type === 'division' ? <Layers className="w-5 h-5" /> :
                    <Users className="w-5 h-5" />}
@@ -137,12 +137,12 @@ export function OrgDetailDrawer({ isOpen, onClose, node, onUpdate, isEditMode = 
               
               {/* Profile Card Summary */}
               <div className="bg-white dark:bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 to-brand-500" />
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">{node.label}</h3>
                 {node.subLabel && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{node.subLabel}</p>}
                 
                 <div className="mt-4 flex items-center gap-2">
-                  <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-full flex items-center gap-1.5">
+                  <span className="px-3 py-1 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-xs font-semibold rounded-full flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5" />
                     {node.count} Positions Total
                   </span>
@@ -162,9 +162,9 @@ export function OrgDetailDrawer({ isOpen, onClose, node, onUpdate, isEditMode = 
 
                     if (isEditing) {
                       return (
-                        <div key={item.id} className="bg-white dark:bg-[#1A1A1A] border-2 border-blue-500 rounded-xl p-4 shadow-md space-y-3">
+                        <div key={item.id} className="bg-white dark:bg-[#1A1A1A] border-2 border-brand-500 rounded-xl p-4 shadow-md space-y-3">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-bold text-blue-500 uppercase tracking-wider">Editing Position</span>
+                            <span className="text-xs font-bold text-brand-500 uppercase tracking-wider">Editing Position</span>
                             <div className="flex gap-2">
                               <button onClick={cancelEditing} disabled={isSaving} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-50">
                                 <X className="w-4 h-4" />
@@ -177,11 +177,11 @@ export function OrgDetailDrawer({ isOpen, onClose, node, onUpdate, isEditMode = 
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Position (EN)</label>
-                                <input type="text" value={editForm.position_en || ""} onChange={e => handleChange("position_en", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.position_en || ""} onChange={e => handleChange("position_en", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Position (TH)</label>
-                                <input type="text" value={editForm.position_th || ""} onChange={e => handleChange("position_th", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.position_th || ""} onChange={e => handleChange("position_th", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                             </div>
 
@@ -189,11 +189,11 @@ export function OrgDetailDrawer({ isOpen, onClose, node, onUpdate, isEditMode = 
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Department (EN)</label>
-                                <input type="text" value={editForm.department_en || ""} onChange={e => handleChange("department_en", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.department_en || ""} onChange={e => handleChange("department_en", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Department (TH)</label>
-                                <input type="text" value={editForm.department_th || ""} onChange={e => handleChange("department_th", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.department_th || ""} onChange={e => handleChange("department_th", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                             </div>
 
@@ -201,11 +201,11 @@ export function OrgDetailDrawer({ isOpen, onClose, node, onUpdate, isEditMode = 
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Division (EN)</label>
-                                <input type="text" value={editForm.division_en || ""} onChange={e => handleChange("division_en", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.division_en || ""} onChange={e => handleChange("division_en", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Division (TH)</label>
-                                <input type="text" value={editForm.division_th || ""} onChange={e => handleChange("division_th", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.division_th || ""} onChange={e => handleChange("division_th", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                             </div>
 
@@ -213,11 +213,11 @@ export function OrgDetailDrawer({ isOpen, onClose, node, onUpdate, isEditMode = 
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Section (EN)</label>
-                                <input type="text" value={editForm.section_en || ""} onChange={e => handleChange("section_en", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.section_en || ""} onChange={e => handleChange("section_en", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Section (TH)</label>
-                                <input type="text" value={editForm.section_th || ""} onChange={e => handleChange("section_th", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.section_th || ""} onChange={e => handleChange("section_th", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                             </div>
 
@@ -225,25 +225,25 @@ export function OrgDetailDrawer({ isOpen, onClose, node, onUpdate, isEditMode = 
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Unit (EN)</label>
-                                <input type="text" value={editForm.unit_en || ""} onChange={e => handleChange("unit_en", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.unit_en || ""} onChange={e => handleChange("unit_en", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                               <div>
                                 <label className="text-xs text-slate-500 block mb-1">Unit (TH)</label>
-                                <input type="text" value={editForm.unit_th || ""} onChange={e => handleChange("unit_th", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.unit_th || ""} onChange={e => handleChange("unit_th", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                               </div>
                             </div>
 
                             {/* Station */}
                             <div>
                                 <label className="text-xs text-slate-500 block mb-1">Station</label>
-                                <input type="text" value={editForm.station || ""} onChange={e => handleChange("station", e.target.value)} className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                <input type="text" value={editForm.station || ""} onChange={e => handleChange("station", e.target.value)} className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500" />
                             </div>
 
                           </div>
 
                           <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex justify-end gap-2">
                             <button onClick={cancelEditing} disabled={isSaving} className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5 rounded transition-colors disabled:opacity-50">Cancel</button>
-                            <button onClick={() => handleSave(item.id)} disabled={isSaving} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded transition-colors disabled:opacity-50">
+                            <button onClick={() => handleSave(item.id)} disabled={isSaving} className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white text-xs font-medium rounded transition-colors disabled:opacity-50">
                               {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                               Save
                             </button>
@@ -276,7 +276,7 @@ export function OrgDetailDrawer({ isOpen, onClose, node, onUpdate, isEditMode = 
                             )}
                             <button 
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); startEditing(item); }}
-                              className="p-1.5 bg-white dark:bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-md text-slate-400 hover:text-blue-500 shadow-sm transition-colors"
+                              className="p-1.5 bg-white dark:bg-[#1A1A1A] border border-slate-200 dark:border-white/10 rounded-md text-slate-400 hover:text-brand-500 shadow-sm transition-colors"
                               title="Edit Position"
                             >
                               <Edit2 className="w-3.5 h-3.5" />

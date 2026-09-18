@@ -2,13 +2,34 @@
 
 @layer base {
   :root {
-    --scrollbar-thumb: #9eb7bc;
-    --scrollbar-thumb-hover: #73969c;
+    /* Dashboard palette shared by every workspace, form and overlay. */
+    --ui-paper: #fcfcfa;
+    --ui-surface: #ffffff;
+    --ui-subtle: #efefeb;
+    --ui-ink: #151515;
+    --ui-muted: #737371;
+    --ui-line: #deded9;
+    --ui-line-strong: #b9b9b2;
+    --ui-action: #151515;
+    --ui-action-text: #fcfcfa;
+    --ui-status: #328273;
+    --scrollbar-thumb: #c4c4bd;
+    --scrollbar-thumb-hover: #95958e;
   }
 
   :root.dark {
-    --scrollbar-thumb: #45615f;
-    --scrollbar-thumb-hover: #6b9791;
+    --ui-paper: #181818;
+    --ui-surface: #202020;
+    --ui-subtle: #292929;
+    --ui-ink: #f0f0ec;
+    --ui-muted: #aaa9a3;
+    --ui-line: #393936;
+    --ui-line-strong: #62625d;
+    --ui-action: #f0f0ec;
+    --ui-action-text: #181818;
+    --ui-status: #80bbab;
+    --scrollbar-thumb: #4e4e49;
+    --scrollbar-thumb-hover: #73736d;
   }
 
   * {
@@ -54,14 +75,47 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-paper: var(--ui-paper);
+  --color-surface: var(--ui-surface);
+  --color-subtle: var(--ui-subtle);
+  --color-ink: var(--ui-ink);
+  --color-muted: var(--ui-muted);
+  --color-line: var(--ui-line);
+  --color-action: var(--ui-action);
+  --color-action-foreground: var(--ui-action-text);
+  /* Neutralize the existing slate utilities without changing status colors. */
+  --color-slate-50: #fcfcfa;
+  --color-slate-100: #efefeb;
+  --color-slate-200: #deded9;
+  --color-slate-300: #c8c8c1;
+  --color-slate-400: #999991;
+  --color-slate-500: #737371;
+  --color-slate-600: #555550;
+  --color-slate-700: #41413d;
+  --color-slate-800: #292929;
+  --color-slate-850: #242424;
+  --color-slate-900: #181818;
+  --color-slate-950: #151515;
+  /* Decorative accents use graphite; success, warning and danger stay semantic. */
+  --color-brand-50: #f6f6f3;
+  --color-brand-100: #efefeb;
+  --color-brand-200: #deded9;
+  --color-brand-300: #c8c8c1;
+  --color-brand-400: #aaa9a3;
+  --color-brand-500: #737371;
+  --color-brand-600: #555550;
+  --color-brand-700: #41413d;
+  --color-brand-800: #292929;
+  --color-brand-900: #181818;
+  --color-brand-950: #151515;
   --font-sans: var(--font-inter), var(--font-sukhumvit), sans-serif;
   --font-mono: var(--font-inter), var(--font-sukhumvit), sans-serif;
   --font-serif: var(--font-inter), var(--font-sukhumvit), sans-serif;
 }
 
 @utility glass {
-  background: white;
-  border: 1px solid #E2E8F0;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-line);
 }
 
 @utility text-glow {
@@ -79,7 +133,7 @@
 
 /* Organizational Chart Tree Lines */
 .org-tree {
-  --line-color: #10b981;
+  --line-color: var(--ui-line-strong);
   --line-style: solid;
   --line-width: 2px;
   --line-radius: 0px;
@@ -308,23 +362,23 @@
 
 /* BACKGROUND STYLES */
 .bg-dotted {
-  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-image: radial-gradient(var(--ui-line-strong) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 .dark .bg-dotted {
-  background-image: radial-gradient(#334155 1px, transparent 1px);
+  background-image: radial-gradient(var(--ui-line-strong) 1px, transparent 1px);
 }
 
 .bg-grid {
   background-image: 
-    linear-gradient(to right, #e2e8f0 1px, transparent 1px),
-    linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
+    linear-gradient(to right, var(--ui-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--ui-line) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 .dark .bg-grid {
   background-image: 
-    linear-gradient(to right, #1e293b 1px, transparent 1px),
-    linear-gradient(to bottom, #1e293b 1px, transparent 1px);
+    linear-gradient(to right, var(--ui-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--ui-line) 1px, transparent 1px);
 }
 
 .bg-solid {

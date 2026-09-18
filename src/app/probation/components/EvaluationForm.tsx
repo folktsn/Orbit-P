@@ -43,7 +43,7 @@ export function EvaluationForm({
                     key={s}
                     className={cn(
                       "w-8 h-2 rounded-full transition-colors duration-300",
-                      s === step ? "bg-purple-500" : s < step ? "bg-emerald-500" : "bg-slate-200 dark:bg-slate-700"
+                      s === step ? "bg-brand-500" : s < step ? "bg-emerald-500" : "bg-slate-200 dark:bg-slate-700"
                     )}
                   />
                 ))}
@@ -66,23 +66,23 @@ export function EvaluationForm({
                         <div>
                           <label className="text-sm text-slate-500 dark:text-slate-400 flex justify-between">
                             <span>คุณภาพงาน</span>
-                            <span className="text-purple-600 dark:text-purple-400 font-medium">4/5</span>
+                            <span className="text-brand-600 dark:text-brand-400 font-medium">4/5</span>
                           </label>
-                          <input type="range" min="1" max="5" defaultValue="4" className="w-full accent-purple-600" />
+                          <input type="range" min="1" max="5" defaultValue="4" className="w-full accent-brand-600" />
                         </div>
                         <div>
                           <label className="text-sm text-slate-500 dark:text-slate-400 flex justify-between">
                             <span>การปฏิบัติตามกฎความปลอดภัย</span>
-                            <span className="text-purple-600 dark:text-purple-400 font-medium">5/5</span>
+                            <span className="text-brand-600 dark:text-brand-400 font-medium">5/5</span>
                           </label>
-                          <input type="range" min="1" max="5" defaultValue="5" className="w-full accent-purple-600" />
+                          <input type="range" min="1" max="5" defaultValue="5" className="w-full accent-brand-600" />
                         </div>
                         <div>
                           <label className="text-sm text-slate-500 dark:text-slate-400 flex justify-between">
                             <span>การทำงานร่วมกับทีม</span>
-                            <span className="text-purple-600 dark:text-purple-400 font-medium">3/5</span>
+                            <span className="text-brand-600 dark:text-brand-400 font-medium">3/5</span>
                           </label>
-                          <input type="range" min="1" max="5" defaultValue="3" className="w-full accent-purple-600" />
+                          <input type="range" min="1" max="5" defaultValue="3" className="w-full accent-brand-600" />
                         </div>
                       </div>
                     </div>
@@ -101,7 +101,7 @@ export function EvaluationForm({
                     <textarea
                       rows={6}
                       placeholder="ให้ความเห็นเกี่ยวกับผลการทำงานของพนักงานในช่วง 90 วันที่ผ่านมา..."
-                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 resize-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </motion.div>
                 )}
@@ -161,7 +161,7 @@ export function EvaluationForm({
               {step < 3 ? (
                 <button
                   onClick={handleNext}
-                  className="px-6 py-2 bg-[#0F172A] dark:bg-blue-600 text-white rounded-xl font-semibold hover:bg-slate-800 dark:hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
+                  className="px-6 py-2 bg-action text-action-foreground rounded-xl font-semibold hover:opacity-90 transition-colors flex items-center gap-2 shadow-sm"
                 >
                   ถัดไป <ArrowRight className="w-4 h-4" />
                 </button>
@@ -169,7 +169,7 @@ export function EvaluationForm({
                 <button
                   onClick={handleProcessOutcome}
                   disabled={!selectedOutcome || isProcessing}
-                  className="px-8 py-2 bg-[#0F172A] dark:bg-blue-600 text-white rounded-xl font-semibold hover:bg-slate-800 dark:hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+                  className="px-8 py-2 bg-action text-action-foreground rounded-xl font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
                 >
                   {isProcessing ? (
                     <span className="animate-pulse">กำลังประมวลผล...</span>

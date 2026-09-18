@@ -1,14 +1,13 @@
 .page {
-  --paper: #fcfcfa;
-  --ink: #151515;
-  --muted: #737371;
-  --line: #deded9;
+  --paper: var(--ui-paper);
+  --ink: var(--ui-ink);
+  --muted: var(--ui-muted);
+  --line: var(--ui-line);
   --gutter: clamp(24px, 4.5vw, 88px);
   --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
   width: 100%; color: var(--ink); background: var(--paper); overflow-x: clip;
   font-family: var(--font-inter), var(--font-sukhumvit), sans-serif;
 }
-:global(.dark) .page { --paper: #181818; --ink: #f0f0ec; --muted: #aaa9a3; --line: #393936; }
 .page ::selection { color: var(--paper); background: var(--ink); }
 .page button, .page a { -webkit-tap-highlight-color: transparent; }
 .page button { cursor: pointer; }

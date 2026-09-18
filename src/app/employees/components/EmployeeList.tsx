@@ -78,7 +78,7 @@ const getInitials = (name: string) => {
 
 // Helper to assign a random color class based on ID
 const getColorClass = (id: string) => {
-  const colors = ["bg-emerald-500", "bg-blue-500", "bg-pink-500", "bg-amber-500", "bg-purple-500", "bg-rose-500", "bg-indigo-500"];
+  const colors = ["bg-brand-700", "bg-brand-600", "bg-brand-500", "bg-slate-700", "bg-slate-600", "bg-brand-800", "bg-brand-900"];
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];

@@ -126,7 +126,7 @@ export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onS
     <section className="border-t border-slate-200 pt-4 dark:border-white/10">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-start gap-2.5">
-          <span className="mt-0.5 rounded-md bg-sky-50 p-1.5 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300">
+          <span className="mt-0.5 rounded-md bg-brand-50 p-1.5 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300">
             <ShieldCheck className="h-4 w-4" />
           </span>
           <div>
@@ -186,7 +186,7 @@ export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onS
                   disabled={!canAdmin || saving || permissions.admin || !permissions.view}
                   onClick={() => { setPageAccess((current) => ({ ...current, [page.key]: !current[page.key] })); setSaved(false); setError(""); }}
                   className="flex min-h-10 min-w-0 items-center gap-2 py-2 text-left text-[11px] font-medium text-slate-700 disabled:cursor-default dark:text-slate-200">
-                  <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${enabled ? "border-sky-500 bg-sky-500 text-white" : "border-slate-300 text-transparent dark:border-white/20"}`}><Check className="h-3 w-3" /></span>
+                  <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${enabled ? "border-brand-500 bg-brand-500 text-white" : "border-slate-300 text-transparent dark:border-white/20"}`}><Check className="h-3 w-3" /></span>
                   <span>{page.name}</span>
                 </button>
               );
@@ -197,7 +197,7 @@ export function PermissionPanel({ staffId, canAdmin, onSaved, onDirtyChange, onS
 
       {error && <p role="alert" className="mt-3 text-xs font-medium text-rose-600 dark:text-rose-400">{error}</p>}
       {!loading && !loaded && (
-        <button type="button" onClick={() => { setLoading(true); setError(""); setRetryKey((key) => key + 1); }} className="mt-3 flex items-center gap-2 text-xs font-semibold text-sky-600">
+        <button type="button" onClick={() => { setLoading(true); setError(""); setRetryKey((key) => key + 1); }} className="mt-3 flex items-center gap-2 text-xs font-semibold text-brand-600">
           <RefreshCw className="h-4 w-4" />ลองใหม่
         </button>
       )}

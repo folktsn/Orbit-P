@@ -110,7 +110,7 @@ export function PillNav() {
                   />
                 </div>
               ) : (
-                <div className="w-full h-full rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">
+                <div className="w-full h-full rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm">
                   {user.displayName ? user.displayName.slice(0, 2).toUpperCase() : "US"}
                 </div>
               )}
@@ -130,7 +130,7 @@ export function PillNav() {
                         className="w-11 h-11 rounded-full object-cover border border-[#06C755] shadow-sm"
                       />
                     ) : (
-                      <div className="w-11 h-11 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
+                      <div className="w-11 h-11 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
                         {user.displayName ? user.displayName.slice(0, 2).toUpperCase() : "US"}
                       </div>
                     )}

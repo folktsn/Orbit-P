@@ -25,7 +25,7 @@ export function RequestForm({ isOverBudget }: RequestFormProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm text-slate-500 dark:text-slate-400 font-medium">แผนก</label>
-            <select className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+            <select className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
               <option>ปฏิบัติการบิน</option>
               <option>บริการภาคพื้น</option>
               <option>วิศวกรรม</option>
@@ -33,7 +33,7 @@ export function RequestForm({ isOverBudget }: RequestFormProps) {
           </div>
           <div className="space-y-2">
             <label className="text-sm text-slate-500 dark:text-slate-400 font-medium">ประเภทคำขอ</label>
-            <select className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+            <select className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
               <option>ขยายอัตรากำลัง</option>
               <option>ทดแทนพนักงานเดิม</option>
               <option>ตามแผนประจำปี</option>
@@ -46,7 +46,7 @@ export function RequestForm({ isOverBudget }: RequestFormProps) {
           <input 
             type="text" 
             placeholder="เช่น นักบินผู้ช่วยอาวุโส"
-            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
         </div>
 
@@ -55,12 +55,12 @@ export function RequestForm({ isOverBudget }: RequestFormProps) {
           <textarea 
             rows={4}
             placeholder="ระบุเหตุผล..."
-            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none"
+            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none"
           />
         </div>
 
         <div className="pt-4 flex items-center gap-4">
-          <button type="button" className="flex-1 bg-[#0F172A] dark:bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 dark:hover:bg-blue-700 transition-colors shadow-sm">
+          <button type="button" className="flex-1 bg-action text-action-foreground font-semibold py-3 rounded-xl hover:opacity-90 transition-colors shadow-sm">
             ส่งคำขอ
           </button>
           <button type="button" className="px-6 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 flex items-center gap-2 shadow-sm">

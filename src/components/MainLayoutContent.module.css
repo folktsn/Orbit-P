@@ -1,16 +1,6 @@
 .workspaceLayout { display: contents; }
 .dashboardLayout { display: contents; }
-.dashboardLayout > :global(.pill-header) { background: #fcfcfa; padding-bottom: 22px; }
-.dashboardLayout :global(.pill-brand-mark) { filter: grayscale(1); }
-.dashboardLayout :global(.pill-nav) { box-shadow: none; background: #efefeb; }
-.dashboardLayout :global(.pill-nav .nav-item.pill) { color: #737371; }
-.dashboardLayout :global(.pill-nav .pill.is-active) { background: #151515; color: #fff; }
-:global(.dark) .dashboardLayout > :global(.pill-header) { background: #181818; }
-:global(.dark) .dashboardLayout :global(.pill-brand-mark) { filter: grayscale(1) brightness(0) invert(.9); }
-:global(.dark) .dashboardLayout :global(.pill-nav) { background: #292929; }
-:global(.dark) .dashboardLayout :global(.pill-nav .nav-item.pill) { color: #aaa; }
-:global(.dark) .dashboardLayout :global(.pill-nav .pill.is-active) { background: #eee; color: #111; }
-:global(.dark) .dashboardLayout :global(.pill-nav .pill.is-active .pill-label) { color: #111; }
+.dashboardLayout > :global(.pill-header) { padding-bottom: 22px; }
 
 @media (min-width: 768px) {
   .workspaceLayout { display: flex; flex-direction: column; width: 100%; height: 100dvh; min-height: 0; }

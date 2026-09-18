@@ -170,7 +170,7 @@ export function IssueWorkflowDialog({
       <div role="dialog" aria-modal="true" aria-labelledby="workflow-title" className="flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#101010] sm:rounded-lg">
         <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-3.5 dark:border-white/10 sm:px-5">
           <div className="min-w-0">
-            <div className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase text-sky-600 dark:text-sky-400"><CircleDot className="h-3.5 w-3.5" />Data Quality Workflow</div>
+            <div className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase text-brand-600 dark:text-brand-400"><CircleDot className="h-3.5 w-3.5" />Data Quality Workflow</div>
             <h2 id="workflow-title" className="truncate text-base font-extrabold text-slate-950 dark:text-white">จัดการรายการตรวจสอบ</h2>
             <p className="mt-1 truncate text-xs text-slate-500">ID {issue.employee.id} · {employeeName}</p>
           </div>
@@ -201,8 +201,8 @@ export function IssueWorkflowDialog({
             <label className="block">
               <span className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">รหัสพนักงานผู้รับผิดชอบ</span>
               <div className="relative">
-                <input value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} placeholder="เช่น 02622" className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 pr-9 text-sm text-slate-800 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100 dark:border-white/10 dark:bg-black dark:text-white dark:focus:border-sky-500/40 dark:focus:ring-sky-500/10" />
-                {lookupState === "loading" ? <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-sky-500" /> : <UserRoundSearch className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />}
+                <input value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} placeholder="เช่น 02622" className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 pr-9 text-sm text-slate-800 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100 dark:border-white/10 dark:bg-black dark:text-white dark:focus:border-brand-500/40 dark:focus:ring-brand-500/10" />
+                {lookupState === "loading" ? <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-brand-500" /> : <UserRoundSearch className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />}
               </div>
               <div className="mt-1.5 min-h-8 text-[10px]">
                 {lookupState === "found" && assignee && <><p className="font-bold text-emerald-600 dark:text-emerald-400">{assignee.name}</p><p className="truncate text-slate-500">{assignee.position}</p></>}
@@ -212,13 +212,13 @@ export function IssueWorkflowDialog({
             </label>
             <label className="block">
               <span className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">กำหนดเสร็จ</span>
-              <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100 dark:border-white/10 dark:bg-black dark:text-white dark:focus:border-sky-500/40 dark:focus:ring-sky-500/10" />
+              <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100 dark:border-white/10 dark:bg-black dark:text-white dark:focus:border-brand-500/40 dark:focus:ring-brand-500/10" />
             </label>
           </div>
 
           <label className="mt-3 block">
             <span className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">หมายเหตุ</span>
-            <textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={1000} rows={3} placeholder="รายละเอียดการตรวจสอบหรือการแก้ไข" className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm leading-5 text-slate-800 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100 dark:border-white/10 dark:bg-black dark:text-white dark:focus:border-sky-500/40 dark:focus:ring-sky-500/10" />
+            <textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={1000} rows={3} placeholder="รายละเอียดการตรวจสอบหรือการแก้ไข" className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm leading-5 text-slate-800 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100 dark:border-white/10 dark:bg-black dark:text-white dark:focus:border-brand-500/40 dark:focus:ring-brand-500/10" />
           </label>
 
           {!!record?.history?.length && (
@@ -240,7 +240,7 @@ export function IssueWorkflowDialog({
 
         <footer className="flex justify-end gap-2 border-t border-slate-200 px-4 py-3 dark:border-white/10 sm:px-5">
           <button type="button" onClick={onClose} className="h-10 rounded-lg border border-slate-200 px-4 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">ยกเลิก</button>
-          <button type="button" onClick={() => void save()} disabled={saving || lookupState === "loading" || lookupState === "missing"} className="inline-flex h-10 items-center gap-2 rounded-lg bg-sky-600 px-4 text-xs font-bold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="button" onClick={() => void save()} disabled={saving || lookupState === "loading" || lookupState === "missing"} className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 text-xs font-bold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             บันทึก
           </button>

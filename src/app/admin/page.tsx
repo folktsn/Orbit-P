@@ -96,13 +96,13 @@ function AdminDirectory() {
   }, [user?.staffId]);
 
   if (forbidden) return <AdminDenied />;
-  const inputClass = "h-10 min-w-0 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/15 dark:border-white/10 dark:bg-[#121212] dark:text-slate-200";
+  const inputClass = "h-10 min-w-0 rounded-md border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 dark:border-white/10 dark:bg-surface dark:text-slate-200";
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-6 sm:px-8">
       <header className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-5 dark:border-white/10">
         <div>
-          <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400"><ShieldCheck className="h-5 w-5" /><span className="text-xs font-semibold">Admin</span></div>
+          <div className="flex items-center gap-2 text-brand-600 dark:text-brand-400"><ShieldCheck className="h-5 w-5" /><span className="text-xs font-semibold">Admin</span></div>
           <h1 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">จัดการสิทธิ์ผู้ใช้งาน</h1>
         </div>
         <div className="flex items-center gap-5 text-xs text-slate-500">
@@ -124,7 +124,7 @@ function AdminDirectory() {
             <option value="active">Active</option><option value="all">ทุกสถานะ</option><option value="inactive">สถานะอื่น</option>
           </select>
         </div>
-        <button type="button" onClick={() => setRefreshKey((key) => key + 1)} disabled={loading} aria-label="รีเฟรชรายชื่อ" title="รีเฟรชรายชื่อ" className={`${inputClass} flex w-10 items-center justify-center px-0 text-sky-600 disabled:opacity-50`}><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /></button>
+        <button type="button" onClick={() => setRefreshKey((key) => key + 1)} disabled={loading} aria-label="รีเฟรชรายชื่อ" title="รีเฟรชรายชื่อ" className={`${inputClass} flex w-10 items-center justify-center px-0 text-brand-600 disabled:opacity-50`}><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /></button>
       </div>
 
       <div className="grid min-w-0 gap-6 pt-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-7">
@@ -136,10 +136,10 @@ function AdminDirectory() {
                 const chosen = selected?.staffId === employee.staffId;
                 const label = employee.permissions.admin ? "Admin" : employee.permissions.edit ? "Edit" : employee.permissions.view ? "View" : employee.permissions.access ? "Access" : "ปิดสิทธิ์";
                 return <li key={employee.staffId}>
-                  <button type="button" aria-pressed={chosen} disabled={saving} onClick={() => selectEmployee(employee)} className={`flex w-full min-w-0 items-center gap-3 px-3 py-3 text-left transition-colors disabled:cursor-wait ${chosen ? "bg-sky-50 ring-1 ring-inset ring-sky-200 dark:bg-sky-500/10 dark:ring-sky-500/30" : "hover:bg-white dark:hover:bg-white/5"}`}>
+                  <button type="button" aria-pressed={chosen} disabled={saving} onClick={() => selectEmployee(employee)} className={`flex w-full min-w-0 items-center gap-3 px-3 py-3 text-left transition-colors disabled:cursor-wait ${chosen ? "bg-brand-50 ring-1 ring-inset ring-brand-200 dark:bg-brand-500/10 dark:ring-brand-500/30" : "hover:bg-white dark:hover:bg-white/5"}`}>
                     <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${employee.permissions.admin ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" : "bg-slate-100 text-slate-500 dark:bg-white/5"}`}>{employee.permissions.admin ? <ShieldCheck className="h-4 w-4" /> : <UserRound className="h-4 w-4" />}</span>
                     <span className="min-w-0 flex-1">
-                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400">{employee.staffId}</span><span className={`text-[10px] font-semibold ${employee.permissions.admin ? "text-emerald-600 dark:text-emerald-400" : employee.permissions.access ? "text-slate-500" : "text-rose-500"}`}>{label}</span>{employee.staffId === user?.staffId && <span className="text-[10px] text-slate-400">คุณ</span>}</span>
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-[11px] font-semibold text-brand-600 dark:text-brand-400">{employee.staffId}</span><span className={`text-[10px] font-semibold ${employee.permissions.admin ? "text-emerald-600 dark:text-emerald-400" : employee.permissions.access ? "text-slate-500" : "text-rose-500"}`}>{label}</span>{employee.staffId === user?.staffId && <span className="text-[10px] text-slate-400">คุณ</span>}</span>
                       <span className="mt-0.5 block truncate text-[13px] font-semibold text-slate-900 dark:text-slate-100" title={employee.name}>{employee.name}</span>
                       <span className="block truncate text-[11px] text-slate-500" title={[employee.position, employee.department].filter(Boolean).join(" / ")}>{employee.position || employee.department || "-"}</span>
                       <span className={`mt-1 inline-flex items-center gap-1 text-[10px] ${employee.linked ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}><Link2 className="h-3 w-3" />{employee.linked ? "ผูก LINE แล้ว" : "ยังไม่ผูก LINE"}</span>
@@ -163,7 +163,7 @@ function AdminDirectory() {
         <aside ref={editorRef} aria-label="กำหนดสิทธิ์พนักงาน" className={`order-1 min-w-0 scroll-mt-4 lg:order-2 lg:border-l lg:border-slate-200 lg:pl-7 lg:dark:border-white/10 ${selected ? "" : "hidden lg:block"}`}>
           {selected ? <div className="lg:sticky lg:top-5">
             <div className="mb-4 flex items-start justify-between gap-3">
-              <div className="min-w-0"><p className="text-xs font-semibold text-sky-600">ID {selected.staffId}</p><h2 className="mt-1 break-words text-base font-semibold text-slate-900 dark:text-white">{selected.name}</h2><p className="mt-1 text-xs text-slate-500">{selected.nameTh}</p></div>
+              <div className="min-w-0"><p className="text-xs font-semibold text-brand-600">ID {selected.staffId}</p><h2 className="mt-1 break-words text-base font-semibold text-slate-900 dark:text-white">{selected.name}</h2><p className="mt-1 text-xs text-slate-500">{selected.nameTh}</p></div>
               <button type="button" disabled={saving} onClick={() => selectEmployee(null)} aria-label="ปิดการกำหนดสิทธิ์" title="ปิดการกำหนดสิทธิ์" className="flex h-8 w-8 shrink-0 items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-40 dark:hover:text-white"><X className="h-4 w-4" /></button>
             </div>
             <dl className="mb-5 space-y-2 text-xs"><div><dt className="text-slate-400">ตำแหน่ง</dt><dd className="mt-0.5 break-words text-slate-700 dark:text-slate-300">{selected.position || "-"}</dd></div><div><dt className="text-slate-400">ฝ่าย</dt><dd className="mt-0.5 break-words text-slate-700 dark:text-slate-300">{selected.department || "-"}</dd></div><div><dt className="sr-only">สถานะ</dt><dd className="flex flex-wrap gap-3"><span className="text-slate-500">{selected.status}</span><span className={selected.linked ? "text-emerald-600" : "text-amber-600"}>{selected.linked ? "ผูก LINE แล้ว" : "ยังไม่ผูก LINE"}</span></dd></div></dl>

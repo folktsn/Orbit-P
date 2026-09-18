@@ -20,7 +20,7 @@ export function DigitalSignature() {
           <p className="font-medium">ต้องการลายเซ็นผู้บริหาร</p>
           <button
             onClick={() => setSigned(true)}
-            className="mt-4 px-6 py-2 bg-[#0F172A] dark:bg-blue-600 text-white rounded-full font-semibold hover:bg-slate-800 dark:hover:bg-blue-700 transition-colors shadow-sm"
+            className="mt-4 px-6 py-2 bg-action text-action-foreground rounded-full font-semibold hover:opacity-90 transition-colors shadow-sm"
           >
             ลงนามเอกสาร
           </button>

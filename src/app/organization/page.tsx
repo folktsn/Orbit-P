@@ -9,7 +9,7 @@ export default function OrganizationPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] bg-white dark:bg-[#0A0A0A]">
+    <div className="flex flex-col h-[calc(100vh-80px)] bg-white dark:bg-surface">
       <OrgChart />
     </div>
   );

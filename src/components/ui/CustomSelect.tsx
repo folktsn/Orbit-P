@@ -77,7 +77,7 @@ export function CustomSelect({ value, onChange, options, disabled = false, place
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-[11px] lg:text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 rounded px-2 py-1 text-[11px] lg:text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
             <div className="min-h-0 max-h-40 overflow-y-auto overflow-x-hidden py-1">
@@ -117,7 +117,7 @@ export function CustomSelect({ value, onChange, options, disabled = false, place
         aria-controls={isOpen ? menuId : undefined}
         onClick={() => { if (!disabled) { setSearch(""); setIsOpen(!isOpen); } }}
         disabled={disabled}
-        className={`w-full text-left bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 text-[11px] lg:text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:focus:ring-white/20 truncate flex justify-between items-center ${triggerClassName || 'rounded-md px-2 py-1'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        className={`w-full text-left bg-white dark:bg-surface border border-slate-200 dark:border-white/10 text-[11px] lg:text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:focus:ring-white/20 truncate flex justify-between items-center ${triggerClassName || 'rounded-md px-2 py-1'} ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
         <span className="truncate pr-2">{displayValue}</span>
         <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

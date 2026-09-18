@@ -51,7 +51,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${sukhumvit.variable} h-full font-sans antialiased`} suppressHydrationWarning>
-      <body className="min-h-full flex flex-col text-slate-900 bg-slate-50 dark:bg-black dark:text-slate-100 selection:bg-slate-200 selection:text-slate-900 transition-colors duration-300">
+      <body className="min-h-full flex flex-col text-ink bg-paper selection:bg-action selection:text-action-foreground transition-colors duration-300">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <DisplayPreferencesProvider>
             <AuthProvider>

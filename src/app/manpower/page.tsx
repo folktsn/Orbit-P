@@ -734,20 +734,20 @@ export default function ManpowerMvpPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[calc(100vh-90px)] items-center justify-center bg-slate-50 text-slate-600 dark:bg-[#050505] dark:text-slate-300">
-        <RefreshCw className="mr-3 h-5 w-5 animate-spin text-sky-500" />
+      <div className="flex min-h-[calc(100vh-90px)] items-center justify-center bg-paper text-muted">
+        <RefreshCw className="mr-3 h-5 w-5 animate-spin text-brand-500" />
         Loading Department Sheets...
       </div>
     );
   }
 
   return (
-    <main className="min-h-[calc(100vh-80px)] bg-[#f4f7fb] px-4 py-5 text-slate-950 dark:bg-[#050505] dark:text-white sm:px-6 lg:px-8 2xl:px-10">
+    <main className="min-h-[calc(100vh-80px)] bg-paper px-4 py-5 text-ink sm:px-6 lg:px-8 2xl:px-10">
       <div className="mx-auto w-full max-w-none space-y-4">
         <motion.section initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm shadow-slate-200/70 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:shadow-none">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-bold text-sky-600 dark:text-sky-400">
+            <div className="flex items-center gap-2 text-sm font-bold text-brand-600 dark:text-brand-400">
               <BriefcaseBusiness className="h-4 w-4" />
               Manpower
             </div>
@@ -771,7 +771,7 @@ export default function ManpowerMvpPage() {
             <button
               type="button"
               onClick={exportCsv}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm transition hover:border-sky-300 hover:text-sky-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm transition hover:border-brand-300 hover:text-brand-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
             >
               <Download className="h-4 w-4" />
               CSV
@@ -806,7 +806,7 @@ export default function ManpowerMvpPage() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search Department, Division, Section, Position..."
-                className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-10 text-sm font-medium outline-none transition focus:border-sky-300 focus:bg-white focus:ring-2 focus:ring-sky-100 dark:border-white/10 dark:bg-[#121212] dark:text-slate-200 dark:focus:ring-sky-500/20"
+                className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-10 text-sm font-medium outline-none transition focus:border-brand-300 focus:bg-white focus:ring-2 focus:ring-brand-100 dark:border-white/10 dark:bg-surface dark:text-slate-200 dark:focus:ring-brand-500/20"
               />
               {query && (
                 <button type="button" onClick={() => setQuery("")} className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
@@ -843,7 +843,7 @@ export default function ManpowerMvpPage() {
         </section>
 
         {isDepartmentLoading && (
-          <div className="flex items-center gap-2 rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm font-bold text-sky-700 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300">
+          <div className="flex items-center gap-2 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm font-bold text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
             <RefreshCw className="h-4 w-4 animate-spin" />
             Loading Selected Department...
           </div>
@@ -863,7 +863,7 @@ export default function ManpowerMvpPage() {
 
 function KpiCard({ icon: Icon, label, value, sub, tone }: { icon: any; label: string; value: string; sub?: string; tone: "blue" | "emerald" | "orange" | "red" | "slate" }) {
   const tones = {
-    blue: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+    blue: "bg-brand-500/10 text-brand-600 dark:text-brand-400",
     emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     orange: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
     red: "bg-red-500/10 text-red-600 dark:text-red-400",
@@ -975,7 +975,7 @@ function DepartmentSheetPanel({ department, onBudgetChange, isLoading = false }:
     <article className={cn("overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-sm shadow-slate-200/70 transition-opacity dark:border-white/10 dark:bg-white/5 dark:shadow-none", isLoading && "opacity-60")}>
       <div className="flex w-full flex-col gap-3 border-b border-slate-100 p-5 text-left xl:flex-row xl:items-start xl:justify-between dark:border-white/10">
         <div className="min-w-0">
-          <p className="text-xs font-black uppercase tracking-wide text-sky-600 dark:text-sky-400">Selected Department</p>
+          <p className="text-xs font-black uppercase tracking-wide text-brand-600 dark:text-brand-400">Selected Department</p>
           <h3 className="mt-1 text-2xl font-black leading-tight text-slate-950 dark:text-white">{formatNameWithCode(department.department, department.departmentCode)}</h3>
           <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{divisionGroups.length} Divisions / {visibleSectionCount} Sections / {department.rows.length} Positions / {department.budgetPending} Budget Pending</p>
         </div>
@@ -1008,12 +1008,12 @@ function DepartmentSheetPanel({ department, onBudgetChange, isLoading = false }:
               <button
                 type="button"
                 onClick={() => toggleDivision(division.key)}
-                className="flex w-full flex-col gap-3 border-b border-slate-100 bg-slate-50/80 px-4 py-3 text-left transition hover:bg-sky-50/80 lg:flex-row lg:items-center lg:justify-between dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+                className="flex w-full flex-col gap-3 border-b border-slate-100 bg-slate-50/80 px-4 py-3 text-left transition hover:bg-brand-50/80 lg:flex-row lg:items-center lg:justify-between dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
               >
                 <div className="flex min-w-0 items-start gap-3">
-                  <span className={cn("mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-black transition", isExpanded ? "border-sky-300 bg-sky-100 text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/15 dark:text-sky-300" : "border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-300")}>{isExpanded ? "-" : "+"}</span>
+                  <span className={cn("mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-black transition", isExpanded ? "border-brand-300 bg-brand-100 text-brand-700 dark:border-brand-500/30 dark:bg-brand-500/15 dark:text-brand-300" : "border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-300")}>{isExpanded ? "-" : "+"}</span>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-black uppercase tracking-wide text-sky-600 dark:text-sky-400">{groupLabel}</p>
+                    <p className="text-[11px] font-black uppercase tracking-wide text-brand-600 dark:text-brand-400">{groupLabel}</p>
                     <h4 className="mt-0.5 text-base font-black text-slate-950 dark:text-white">{groupName}</h4>
                     <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">{groupSummary}</p>
                   </div>
@@ -1036,7 +1036,7 @@ function DepartmentSheetPanel({ department, onBudgetChange, isLoading = false }:
                         {!isDivisionOnly && (
                           <div className="flex flex-col gap-3 bg-slate-50/60 px-4 py-3 lg:flex-row lg:items-center lg:justify-between dark:bg-white/[0.025]">
                             <div className="min-w-0">
-                              <p className="text-[11px] font-black uppercase tracking-wide text-sky-600 dark:text-sky-400">Section</p>
+                              <p className="text-[11px] font-black uppercase tracking-wide text-brand-600 dark:text-brand-400">Section</p>
                               <h5 className="mt-0.5 text-sm font-black text-slate-900 dark:text-slate-100">{formatNameWithCode(section.section, section.sectionCode)}</h5>
                             </div>
                             <div className="grid grid-cols-4 gap-2 text-center lg:w-auto lg:min-w-[320px]">
@@ -1078,13 +1078,13 @@ function DepartmentSheetPanel({ department, onBudgetChange, isLoading = false }:
 
 function PositionRow({ row, onBudgetChange }: { row: HeadcountRow; onBudgetChange: (key: string, value: string) => void }) {
   return (
-    <div className="grid min-w-[780px] grid-cols-[minmax(260px,1fr)_96px_86px_86px_86px_126px] items-center gap-2 px-5 py-3 text-sm transition hover:bg-sky-50/60 dark:hover:bg-white/5">
+    <div className="grid min-w-[780px] grid-cols-[minmax(260px,1fr)_96px_86px_86px_86px_126px] items-center gap-2 px-5 py-3 text-sm transition hover:bg-brand-50/60 dark:hover:bg-white/5">
       <div className="min-w-0">
         <p className="font-bold leading-tight text-slate-900 dark:text-slate-100">{row.position}</p>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs leading-snug">
           <span className="text-slate-500 dark:text-slate-400">{row.employmentType}</span>
           {cleanValue(row.station, "") && (
-            <span className="inline-flex items-center rounded-md border border-sky-100 bg-sky-50 px-2 py-0.5 text-[11px] font-black text-sky-700 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300">
+            <span className="inline-flex items-center rounded-md border border-brand-100 bg-brand-50 px-2 py-0.5 text-[11px] font-black text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
               Station: {formatStationCode(row.station)}
             </span>
           )}
@@ -1096,7 +1096,7 @@ function PositionRow({ row, onBudgetChange }: { row: HeadcountRow; onBudgetChang
         value={row.approved ?? ""}
         onChange={(event) => onBudgetChange(row.key, event.target.value)}
         placeholder="-"
-        className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-2 text-right font-bold outline-none transition focus:border-sky-300 focus:bg-white focus:ring-2 focus:ring-sky-100 dark:border-white/10 dark:bg-[#121212] dark:text-slate-100 dark:focus:ring-sky-500/20"
+        className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-2 text-right font-bold outline-none transition focus:border-brand-300 focus:bg-white focus:ring-2 focus:ring-brand-100 dark:border-white/10 dark:bg-surface dark:text-slate-100 dark:focus:ring-brand-500/20"
       />
       <span className="text-right font-black">{row.current}</span>
       <span className="text-right font-black text-orange-500">{row.vacancy}</span>

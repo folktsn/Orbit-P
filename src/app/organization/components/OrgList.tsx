@@ -130,14 +130,14 @@ export function OrgList({ searchQuery = "" }: OrgListProps) {
         const deptTh = deptItems[0]?.department_th || "";
 
         return (
-          <div key={deptName} className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
+          <div key={deptName} className="bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
             {/* Department Header */}
             <div 
               onClick={() => toggleDept(deptName)}
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
                   <Building2 className="w-5 h-5" />
                 </div>
                 <div>
@@ -248,7 +248,7 @@ export function OrgList({ searchQuery = "" }: OrgListProps) {
       })}
       
       {filteredData.length === 0 && (
-        <div className="text-center py-12 bg-white dark:bg-[#121212] border border-slate-100 dark:border-white/5 rounded-2xl">
+        <div className="text-center py-12 bg-white dark:bg-surface border border-slate-100 dark:border-white/5 rounded-2xl">
           <p className="text-slate-500 dark:text-slate-400">No organizational data found matching your search.</p>
         </div>
       )}

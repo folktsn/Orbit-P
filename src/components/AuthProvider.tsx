@@ -180,11 +180,11 @@ export function useAuth() {
 
 function LoadingScreen() {
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-50 dark:bg-black transition-colors duration-300">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-paper transition-colors duration-300">
       <div className="relative flex items-center justify-center">
         {/* Sleek dual spinning rings */}
-        <div className="w-16 h-16 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin"></div>
-        <div className="absolute w-10 h-10 border-4 border-sky-500/20 border-b-sky-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
+        <div className="w-16 h-16 border-4 border-brand-500/20 border-t-violet-500 rounded-full animate-spin"></div>
+        <div className="absolute w-10 h-10 border-4 border-brand-500/20 border-b-sky-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
       </div>
       <p className="mt-6 text-sm font-medium text-slate-500 dark:text-slate-400 tracking-wider uppercase animate-pulse">
         HO-Recruitment

@@ -126,7 +126,7 @@ function employeeProfileFromIssue(issue: QualityIssue): EmployeeData {
   const initials = nameParts.length > 1
     ? `${nameParts[0][0]}${nameParts.at(-1)?.[0] ?? ""}`.toUpperCase()
     : (nameParts[0] || "EMP").slice(0, 2).toUpperCase();
-  const colors = ["bg-emerald-500", "bg-blue-500", "bg-pink-500", "bg-amber-500", "bg-purple-500", "bg-rose-500", "bg-indigo-500"];
+  const colors = ["bg-brand-700", "bg-brand-600", "bg-brand-500", "bg-slate-700", "bg-slate-600", "bg-brand-800", "bg-brand-900"];
   let colorHash = 0;
   for (const character of employee.id) colorHash = character.charCodeAt(0) + ((colorHash << 5) - colorHash);
 
@@ -314,7 +314,7 @@ export default function DataQualityPage() {
     <div className="mx-auto w-full max-w-[1600px] space-y-5 px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
       <section className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-white/10 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <div className="mb-1.5 flex items-center gap-2 text-xs font-bold text-sky-600 dark:text-sky-400">
+          <div className="mb-1.5 flex items-center gap-2 text-xs font-bold text-brand-600 dark:text-brand-400">
             <ShieldCheck className="h-4 w-4" />
             Data Quality
           </div>
@@ -328,7 +328,7 @@ export default function DataQualityPage() {
             type="button"
             onClick={exportCsv}
             disabled={!filteredIssues.length}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-[#121212] dark:text-slate-200 dark:hover:bg-white/5"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-surface dark:text-slate-200 dark:hover:bg-white/5"
           >
             <Download className="h-4 w-4" />
             CSV
@@ -337,7 +337,7 @@ export default function DataQualityPage() {
             type="button"
             onClick={() => void Promise.all([loadData(true), loadWorkflow()])}
             disabled={loading || workflowLoading}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 text-xs font-bold text-sky-700 transition hover:bg-sky-100 disabled:opacity-60 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-4 text-xs font-bold text-brand-700 transition hover:bg-brand-100 disabled:opacity-60 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300"
           >
             <RefreshCw className={cn("h-4 w-4", (loading || workflowLoading) && "animate-spin")} />
             Refresh
@@ -372,7 +372,7 @@ export default function DataQualityPage() {
                     setVisibleCount(ISSUES_PAGE_SIZE);
                   }}
                   placeholder="Search by name, ID, issue, or department..."
-                  className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-10 text-sm text-slate-700 outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-100 dark:border-white/10 dark:bg-[#121212] dark:text-slate-200 dark:focus:border-sky-500/40 dark:focus:ring-sky-500/10"
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-10 text-sm text-slate-700 outline-none transition focus:border-brand-300 focus:ring-2 focus:ring-brand-100 dark:border-white/10 dark:bg-surface dark:text-slate-200 dark:focus:border-brand-500/40 dark:focus:ring-brand-500/10"
                 />
                 {query && (
                   <button type="button" onClick={() => { setQuery(""); setVisibleCount(ISSUES_PAGE_SIZE); }} title="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white">
@@ -394,11 +394,11 @@ export default function DataQualityPage() {
           <section>
             {loading && !data ? (
               <div className="grid gap-2.5">
-                {Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-20 animate-pulse rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#121212]" />)}
+                {Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-20 animate-pulse rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-surface" />)}
               </div>
             ) : filteredIssues.length ? (
               <>
-                <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#121212] lg:block">
+                <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-surface lg:block">
                   <div className="grid grid-cols-[105px_205px_145px_minmax(210px,1fr)_180px_150px] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-extrabold uppercase text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
                     <span>ระดับ</span><span>พนักงาน</span><span>ประเภท</span><span>ข้อสังเกต</span><span>ข้อมูลอ้างอิง</span><span>ดำเนินการ</span>
                   </div>
@@ -412,7 +412,7 @@ export default function DataQualityPage() {
                     <button
                       type="button"
                       onClick={() => setVisibleCount((count) => count + ISSUES_PAGE_SIZE)}
-                      className="h-10 rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-slate-500 hover:bg-slate-50 dark:border-white/15 dark:bg-[#121212] dark:text-slate-200 dark:hover:bg-white/5"
+                      className="h-10 rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-slate-500 hover:bg-slate-50 dark:border-white/15 dark:bg-surface dark:text-slate-200 dark:hover:bg-white/5"
                     >
                       แสดงเพิ่มอีก {Math.min(ISSUES_PAGE_SIZE, filteredIssues.length - visibleCount).toLocaleString("th-TH")} รายการ
                     </button>
@@ -420,7 +420,7 @@ export default function DataQualityPage() {
                 )}
               </>
             ) : (
-              <div className="flex min-h-52 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center dark:border-white/15 dark:bg-[#121212]">
+              <div className="flex min-h-52 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center dark:border-white/15 dark:bg-surface">
                 <CheckCircle2 className="mb-3 h-8 w-8 text-emerald-500" />
                 <p className="font-bold text-slate-800 dark:text-slate-100">ไม่พบรายการตามเงื่อนไข</p>
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">ปรับตัวกรองหรือรีเฟรชข้อมูลอีกครั้ง</p>
@@ -455,13 +455,13 @@ export default function DataQualityPage() {
 
 function MetricCard({ label, value, detail, icon: Icon, tone, loading, className }: { label: string; value?: number; detail: string; icon: typeof Users; tone: "sky" | "amber" | "rose" | "emerald"; loading: boolean; className?: string }) {
   const tones = {
-    sky: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300",
+    sky: "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300",
     amber: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300",
     rose: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300",
     emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300",
   };
   return (
-    <div className={cn("flex min-h-24 items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-[#121212]", className)}>
+    <div className={cn("flex min-h-24 items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-surface", className)}>
       <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", tones[tone])}><Icon className="h-5 w-5" /></span>
       <div className="min-w-0">
         <p className="truncate text-[10px] font-bold text-slate-500 dark:text-slate-400">{label}</p>
@@ -475,7 +475,7 @@ function MetricCard({ label, value, detail, icon: Icon, tone, loading, className
 function SelectFilter({ value, onChange, label, options }: { value: string; onChange: (value: string) => void; label: string; options: Array<{ value: string; label: string }> }) {
   return (
     <label className="relative block">
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 pr-9 text-sm font-semibold text-slate-700 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-100 dark:border-white/10 dark:bg-[#121212] dark:text-slate-200 dark:focus:border-sky-500/40 dark:focus:ring-sky-500/10">
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 pr-9 text-sm font-semibold text-slate-700 outline-none focus:border-brand-300 focus:ring-2 focus:ring-brand-100 dark:border-white/10 dark:bg-surface dark:text-slate-200 dark:focus:border-brand-500/40 dark:focus:ring-brand-500/10">
         <option value="all">{label}</option>
         {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
@@ -490,14 +490,14 @@ function IssueRow({ issue, workflow, onManage, onOpenEmployee }: { issue: Qualit
   return (
     <div className="grid min-h-20 grid-cols-[105px_205px_145px_minmax(210px,1fr)_180px_150px] items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 hover:bg-slate-50/70 dark:border-white/5 dark:hover:bg-white/[0.025]">
       <IssueBadge issue={issue} />
-      <div className="min-w-0"><p className="truncate text-xs font-extrabold text-sky-600 dark:text-sky-400">ID: {issue.employee.id}</p><p className="truncate text-sm font-bold text-slate-900 dark:text-white">{displayName(issue)}</p><p className="truncate text-[10px] text-slate-500">{issue.employee.nameTh}</p></div>
+      <div className="min-w-0"><p className="truncate text-xs font-extrabold text-brand-600 dark:text-brand-400">ID: {issue.employee.id}</p><p className="truncate text-sm font-bold text-slate-900 dark:text-white">{displayName(issue)}</p><p className="truncate text-[10px] text-slate-500">{issue.employee.nameTh}</p></div>
       <div className="flex min-w-0 items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300"><CategoryIcon className="h-4 w-4 shrink-0 text-slate-400" /><span className="truncate">{CATEGORY[issue.category].label}</span></div>
       <div className="min-w-0"><p className="truncate text-sm font-bold text-slate-900 dark:text-white">{issue.title}</p><p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{issue.description}</p></div>
       <div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300">{issue.employee.department || "-"}</p><p className="mt-0.5 truncate text-[10px] text-slate-500">{issue.fields.join(", ")}</p></div>
       <div className="flex min-w-0 items-center gap-1.5">
         <div className="min-w-0 flex-1"><WorkflowBadge status={status} />{workflow?.assignee && <p className="mt-1 truncate text-[9px] text-slate-500">{workflow.assignee.name}</p>}</div>
         <button type="button" onClick={onManage} title="Manage workflow" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-500/10 dark:hover:text-amber-300"><ClipboardCheck className="h-4 w-4" /></button>
-        <button type="button" onClick={onOpenEmployee} title="Open employee profile" aria-label={`Open employee profile ${issue.employee.id}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-sky-50 hover:text-sky-600 dark:hover:bg-sky-500/10 dark:hover:text-sky-300"><PanelRightOpen className="h-4 w-4" /></button>
+        <button type="button" onClick={onOpenEmployee} title="Open employee profile" aria-label={`Open employee profile ${issue.employee.id}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-brand-500/10 dark:hover:text-brand-300"><PanelRightOpen className="h-4 w-4" /></button>
       </div>
     </div>
   );
@@ -507,9 +507,9 @@ function IssueCard({ issue, workflow, onManage, onOpenEmployee }: { issue: Quali
   const CategoryIcon = CATEGORY[issue.category].icon;
   const status = workflow?.status ?? "open";
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm dark:border-white/10 dark:bg-[#121212]">
+    <article className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm dark:border-white/10 dark:bg-surface">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0"><p className="text-xs font-extrabold text-sky-600 dark:text-sky-400">ID: {issue.employee.id}</p><p className="truncate text-sm font-extrabold text-slate-950 dark:text-white">{displayName(issue)}</p><p className="truncate text-[10px] text-slate-500">{issue.employee.nameTh}</p></div>
+        <div className="min-w-0"><p className="text-xs font-extrabold text-brand-600 dark:text-brand-400">ID: {issue.employee.id}</p><p className="truncate text-sm font-extrabold text-slate-950 dark:text-white">{displayName(issue)}</p><p className="truncate text-[10px] text-slate-500">{issue.employee.nameTh}</p></div>
         <IssueBadge issue={issue} />
       </div>
       <div className="my-3 border-t border-slate-100 dark:border-white/5" />
@@ -521,7 +521,7 @@ function IssueCard({ issue, workflow, onManage, onOpenEmployee }: { issue: Quali
         <div className="flex shrink-0 items-center gap-1.5">
           <WorkflowBadge status={status} />
           <button type="button" onClick={onManage} title="Manage workflow" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-amber-200 hover:text-amber-600 dark:border-white/10 dark:hover:border-amber-500/30 dark:hover:text-amber-300"><ClipboardCheck className="h-4 w-4" /></button>
-          <button type="button" onClick={onOpenEmployee} title="Open employee profile" aria-label={`Open employee profile ${issue.employee.id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-sky-200 hover:text-sky-600 dark:border-white/10 dark:hover:border-sky-500/30 dark:hover:text-sky-300"><PanelRightOpen className="h-4 w-4" /></button>
+          <button type="button" onClick={onOpenEmployee} title="Open employee profile" aria-label={`Open employee profile ${issue.employee.id}`} className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:border-brand-200 hover:text-brand-600 dark:border-white/10 dark:hover:border-brand-500/30 dark:hover:text-brand-300"><PanelRightOpen className="h-4 w-4" /></button>
         </div>
       </div>
       {workflow?.assignee && <p className="mt-2 truncate text-[10px] text-slate-500">ผู้รับผิดชอบ: {workflow.assignee.name}{workflow.dueDate ? ` · ${workflow.dueDate}` : ""}</p>}

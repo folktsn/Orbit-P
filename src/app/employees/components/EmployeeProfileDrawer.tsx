@@ -878,7 +878,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
               aria-label={label}
               value={dateVal} 
               onChange={(e) => handleChange(field, e.target.value)}
-              className="w-full bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 truncate"
+              className="w-full bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 truncate"
             />
           </div>
         );
@@ -891,7 +891,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
             <textarea 
               value={val || ""} 
               onChange={(e) => handleChange(field, e.target.value)}
-              className="w-full bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 min-h-[50px]"
+              className="w-full bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 min-h-[50px]"
             />
           </div>
         );
@@ -904,7 +904,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
             type="text" 
             value={val || ""} 
             onChange={(e) => handleChange(field, e.target.value)}
-            className="w-full bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 truncate"
+            className="w-full bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 truncate"
           />
         </div>
       );
@@ -1364,10 +1364,10 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-xl bg-white dark:bg-[#0a0a0a] border-l border-slate-100 dark:border-white/5 shadow-2xl z-50 overflow-y-auto scrollbar-none"
+            className="fixed right-0 top-0 bottom-0 w-full max-w-xl bg-white dark:bg-surface border-l border-slate-100 dark:border-white/5 shadow-2xl z-50 overflow-y-auto scrollbar-none"
           >
             {/* Header with Gradient */}
-            <div className="relative h-28 bg-gradient-to-r from-purple-400 via-fuchsia-400 to-amber-300 dark:from-purple-900 dark:via-fuchsia-900 dark:to-amber-900">
+            <div className="relative h-28 bg-gradient-to-r from-brand-400 via-fuchsia-400 to-amber-300 dark:from-brand-900 dark:via-fuchsia-900 dark:to-amber-900">
               <button
                 onClick={onClose}
                 className="absolute top-3 right-3 p-1.5 bg-white/20 hover:bg-white/40 dark:bg-black/30 dark:hover:bg-black/50 rounded-full text-white transition-colors"
@@ -1379,7 +1379,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
             {/* Profile Info */}
             <div className="px-5 pb-5 relative -mt-9">
               <div className="flex items-end justify-between gap-2 mb-3">
-                <div className={cn("w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold text-white border-4 border-white dark:border-[#0a0a0a] shadow-md shrink-0 overflow-hidden relative bg-slate-100 dark:bg-slate-900", displayEmployee.colorClass)}>
+                <div className={cn("w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold text-white border-4 border-white dark:border-line shadow-md shrink-0 overflow-hidden relative bg-slate-100 dark:bg-slate-900", displayEmployee.colorClass)}>
                     {displayEmployee.initials}
                 </div>
 
@@ -1424,7 +1424,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                         type="button"
                         onClick={handleRefreshDetails}
                         disabled={isRefreshingDetails || isLoadingDetails}
-                        className="inline-flex h-8 w-8 items-center justify-center text-sky-600 transition-colors hover:text-sky-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:text-sky-300 dark:hover:text-sky-200"
+                        className="inline-flex h-8 w-8 items-center justify-center text-brand-600 transition-colors hover:text-brand-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-300 dark:hover:text-brand-200"
                         title="Refresh employee details"
                         aria-label="Refresh employee details"
                       >
@@ -1460,21 +1460,21 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <span className="text-[11px] text-slate-500 mb-0.5 block">ชื่อ (TH)</span>
-                          <input type="text" value={editedData?.firstNameTh || ""} onChange={e => handleChange("firstNameTh", e.target.value)} className="w-full bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 truncate" />
+                          <input type="text" value={editedData?.firstNameTh || ""} onChange={e => handleChange("firstNameTh", e.target.value)} className="w-full bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 truncate" />
                         </div>
                         <div>
                           <span className="text-[11px] text-slate-500 mb-0.5 block">นามสกุล (TH)</span>
-                          <input type="text" value={editedData?.lastNameTh || ""} onChange={e => handleChange("lastNameTh", e.target.value)} className="w-full bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 truncate" />
+                          <input type="text" value={editedData?.lastNameTh || ""} onChange={e => handleChange("lastNameTh", e.target.value)} className="w-full bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 truncate" />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <span className="text-[11px] text-slate-500 mb-0.5 block">First Name (EN)</span>
-                          <input type="text" value={editedData?.firstNameEn || ""} onChange={e => handleChange("firstNameEn", e.target.value)} className="w-full bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 font-bold truncate" />
+                          <input type="text" value={editedData?.firstNameEn || ""} onChange={e => handleChange("firstNameEn", e.target.value)} className="w-full bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 font-bold truncate" />
                         </div>
                         <div>
                           <span className="text-[11px] text-slate-500 mb-0.5 block">Last Name (EN)</span>
-                          <input type="text" value={editedData?.lastNameEn || ""} onChange={e => handleChange("lastNameEn", e.target.value)} className="w-full bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 font-bold truncate" />
+                          <input type="text" value={editedData?.lastNameEn || ""} onChange={e => handleChange("lastNameEn", e.target.value)} className="w-full bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-md px-2 py-1 text-[11px] text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-200 font-bold truncate" />
                         </div>
                       </div>
                     </div>
@@ -1514,7 +1514,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                     {displayEmployee.status}
                   </span>
                   {displayEmployee.pending_adjustment && (
-                    <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 rounded-md text-[11px] font-medium">
+                    <span className="px-2 py-0.5 bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/20 text-brand-600 dark:text-brand-400 rounded-md text-[11px] font-medium">
                       Pending {displayEmployee.pending_adjustment.type || "Update"}: {displayEmployee.pending_adjustment.effectiveDate}
                     </span>
                   )}
@@ -1545,14 +1545,14 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                         className={cn(
                           "relative px-3 py-2 text-[11px] font-bold transition-colors whitespace-nowrap",
                           isActive
-                            ? "text-blue-600 dark:text-blue-400"
+                            ? "text-brand-600 dark:text-brand-400"
                             : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                         )}
                       >
                         {tab.label}
                         <span className={cn(
                           "absolute left-0 right-0 -bottom-px h-0.5 rounded-full transition-opacity",
-                          isActive ? "bg-blue-600 dark:bg-blue-400 opacity-100" : "opacity-0"
+                          isActive ? "bg-brand-600 dark:bg-brand-400 opacity-100" : "opacity-0"
                         )} />
                       </button>
                     );
@@ -1614,7 +1614,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                   <h3 className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-3">Contact & Address</h3>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                      <div className="p-1.5 bg-purple-50 dark:bg-purple-500/10 rounded-lg text-purple-500 dark:text-purple-400">
+                      <div className="p-1.5 bg-brand-50 dark:bg-brand-500/10 rounded-lg text-brand-500 dark:text-brand-400">
                         <MapPin className="w-4 h-4" />
                       </div>
                       <div className="flex-1 space-y-3 mt-0.5">
@@ -1633,7 +1633,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                   <h3 className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-3">Employment Details</h3>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                      <div className="p-1.5 bg-blue-50 dark:bg-blue-500/10 rounded-lg text-blue-500 dark:text-blue-400">
+                      <div className="p-1.5 bg-brand-50 dark:bg-brand-500/10 rounded-lg text-brand-500 dark:text-brand-400">
                         <Briefcase className="w-4 h-4" />
                       </div>
                       <div className="flex-1 space-y-3 mt-0.5">
@@ -1701,7 +1701,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                   <h3 className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-3">Additional Information</h3>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                      <div className="p-1.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-indigo-500 dark:text-indigo-400">
+                      <div className="p-1.5 bg-brand-50 dark:bg-brand-500/10 rounded-lg text-brand-500 dark:text-brand-400">
                         <User className="w-4 h-4" />
                       </div>
                       <div className="flex-1 space-y-3 mt-0.5">
@@ -1777,7 +1777,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                                 </p>
                               </div>
                               <label className={cn(
-                                "relative inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 text-[10.5px] font-extrabold text-sky-600 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors shrink-0",
+                                "relative inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-brand-200 dark:border-brand-500/30 bg-brand-50 dark:bg-brand-500/10 text-[10.5px] font-extrabold text-brand-600 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-colors shrink-0",
                                 isSaving ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"
                               )}>
                                 {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
@@ -1805,7 +1805,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                                       <button
                                         type="button"
                                         onClick={() => handleViewAttachment(file.data, file.name)}
-                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-extrabold text-sky-600 dark:text-sky-400 uppercase bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/20 rounded-lg transition-colors cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-extrabold text-brand-600 dark:text-brand-400 uppercase bg-brand-50 dark:bg-brand-500/10 hover:bg-brand-100 dark:hover:bg-brand-500/20 rounded-lg transition-colors cursor-pointer"
                                         title="View document"
                                       >
                                         <Eye className="w-3.5 h-3.5" />
@@ -1907,7 +1907,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                       <div>
                         <h3 className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 mb-3">Database Details</h3>
                         <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                          <div className="p-1.5 bg-cyan-50 dark:bg-cyan-500/10 rounded-lg text-cyan-500 dark:text-cyan-400">
+                          <div className="p-1.5 bg-brand-50 dark:bg-brand-500/10 rounded-lg text-brand-500 dark:text-brand-400">
                             <FileText className="w-4 h-4" />
                           </div>
                           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2 mt-0.5">
@@ -1933,9 +1933,9 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                   animate={{ x: 0 }}
                   exit={{ x: "100%" }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="fixed right-0 top-0 bottom-0 w-full max-w-xl bg-white dark:bg-[#0a0a0a] border-l border-slate-100 dark:border-white/10 shadow-2xl z-[60] flex flex-col"
+                  className="fixed right-0 top-0 bottom-0 w-full max-w-xl bg-white dark:bg-surface border-l border-slate-100 dark:border-white/10 shadow-2xl z-[60] flex flex-col"
                 >
-                  <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-slate-100 dark:border-white/10 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur">
+                  <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-slate-100 dark:border-white/10 bg-white/95 dark:bg-surface/95 backdrop-blur">
                     <div className="min-w-0">
                       <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Documents</h3>
                       <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 truncate">
@@ -1973,7 +1973,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                       return documents.map((document) => (
                         <div key={document.id} className="p-4 rounded-2xl border border-slate-100 dark:border-white/10 bg-slate-50/80 dark:bg-white/5">
                           <div className="flex items-start gap-3">
-                            <div className="p-2 rounded-lg bg-sky-50 dark:bg-sky-500/10 text-sky-500 dark:text-sky-400 shrink-0">
+                            <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10 text-brand-500 dark:text-brand-400 shrink-0">
                               <FileText className="w-4 h-4" />
                             </div>
                             <div className="min-w-0 flex-1 text-[13px]">
@@ -1986,7 +1986,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                             <button
                               type="button"
                               onClick={() => handleViewAttachment(document.data, document.name)}
-                              className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-xs font-extrabold text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors"
+                              className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-xs font-extrabold text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-colors"
                             >
                               <Eye className="w-4 h-4" />
                               View
@@ -2027,7 +2027,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
             role="dialog"
             aria-modal="true"
             aria-labelledby="employee-confirmation-title"
-            className="w-full max-w-lg rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#121212] shadow-2xl overflow-hidden"
+            className="w-full max-w-lg rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-surface shadow-2xl overflow-hidden"
             initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
@@ -2038,7 +2038,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
               "h-2",
               confirmationDialog.tone === "danger"
                 ? "bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400"
-                : "bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400"
+                : "bg-gradient-to-r from-brand-500 via-brand-400 to-emerald-400"
             )} />
             <div className="p-6 sm:p-7">
               <div className="flex items-start gap-4">
@@ -2046,7 +2046,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                   "mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
                   confirmationDialog.tone === "danger"
                     ? "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"
-                    : "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400"
+                    : "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
                 )}>
                   <AlertTriangle className="h-6 w-6" />
                 </div>
@@ -2075,7 +2075,7 @@ export function EmployeeProfileDrawer({ isOpen, onClose, employee, onUpdate, blu
                     "min-h-11 px-4 py-2.5 rounded-xl text-sm font-extrabold text-white shadow-sm transition-all active:scale-95",
                     confirmationDialog.tone === "danger"
                       ? "bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600"
-                      : "bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600"
+                      : "bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600"
                   )}
                 >
                   {confirmationDialog.confirmLabel || "Confirm"}

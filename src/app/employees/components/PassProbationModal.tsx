@@ -300,7 +300,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl z-[110] overflow-hidden flex flex-col max-h-[90vh]"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl z-[110] overflow-hidden flex flex-col max-h-[90vh]"
           >
             {/* Header with soft gradient */}
             <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
@@ -399,7 +399,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
                           value={lastWorkingDate}
                           onChange={(e) => setLastWorkingDate(e.target.value)}
                           disabled={isSaving}
-                          className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                          className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
                         />
                         <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       </div>
@@ -435,7 +435,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
                               }
                             }}
                             disabled={isSaving}
-                            className="w-full bg-white dark:bg-[#161616] border border-slate-300 dark:border-white/15 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium [&>option]:bg-white [&>option]:text-slate-900 dark:[&>option]:bg-[#1f1f1f] dark:[&>option]:text-slate-100"
+                            className="w-full bg-white dark:bg-[#161616] border border-slate-300 dark:border-white/15 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium [&>option]:bg-white [&>option]:text-slate-900 dark:[&>option]:bg-[#1f1f1f] dark:[&>option]:text-slate-100"
                           >
                             <option className="bg-white text-slate-900 dark:bg-[#1f1f1f] dark:text-slate-100" value={30}>30 วัน</option>
                             <option className="bg-white text-slate-900 dark:bg-[#1f1f1f] dark:text-slate-100" value={60}>60 วัน</option>
@@ -451,7 +451,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
                               value={customDaysValue}
                               onChange={(e) => setCustomDaysValue(e.target.value)}
                               disabled={isSaving}
-                              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
                             />
                             <button
                               type="button"
@@ -459,7 +459,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
                                 setIsCustomDays(false);
                                 setExtensionDays(30);
                               }}
-                              className="text-xs text-blue-500 dark:text-blue-400 hover:underline px-1"
+                              className="text-xs text-brand-500 dark:text-brand-400 hover:underline px-1"
                             >
                               เลือกช่วงวัน
                             </button>
@@ -524,7 +524,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
                     onChange={(e) => setOperatorId(e.target.value)}
                     disabled={isSearching || isSaving}
                     placeholder="ป้อนรหัสพนักงานผู้มีอำนาจดำเนินการ..."
-                    className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-10 py-2.5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 font-medium"
+                    className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-10 py-2.5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 font-medium"
                   />
                   <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   {isSearching && (
@@ -588,7 +588,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
                     value={operationDate}
                     onChange={(e) => setOperationDate(e.target.value)}
                     disabled={isSaving}
-                    className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                    className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
                   />
                   <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
@@ -606,7 +606,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
                   onClick={() => fileInputRef.current?.click()}
                   className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
                     attachmentName
-                      ? "bg-blue-50/20 dark:bg-blue-500/5 border-blue-300 dark:border-blue-500/20"
+                      ? "bg-brand-50/20 dark:bg-brand-500/5 border-brand-300 dark:border-brand-500/20"
                       : "bg-slate-50 hover:bg-slate-100/50 dark:bg-black/20 dark:hover:bg-white/5 border-slate-200 dark:border-white/10"
                   }`}
                 >
@@ -620,7 +620,7 @@ export function PassProbationModal({ isOpen, onClose, employee, onSave }: PassPr
                   
                   {attachmentName ? (
                     <>
-                      <div className="p-3 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-2xl">
+                      <div className="p-3 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 rounded-2xl">
                         <FileText className="w-8 h-8" />
                       </div>
                       <div>

@@ -76,15 +76,7 @@ type ProbationResponse = {
   error?: string;
 };
 
-const COLOR_CLASSES = [
-  "bg-emerald-500",
-  "bg-sky-500",
-  "bg-pink-500",
-  "bg-amber-500",
-  "bg-violet-500",
-  "bg-rose-500",
-  "bg-indigo-500",
-];
+const COLOR_CLASSES = ["bg-brand-700", "bg-brand-600", "bg-brand-500", "bg-slate-700", "bg-slate-600", "bg-brand-800", "bg-brand-900"];
 
 const QUICK_FILTER_OPTIONS: Array<{ value: ListFilter; label: string }> = [
   { value: "all", label: "ทั้งหมด" },
@@ -337,7 +329,7 @@ function urgencyLabel(record: ProbationRecord) {
 function urgencyStyle(urgency: ProbationRecord["urgency"]) {
   if (urgency === "overdue") return "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300";
   if (urgency === "due30") return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300";
-  if (urgency === "due60") return "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/70 dark:bg-sky-950/40 dark:text-sky-300";
+  if (urgency === "due60") return "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-900/70 dark:bg-brand-950/40 dark:text-brand-300";
   if (urgency === "missing") return "border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200";
   return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300";
 }
@@ -544,11 +536,11 @@ function FollowUpDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="follow-up-title"
-        className="flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#121212]"
+        className="flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-surface"
       >
         <header className="flex items-start justify-between gap-3 px-3 pb-1.5 pt-2.5 dark:border-white/10">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400">
               <CalendarCheck2 className="size-3.5" />
               Probation Follow-up
             </div>
@@ -574,7 +566,7 @@ function FollowUpDialog({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                <span className="text-[10px] font-bold uppercase text-sky-600 dark:text-sky-400">ผู้ถูกติดตาม</span>
+                <span className="text-[10px] font-bold uppercase text-brand-600 dark:text-brand-400">ผู้ถูกติดตาม</span>
                 <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">ID {record.employee.id}</span>
               </div>
               <p className="text-xs font-bold leading-snug text-slate-950 dark:text-white">
@@ -623,7 +615,7 @@ function FollowUpDialog({
                       onChange={(event) => updateEntry(slot, { date: event.target.value })}
                       disabled={savingSlot !== null}
                       aria-label={`วันที่ติดตามครั้งที่ ${slot}`}
-                      className="h-8 w-full min-w-0 rounded-md border border-slate-300 bg-white px-2.5 text-xs text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                      className="h-8 w-full min-w-0 rounded-md border border-slate-300 bg-white px-2.5 text-xs text-slate-950 outline-none focus:border-brand-500 disabled:opacity-60 dark:border-white/15 dark:bg-surface dark:text-white"
                     />
                   </label>
 
@@ -638,17 +630,17 @@ function FollowUpDialog({
                         disabled={savingSlot !== null}
                         placeholder="เช่น 05283"
                         aria-label={`รหัสพนักงานผู้ติดตามครั้งที่ ${slot}`}
-                        className="h-8 w-full min-w-0 rounded-md border border-slate-300 bg-white px-2.5 pr-8 text-xs text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                        className="h-8 w-full min-w-0 rounded-md border border-slate-300 bg-white px-2.5 pr-8 text-xs text-slate-950 outline-none focus:border-brand-500 disabled:opacity-60 dark:border-white/15 dark:bg-surface dark:text-white"
                       />
                       {isLookingUp && (
-                        <RefreshCw className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-sky-500" />
+                        <RefreshCw className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-brand-500" />
                       )}
                     </span>
                   </label>
                 </div>
 
                 {evaluator && (
-                  <div className="mt-2 border-l-2 border-sky-500 pl-2 text-xs">
+                  <div className="mt-2 border-l-2 border-brand-500 pl-2 text-xs">
                     <p className="font-semibold leading-tight text-slate-950 dark:text-white">
                       {evaluator.name}{evaluator.nameEn ? ` / ${evaluator.nameEn}` : ""}
                     </p>
@@ -668,7 +660,7 @@ function FollowUpDialog({
                     onChange={(event) => updateEntry(slot, { comment: event.target.value })}
                     disabled={savingSlot !== null}
                     aria-label={`Comment การติดตามครั้งที่ ${slot}`}
-                    className="block min-h-14 w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs leading-5 text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                    className="block min-h-14 w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs leading-5 text-slate-950 outline-none focus:border-brand-500 disabled:opacity-60 dark:border-white/15 dark:bg-surface dark:text-white"
                   />
                 </label>
 
@@ -678,7 +670,7 @@ function FollowUpDialog({
                       <button
                         type="button"
                         onClick={() => void viewImage(slot)}
-                        className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-sky-700 hover:bg-sky-50 dark:text-sky-300 dark:hover:bg-sky-950/30"
+                        className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-950/30"
                         title={entry.attachmentName || "ดูรูปเดิม"}
                         aria-label={`ดูรูปเดิมการติดตามครั้งที่ ${slot}`}
                       >
@@ -891,11 +883,11 @@ function BulkFollowUpDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="bulk-follow-up-title"
-        className="flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#121212]"
+        className="flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-surface"
       >
         <header className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-white/10">
           <div>
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400">
               <CalendarCheck2 className="size-3.5" />
               Probation Follow-up
             </div>
@@ -922,7 +914,7 @@ function BulkFollowUpDialog({
                 value={slot}
                 onChange={(event) => setSlot(Number(event.target.value) as FollowUpSlot)}
                 disabled={isSaving}
-                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-sky-500 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-brand-500 dark:border-white/15 dark:bg-surface dark:text-white"
               >
                 <option value={1}>ครั้งที่ 1</option>
                 <option value={2}>ครั้งที่ 2</option>
@@ -937,7 +929,7 @@ function BulkFollowUpDialog({
                 max={todayDateOnly()}
                 onChange={(event) => setFollowUpDate(event.target.value)}
                 disabled={isSaving}
-                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-sky-500 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-brand-500 dark:border-white/15 dark:bg-surface dark:text-white"
               />
             </label>
           </div>
@@ -950,14 +942,14 @@ function BulkFollowUpDialog({
                 onChange={(event) => scheduleEvaluatorLookup(event.target.value)}
                 disabled={isSaving}
                 placeholder="เช่น 05283"
-                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-950 outline-none focus:border-sky-500 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-950 outline-none focus:border-brand-500 dark:border-white/15 dark:bg-surface dark:text-white"
               />
-              {isLookingUp && <RefreshCw className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-sky-500" />}
+              {isLookingUp && <RefreshCw className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-brand-500" />}
             </span>
           </label>
 
           {evaluator && (
-            <div className="border-l-2 border-sky-500 pl-2 text-xs">
+            <div className="border-l-2 border-brand-500 pl-2 text-xs">
               <p className="font-semibold text-slate-950 dark:text-white">
                 {evaluator.name}{evaluator.nameEn ? ` / ${evaluator.nameEn}` : ""}
               </p>
@@ -977,7 +969,7 @@ function BulkFollowUpDialog({
               onChange={(event) => setComments((current) => ({ ...current, [slot]: event.target.value }))}
               disabled={isSaving}
               aria-label={`Comment การติดตามครั้งที่ ${slot} สำหรับพนักงานที่เลือก`}
-              className="block w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-sky-500 disabled:opacity-60 dark:border-white/15 dark:bg-[#0a0a0a] dark:text-white"
+              className="block w-full min-w-0 resize-y rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-brand-500 disabled:opacity-60 dark:border-white/15 dark:bg-surface dark:text-white"
             />
           </label>
 
@@ -1584,7 +1576,7 @@ export default function ProbationPage() {
             <KpiCard label="ทดลองงานทั้งหมด" value={counts.total} helper="Active & Probation" icon={Users} tone="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" />
             <KpiCard label="เลยกำหนด" value={counts.overdue} helper="ต้องติดตามทันที" icon={AlertTriangle} tone="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" />
             <KpiCard label="30 วัน" value={counts.due30} helper="ใกล้ครบกำหนด" icon={Clock3} tone="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" />
-            <KpiCard label="60 วัน" value={counts.due60} helper="เตรียมการประเมิน" icon={CalendarClock} tone="bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300" />
+            <KpiCard label="60 วัน" value={counts.due60} helper="เตรียมการประเมิน" icon={CalendarClock} tone="bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300" />
             <KpiCard label="ข้อมูลไม่ครบ" value={counts.missing} helper="ไม่มีวันที่ใช้อ้างอิง" icon={CircleAlert} tone="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300" />
           </section>
         )}
