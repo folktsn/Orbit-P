@@ -30,6 +30,7 @@
 .heroCopy h2 > span { color: var(--muted); }
 .liveHeadcount { display: block; }
 .headcountNumber { display: block; font-variant-numeric: tabular-nums; letter-spacing: -.045em; }
+.headcountAccessible { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .headcountCaption { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; font-size: 11px; font-weight: 400; line-height: 1.6; letter-spacing: .025em; }
 .headcountStatus { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; }
 .headcountStatus i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .5; }

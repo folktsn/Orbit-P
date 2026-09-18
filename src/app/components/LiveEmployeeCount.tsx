@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { HeadcountSnapshot } from "@/lib/employee-headcount";
+import { CountUp } from "./CountUp";
 import styles from "../dashboard.module.css";
 
 type CountState = { snapshot: HeadcountSnapshot | null; status: "loading" | "live" | "auto" | "error" | "restricted" };
@@ -15,7 +16,7 @@ function parseSnapshot(value: unknown): HeadcountSnapshot {
   return { count: data.count, updatedAt: data.updatedAt };
 }
 
-export function LiveEmployeeCount({ allowed }: { allowed: boolean }) {
+export function LiveEmployeeCount({ allowed, reducedMotion = false }: { allowed: boolean; reducedMotion?: boolean }) {
   const [result, setResult] = useState<CountState>(initialState);
 
   useEffect(() => {
@@ -110,7 +111,10 @@ export function LiveEmployeeCount({ allowed }: { allowed: boolean }) {
 
   return (
     <span className={styles.liveHeadcount} data-status={status} data-updated-at={snapshot?.updatedAt} title={updated ? `Last updated ${updated} (Thailand time)` : undefined}>
-      <span className={styles.headcountNumber} aria-live="polite" aria-atomic="true" aria-label={snapshot ? `${snapshot.count.toLocaleString("en-US")} total employees` : "Employee count unavailable"}>{snapshot ? snapshot.count.toLocaleString("en-US") : "—"}</span>
+      <span className={styles.headcountNumber}>
+        {snapshot ? <CountUp value={snapshot.count} reducedMotion={reducedMotion} /> : <span aria-hidden="true">—</span>}
+        <span className={styles.headcountAccessible} aria-live="polite" aria-atomic="true">{snapshot ? `${snapshot.count.toLocaleString("en-US")} total employees` : "Employee count unavailable"}</span>
+      </span>
       <span className={styles.headcountCaption}>Total employees<span className={styles.headcountStatus}><i aria-hidden="true" />{statusText}</span></span>
     </span>
   );
