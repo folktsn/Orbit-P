@@ -112,7 +112,7 @@
   white-space: nowrap;
 }
 
-.pill-nav .pill.is-active {
+.pill-nav .nav-item.pill.is-active {
   background: var(--ui-action);
   color: var(--ui-action-text);
   transform: none;
