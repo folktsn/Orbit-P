@@ -13,8 +13,6 @@
     --ui-action: #151515;
     --ui-action-text: #fcfcfa;
     --ui-status: #328273;
-    --scrollbar-thumb: #c4c4bd;
-    --scrollbar-thumb-hover: #95958e;
   }
 
   :root.dark {
@@ -28,34 +26,18 @@
     --ui-action: #f0f0ec;
     --ui-action-text: #181818;
     --ui-status: #80bbab;
-    --scrollbar-thumb: #4e4e49;
-    --scrollbar-thumb-hover: #73736d;
   }
 
+  /* Hide scrollbar chrome while preserving native scrolling and keyboard access. */
   * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) transparent;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  *::-webkit-scrollbar-track,
-  *::-webkit-scrollbar-corner {
-    background: transparent;
-  }
-
-  *::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
-    border-radius: 999px;
-    background: var(--scrollbar-thumb);
-    background-clip: padding-box;
-  }
-
-  *::-webkit-scrollbar-thumb:hover {
-    background-color: var(--scrollbar-thumb-hover);
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   html {
