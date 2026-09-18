@@ -4,7 +4,8 @@ import { memo, useCallback, useState, useEffect, useMemo, useRef } from "react";
 import { Briefcase, Building2, MapPin, ChevronRight, AlertCircle, Clock, Calendar, SearchX } from "lucide-react";
 import { EmployeeProfileDrawer, EmployeeData } from "./EmployeeProfileDrawer";
 import { EmployeeAge } from "./EmployeeAge";
-import { getEmployeeAge } from "../lib/age";
+import { getEmployeeAge, getEmployeeToday } from "../lib/age";
+import { getActiveEmployees } from "../lib/employment";
 import { useEmployeeToday } from "../lib/useEmployeeToday";
 import { getPayrollSheets, getNewJoinEmployees, type PayrollOffset } from "../lib/payroll";
 import { NewJoinSheets } from "./NewJoinSheets";
@@ -302,7 +303,7 @@ export const EmployeeList = memo(function EmployeeList({
               section: getDualLanguage(item.section_th, item.section_en, item.section),
               unit: getDualLanguage(item.unit_th, item.unit_en, item.unit),
               supervisor: item.supervisor || "-",
-              status: item.status || "Active",
+              status: cleanProfileValue(item.status) || cleanProfileValue(item.resign_status) || "Active",
               empType: isContractor ? "Contractor" : (item.emp_type || "Normal"),
               contractStart: item.start_date || item.hire_date || item.contractStart || "-",
               contractEnd: item.contractEnd || "-",
@@ -400,7 +401,7 @@ export const EmployeeList = memo(function EmployeeList({
 
     // Filter by activeTab first
     if (activeTab === "active") {
-      result = result.filter(emp => emp.status && emp.status.trim().toLowerCase() === "active");
+      result = getActiveEmployees(result, todayDate || getEmployeeToday());
       
       // Calculate remaining probation days if they are on probation
       result = result.map(emp => {
